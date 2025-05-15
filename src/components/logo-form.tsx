@@ -48,6 +48,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       preferredLogoStyle: "",
       iconPlacement: "",
       fontStyle: "",
+      iconComplexity: "",
       numberOfLogos: 4,
     },
   });
@@ -241,28 +242,51 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 )}
               />
             </div>
-             <FormField
-              control={form.control}
-              name="numberOfLogos"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Number of Logos to Generate</FormLabel>
-                  <FormControl>
-                    <Input
-                      type="number"
-                      min="1"
-                      max="8"
-                      {...field}
-                      onChange={event => field.onChange(+event.target.value)} // Ensure value is a number
-                     />
-                  </FormControl>
-                  <FormDescription>
-                    Choose between 1 and 8 logos.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="iconComplexity"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Icon Complexity (Optional)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select icon complexity" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="simple">Simple: Clean lines, minimal detail</SelectItem>
+                        <SelectItem value="detailed">Detailed: More intricate, elaborate</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="numberOfLogos"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Number of Logos to Generate</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="1"
+                        max="8"
+                        {...field}
+                        onChange={event => field.onChange(+event.target.value)} // Ensure value is a number
+                       />
+                    </FormControl>
+                    <FormDescription>
+                      Choose between 1 and 8 logos.
+                    </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
             <Button type="submit" className="w-full" disabled={isLoading}>
               {isLoading ? (
                 <>

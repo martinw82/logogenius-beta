@@ -1,3 +1,4 @@
+
 'use server';
 
 /**
@@ -19,6 +20,7 @@ const RefineLogoGenerationInputSchema = z.object({
   logoStyle: z.string().optional().describe('Preferred logo style.'),
   iconPlacement: z.string().optional().describe('Preferred icon placement.'),
   fontStyle: z.string().optional().describe('Preferred font style.'),
+  iconComplexity: z.string().optional().describe('Preferred icon complexity (e.g., simple, detailed).'),
   feedback: z
     .union([
       z.literal('thumbs_up'),
@@ -54,10 +56,11 @@ const prompt = ai.definePrompt({
   {{#if logoStyle}}Logo Style: {{{logoStyle}}}{{/if}}
   {{#if iconPlacement}}Icon Placement: {{{iconPlacement}}}{{/if}}
   {{#if fontStyle}}Font Style: {{{fontStyle}}}{{/if}}
+  {{#if iconComplexity}}Icon Complexity: {{{iconComplexity}}}{{/if}}
 
   Based on the feedback and all available parameters, refine the prompt to generate a better logo.
   The refined prompt should be detailed and specific.
-  It should incorporate all relevant fields: business name, keywords, industry, color palette, logo style, icon placement, and font style.
+  It should incorporate all relevant fields: business name, keywords, industry, color palette, logo style, icon placement, font style, and icon complexity.
 
   Return the refined prompt.
   `,

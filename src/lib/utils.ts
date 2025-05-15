@@ -1,3 +1,4 @@
+
 import { clsx, type ClassValue } from "clsx"
 import { twMerge } from "tailwind-merge"
 import type { GenerateLogoConceptsInput } from '@/ai/flows/generate-logo-concepts';
@@ -21,6 +22,9 @@ export function constructBasePrompt(input: Omit<GenerateLogoConceptsInput, 'numb
   }
   if (input.fontStyle) {
     prompt += ` Font style: ${input.fontStyle}.`;
+  }
+  if (input.iconComplexity) {
+    prompt += ` Icon complexity: ${input.iconComplexity}.`;
   }
   return prompt;
 }

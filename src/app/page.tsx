@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -82,7 +83,8 @@ export default function HomePage() {
       colorPalette: generationInput.preferredColorPalette,
       logoStyle: generationInput.preferredLogoStyle,
       iconPlacement: generationInput.iconPlacement, 
-      fontStyle: generationInput.fontStyle,       
+      fontStyle: generationInput.fontStyle,
+      iconComplexity: generationInput.iconComplexity,       
       feedback: feedbackType,
       previousPrompt: basePrompt,
     };

@@ -41,6 +41,7 @@ const GenerateLogoConceptsInputSchema = z.object({
     .optional()
     .describe('Optional preferred placement of the icon relative to the text.'),
   fontStyle: z.string().optional().describe('Optional preferred font style (e.g., modern sans-serif, elegant script).'),
+  iconComplexity: z.enum(['simple', 'detailed']).optional().describe('Optional preferred icon complexity (e.g., simple, detailed).'),
   numberOfLogos: z.number().default(4).describe('Number of logos to generate'),
 });
 
@@ -89,6 +90,10 @@ The preferred icon placement is: {{iconPlacement}}.
 The preferred font style is: {{fontStyle}}.
 {{/if}}
 
+{{#if iconComplexity}}
+The preferred icon complexity is: {{iconComplexity}}.
+{{/if}}
+
 Please generate {{numberOfLogos}} logo variations.
 Output array of URLs for generated images in the format { "logoUrls": ["url1", "url2", "url3", "url4"] }.
 `,
@@ -116,6 +121,10 @@ const generateLogoConceptsFlow = ai.defineFlow(
     if (input.fontStyle) {
       baseImagePrompt += ` Font style: ${input.fontStyle}.`;
     }
+    if (input.iconComplexity) {
+      baseImagePrompt += ` Icon complexity: ${input.iconComplexity}.`;
+    }
+
 
     for (let i = 0; i < input.numberOfLogos; i++) {
       // Add a variation instruction for subsequent logos if needed
