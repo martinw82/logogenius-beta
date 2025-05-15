@@ -10,7 +10,7 @@ import { generateLogoConcepts, type GenerateLogoConceptsInput } from "@/ai/flows
 import { refineLogoGeneration, type RefineLogoGenerationInput } from "@/ai/flows/refine-logo-generation";
 import { useToast } from "@/hooks/use-toast";
 import { constructBasePrompt, uuidv4 } from "@/lib/utils";
-import { Sparkles } from "lucide-react"; // Changed from Lightbulb
+// import { Sparkles } from "lucide-react"; // No longer needed if only used for PageHeader icon
 import { ApiKeyInput } from "@/components/api-key-input";
 
 const API_KEY_STORAGE_KEY = "userGoogleApiKey";
@@ -22,16 +22,14 @@ export default function HomePage() {
   const [loadingFeedbackFor, setLoadingFeedbackFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expectedLogoCount, setExpectedLogoCount] = useState<number>(4);
-  const [userApiKey, setUserApiKey] = useState<string | null>(null); // Not strictly needed here anymore as we read from localStorage directly
+  const [userApiKey, setUserApiKey] = useState<string | null>(null); 
 
   useEffect(() => {
-    // Pre-fill API key if stored, useful if ApiKeyInput component isn't immediately visible
     const storedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
     if (storedApiKey) {
-      setUserApiKey(storedApiKey); // Can still set this for other potential uses, though flows read directly
+      setUserApiKey(storedApiKey); 
     }
 
-    // Listen for changes to API key in localStorage from other tabs/windows or the ApiKeyInput component itself
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === API_KEY_STORAGE_KEY) {
         setUserApiKey(event.newValue);
@@ -73,7 +71,7 @@ export default function HomePage() {
           logos: result.logoUrls.map(url => ({ id: uuidv4(), url })),
           generationInput: {
             ...aiInput,
-            userApiKey: undefined // Ensure API key is not stored in the batch
+            userApiKey: undefined 
           },
           basePrompt: constructBasePrompt(aiInput),
         };
@@ -105,15 +103,15 @@ export default function HomePage() {
   };
 
   const handleFeedback = async (
-    logoId: string, // Changed to logoId from targetLogoBatch for more direct use if needed
+    logoId: string, 
     feedbackType: "thumbs_up" | "thumbs_down"
   ) => {
-    if (!logoBatch) return; // Use the logoBatch from state
+    if (!logoBatch) return; 
 
     setLoadingFeedbackFor(logoId);
     setError(null);
 
-    const { generationInput, basePrompt } = logoBatch; // Use logoBatch from state
+    const { generationInput, basePrompt } = logoBatch; 
     const currentApiKey = getApiKey();
 
     const refineInput: RefineLogoGenerationInput = {
@@ -174,7 +172,8 @@ export default function HomePage() {
         <PageHeader
           title="LogoGenius"
           description="Let AI craft the perfect logo for your brand. Describe your vision, and watch concepts come to life."
-          icon={Sparkles} // Changed from Lightbulb
+          imageUrl="/logogenius-logo.png" 
+          imageAlt="LogoGenius App Logo"
         />
 
         <LogoForm onSubmit={handleGenerateLogos} isLoading={isLoading} />
