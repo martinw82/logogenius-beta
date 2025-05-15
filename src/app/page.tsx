@@ -1,16 +1,16 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { LogoForm } from "@/components/logo-form";
 import { LogoGallery } from "@/components/logo-gallery";
 import { PageHeader } from "@/components/page-header";
-import type { LogoBatch } from "@/types";
+import { BrandSheet } from "@/components/brand-sheet";
+import type { Logo, LogoBatch } from "@/types";
 import { generateLogoConcepts, type GenerateLogoConceptsInput } from "@/ai/flows/generate-logo-concepts";
 import { refineLogoGeneration, type RefineLogoGenerationInput } from "@/ai/flows/refine-logo-generation";
 import { useToast } from "@/hooks/use-toast";
 import { constructBasePrompt, uuidv4 } from "@/lib/utils";
-// import { Sparkles } from "lucide-react"; // No longer needed if only used for PageHeader icon
 import { ApiKeyInput } from "@/components/api-key-input";
 
 const API_KEY_STORAGE_KEY = "userGoogleApiKey";
@@ -23,6 +23,9 @@ export default function HomePage() {
   const [error, setError] = useState<string | null>(null);
   const [expectedLogoCount, setExpectedLogoCount] = useState<number>(4);
   const [userApiKey, setUserApiKey] = useState<string | null>(null); 
+  const [selectedLogoForBrandSheet, setSelectedLogoForBrandSheet] = useState<Logo | null>(null);
+  const brandSheetRef = useRef<HTMLDivElement>(null);
+
 
   useEffect(() => {
     const storedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
@@ -55,6 +58,7 @@ export default function HomePage() {
     setIsLoading(true);
     setError(null);
     setLogoBatch(null);
+    setSelectedLogoForBrandSheet(null); // Clear previous selection
     setExpectedLogoCount(aiInput.numberOfLogos || 4);
 
     const currentApiKey = getApiKey();
@@ -70,8 +74,8 @@ export default function HomePage() {
           id: uuidv4(),
           logos: result.logoUrls.map(url => ({ id: uuidv4(), url })),
           generationInput: {
-            ...aiInput,
-            userApiKey: undefined 
+            ...aiInput, // Store the complete input used for generation
+            userApiKey: undefined // Don't store API key in the batch
           },
           basePrompt: constructBasePrompt(aiInput),
         };
@@ -166,6 +170,14 @@ export default function HomePage() {
     }
   };
 
+  const handleSelectLogoForBrandSheet = (logo: Logo) => {
+    setSelectedLogoForBrandSheet(logo);
+    // Scroll to the brand sheet after a short delay to allow rendering
+    setTimeout(() => {
+      brandSheetRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 100);
+  };
+
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
@@ -187,10 +199,20 @@ export default function HomePage() {
         <LogoGallery
           logoBatch={logoBatch}
           onFeedback={(logoId, feedbackType) => handleFeedback(logoId, feedbackType)}
+          onSelectLogoForBrandSheet={handleSelectLogoForBrandSheet}
           loadingFeedbackFor={loadingFeedbackFor}
           isLoading={isLoading}
           expectedLogoCount={expectedLogoCount}
         />
+
+        {selectedLogoForBrandSheet && logoBatch && (
+          <div ref={brandSheetRef} className="mt-12">
+            <BrandSheet 
+              selectedLogo={selectedLogoForBrandSheet} 
+              brandDetails={logoBatch.generationInput} 
+            />
+          </div>
+        )}
 
         <div className="mt-12">
            <ApiKeyInput />

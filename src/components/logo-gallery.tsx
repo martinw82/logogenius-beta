@@ -1,3 +1,4 @@
+
 "use client";
 
 import type { Logo, LogoBatch } from "@/types";
@@ -6,6 +7,7 @@ import { LogoCard, LogoSkeletonCard } from "./logo-card";
 interface LogoGalleryProps {
   logoBatch: LogoBatch | null;
   onFeedback: (logoBatchId: string, feedback: "thumbs_up" | "thumbs_down") => void;
+  onSelectLogoForBrandSheet: (logo: Logo) => void;
   loadingFeedbackFor: string | null; 
   isLoading: boolean; 
   expectedLogoCount?: number; 
@@ -14,6 +16,7 @@ interface LogoGalleryProps {
 export function LogoGallery({
   logoBatch,
   onFeedback,
+  onSelectLogoForBrandSheet,
   loadingFeedbackFor,
   isLoading,
   expectedLogoCount = 4, 
@@ -34,8 +37,6 @@ export function LogoGallery({
   }
 
   if (!logoBatch || logoBatch.logos.length === 0) {
-    // Optionally, show a message if the form has been submitted but no logos are available yet (e.g. still loading but logoBatch exists)
-    // For now, returning null if no logos to display, which is fine if skeletons handle the loading state.
     return null;
   }
 
@@ -47,7 +48,8 @@ export function LogoGallery({
           <LogoCard
             key={logo.id}
             logo={logo}
-            onFeedback={(feedbackType) => onFeedback(logo.id, feedbackType)} // Pass logo.id for specific feedback if needed by handleFeedback
+            onFeedback={(feedbackType) => onFeedback(logo.id, feedbackType)}
+            onSelectForBrandSheet={onSelectLogoForBrandSheet}
             isFeedbackLoading={loadingFeedbackFor === logo.id}
             businessName={logoBatch.generationInput.businessName}
           />
