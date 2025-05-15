@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { LogoFormData } from "./logo-form-types";
-import { logoFormSchema, mapFormDataToAiInput } from "./logo-form-types";
+import { logoFormSchema, mapFormDataToAiInput, brandArchetypes } from "./logo-form-types";
 import type { GenerateLogoConceptsInput } from "@/ai/flows/generate-logo-concepts";
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
@@ -42,15 +42,20 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings } from "lucide-react";
+import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit } from "lucide-react";
 
 interface LogoFormProps {
-  onSubmit: (data: GenerateLogoConceptsInput) => Promise<void>;
+  onSubmit: (data: GenerateLogoConceptsInput & { // Ensure onSubmit can receive the extended data
+    missionStatement?: string;
+    brandPillars?: string;
+    brandArchetype?: string;
+    keyTagline?: string;
+  }) => Promise<void>;
   isLoading: boolean;
   initialValues?: Partial<LogoFormData>;
 }
 
-const FORM_SETTINGS_KEY = "logoFormSettingsV1";
+const FORM_SETTINGS_KEY = "logoFormSettingsV2"; // Increment version due to new fields
 
 export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) {
   const { toast } = useToast();
@@ -77,6 +82,10 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       variationInstructions: "",
       numberOfLogos: 4,
       referenceImageFile: null,
+      missionStatement: "",
+      brandPillars: "",
+      brandArchetype: "",
+      keyTagline: "",
     },
   });
 
@@ -179,7 +188,6 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
           throw new Error("File content is not readable text.");
         }
         const importedData = JSON.parse(text);
-        // Basic validation: check for a known key to ensure it's somewhat valid
         if (!importedData || typeof importedData.businessName === 'undefined') {
             throw new Error("Invalid settings file format.");
         }
@@ -196,7 +204,6 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
           variant: "destructive",
         });
       } finally {
-        // Reset file input value to allow importing the same file again
         if (fileInputRef.current) {
           fileInputRef.current.value = "";
         }
@@ -223,14 +230,16 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
           <Wand2 className="w-6 h-6 text-primary" />
           Describe Your Brand
         </CardTitle>
-        <CardDescription>Fill in the details below to generate logo concepts.</CardDescription>
+        <CardDescription>Fill in the details below to generate logo concepts and brand narratives.</CardDescription>
       </CardHeader>
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-            <Accordion type="multiple" defaultValue={["basic-info", "brand-keywords", "visual-prefs"]} className="w-full space-y-4">
+            <Accordion type="multiple" defaultValue={["basic-info", "brand-keywords"]} className="w-full space-y-4">
               <AccordionItem value="basic-info" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
-                <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline">Basic Information</AccordionTrigger>
+                <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline flex items-center gap-2">
+                  <BookOpen className="w-5 h-5 text-primary/80" /> Basic Information
+                </AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <FormField
                     control={form.control}
@@ -275,8 +284,94 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 </AccordionContent>
               </AccordionItem>
 
+              <AccordionItem value="brand-strategy" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
+                <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline flex items-center gap-2">
+                  <BrainCircuit className="w-5 h-5 text-primary/80" /> Brand Strategy (Optional)
+                </AccordionTrigger>
+                <AccordionContent className="pt-4 space-y-6">
+                   <FormDescription>
+                    Define core strategic elements for your brand narrative.
+                  </FormDescription>
+                  <FormField
+                    control={form.control}
+                    name="missionStatement"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Mission Statement</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="e.g., To empower creators with innovative tools..."
+                            className="resize-none"
+                            rows={3}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="brandPillars"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Brand Pillars</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="e.g., Innovation, Customer-centricity, Sustainability"
+                            className="resize-none"
+                            rows={2}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>Comma-separated core values or principles.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
+                    control={form.control}
+                    name="brandArchetype"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Brand Archetype</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select an archetype (optional)" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {brandArchetypes.map(archetype => (
+                              <SelectItem key={archetype} value={archetype}>{archetype}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>Defines brand personality and narrative style.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="keyTagline"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Key Tagline</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Create. Inspire. Innovate." {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </AccordionContent>
+              </AccordionItem>
+
               <AccordionItem value="brand-keywords" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
-                <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline">Brand Keywords</AccordionTrigger>
+                <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline flex items-center gap-2">
+                 <MessageSquare className="w-5 h-5 text-primary/80" /> Brand Keywords
+                </AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <FormDescription>
                     Describe your brand identity using keywords. (e.g., modern, minimalist, friendly, bold)
@@ -339,7 +434,9 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
               </AccordionItem>
 
               <AccordionItem value="visual-prefs" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
-                <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline">Visual Preferences</AccordionTrigger>
+                <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline flex items-center gap-2">
+                  <Palette className="w-5 h-5 text-primary/80" /> Visual Preferences
+                </AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <FormField
                     control={form.control}
@@ -496,12 +593,14 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
               </AccordionItem>
 
               <AccordionItem value="advanced-details" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
-                <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline">Advanced Details & Context</AccordionTrigger>
+                <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline flex items-center gap-2">
+                  <Feather className="w-5 h-5 text-primary/80" /> Advanced Details & Context
+                </AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <FormField
                     control={form.control}
                     name="referenceImageFile"
-                    render={({ field: { onChange, onBlur, name, ref } }) => ( 
+                    render={({ field: { onChange, value, onBlur, name, ref } }) => (
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
                           <FileImage className="w-4 h-4" />
@@ -520,6 +619,11 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             className="pt-2"
                           />
                         </FormControl>
+                        {value && typeof value === 'object' && (
+                          <FormDescription className="mt-1 text-xs">
+                            Current file: {(value as File).name}
+                          </FormDescription>
+                        )}
                         <FormDescription>Upload an existing sketch, character, or logo for inspiration.</FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -590,7 +694,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         <FormLabel>Things to Avoid (Optional)</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="e.g., No gradients, avoid cartoonish elements, not too corporate, avoid complex details."
+                            placeholder="e.g., No gradients, avoid cartoonish elements, not too corporate, avoid complex details, avoid using X, Y, Z."
                             className="resize-none"
                             rows={3}
                             {...field}
@@ -605,7 +709,9 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
               </AccordionItem>
 
               <AccordionItem value="gen-settings" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
-                <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline">Generation Settings</AccordionTrigger>
+                <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline flex items-center gap-2">
+                   <SlidersHorizontal className="w-5 h-5 text-primary/80" /> Generation Settings
+                </AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <FormField
                     control={form.control}
@@ -685,12 +791,12 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
-                   <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    onChange={handleImportFromFile} 
-                    accept=".json" 
-                    className="hidden" 
+                   <input
+                    type="file"
+                    ref={fileInputRef}
+                    onChange={handleImportFromFile}
+                    accept=".json"
+                    className="hidden"
                   />
                 </CardContent>
               </Card>
@@ -704,7 +810,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                   Generating...
                 </>
               ) : (
-                "Generate Logos"
+                "Generate Logos & Brand Narrative"
               )}
             </Button>
           </form>
@@ -713,5 +819,3 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     </Card>
   );
 }
-
-    

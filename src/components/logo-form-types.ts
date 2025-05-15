@@ -2,6 +2,12 @@
 import { z } from 'zod';
 import type { GenerateLogoConceptsInput } from '@/ai/flows/generate-logo-concepts';
 
+export const brandArchetypes = [
+  "The Innocent", "The Everyman", "The Hero", "The Outlaw", "The Explorer",
+  "The Creator", "The Ruler", "The Magician", "The Lover", "The Caregiver",
+  "The Jester", "The Sage"
+] as const;
+
 export const logoFormSchema = z.object({
   businessName: z.string().min(1, "Business name is required.").max(100, "Business name too long."),
   industry: z.string().min(1, "Industry is required.").max(100, "Industry too long."),
@@ -33,6 +39,13 @@ export const logoFormSchema = z.object({
   variationInstructions: z.string().max(200, "Variation instructions too long (max 200 chars).").optional().describe('Instructions on how the generated variations should differ.'),
   numberOfLogos: z.coerce.number().min(1, "Generate at least 1 logo.").max(8, "Cannot generate more than 8 logos at a time.").default(4),
   referenceImageFile: z.instanceof(File).optional().nullable().describe("Optional reference image file."),
+
+  // New fields for Brand Guide
+  missionStatement: z.string().max(500, "Mission statement too long (max 500 chars).").optional(),
+  brandPillars: z.string().max(300, "Brand pillars description too long (max 300 chars).").optional().describe("e.g., Innovation, Customer-centricity, Sustainability"),
+  brandArchetype: z.enum(['', ...brandArchetypes]).default('').optional(),
+  keyTagline: z.string().max(150, "Key tagline too long (max 150 chars).").optional(),
+
 }).refine(data => data.aestheticKeywords || data.emotionalKeywords || data.functionalKeywords, {
   message: "Please provide keywords for at least one category (Aesthetic, Emotional, or Functional).",
   path: ["aestheticKeywords"],
@@ -41,7 +54,12 @@ export const logoFormSchema = z.object({
 
 export type LogoFormData = z.infer<typeof logoFormSchema>;
 
-export async function mapFormDataToAiInput(formData: LogoFormData): Promise<GenerateLogoConceptsInput> {
+export async function mapFormDataToAiInput(formData: LogoFormData): Promise<GenerateLogoConceptsInput & {
+  missionStatement?: string;
+  brandPillars?: string;
+  brandArchetype?: string;
+  keyTagline?: string;
+}> {
   const {
     preferredLogoStyle,
     iconPlacement,
@@ -51,6 +69,10 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Gene
     emotionalKeywords,
     functionalKeywords,
     referenceImageFile,
+    brandArchetype, // Destructure new fields
+    missionStatement,
+    brandPillars,
+    keyTagline,
     ...rest
   } = formData;
 
@@ -76,7 +98,6 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Gene
       });
     } catch (error) {
       console.error("Error converting file to data URI:", error);
-      // Handle error or inform user; for now, URI will remain undefined
     }
   }
 
@@ -85,10 +106,15 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Gene
     keywords: combinedKeywords.trim(),
     preferredLogoStyle: preferredLogoStyle === '' ? undefined : preferredLogoStyle as GenerateLogoConceptsInput['preferredLogoStyle'],
     composition: composition === '' ? undefined : composition as GenerateLogoConceptsInput['composition'],
-    iconPlacement: iconPlacement === '' ? undefined : iconPlacement,
+    iconPlacement: iconPlacement === '' ? undefined : iconPlacement as GenerateLogoConceptsInput['iconPlacement'],
     iconComplexity: iconComplexity === '' ? undefined : iconComplexity as GenerateLogoConceptsInput['iconComplexity'],
     usageContext: formData.usageContext === '' ? undefined : formData.usageContext,
     variationInstructions: formData.variationInstructions === '' ? undefined : formData.variationInstructions,
     referenceImageDataUri,
+    // Pass through new fields
+    missionStatement: missionStatement === '' ? undefined : missionStatement,
+    brandPillars: brandPillars === '' ? undefined : brandPillars,
+    brandArchetype: brandArchetype === '' ? undefined : brandArchetype as typeof brandArchetypes[number],
+    keyTagline: keyTagline === '' ? undefined : keyTagline,
   };
 }

@@ -5,13 +5,17 @@ import { useState, useEffect, useRef } from "react";
 import { LogoForm } from "@/components/logo-form";
 import { LogoGallery } from "@/components/logo-gallery";
 import { PageHeader } from "@/components/page-header";
-import { BrandSheet } from "@/components/brand-sheet";
+import { BrandGuideDisplay } from "@/components/brand-guide-display"; // Changed from BrandSheet
 import type { Logo, LogoBatch } from "@/types";
-import { generateLogoConcepts, type GenerateLogoConceptsInput } from "@/ai/flows/generate-logo-concepts";
-import { refineLogoGeneration, type RefineLogoGenerationInput } from "@/ai/flows/refine-logo-generation";
+import type { GenerateLogoConceptsInput } from "@/ai/flows/generate-logo-concepts";
+import { generateLogoConcepts } from "@/ai/flows/generate-logo-concepts";
+import type { RefineLogoGenerationInput } from "@/ai/flows/refine-logo-generation";
+import { refineLogoGeneration } from "@/ai/flows/refine-logo-generation";
 import { useToast } from "@/hooks/use-toast";
 import { constructBasePrompt, uuidv4 } from "@/lib/utils";
 import { ApiKeyInput } from "@/components/api-key-input";
+import type { GenerateBrandGuideTextOutput, GenerateBrandGuideTextInput } from "@/ai/flows/generate-brand-guide-text"; // Import new types
+import { generateBrandGuideText } from "@/ai/flows/generate-brand-guide-text"; // Import new flow
 
 const API_KEY_STORAGE_KEY = "userGoogleApiKey";
 
@@ -22,15 +26,18 @@ export default function HomePage() {
   const [loadingFeedbackFor, setLoadingFeedbackFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expectedLogoCount, setExpectedLogoCount] = useState<number>(4);
-  const [userApiKey, setUserApiKey] = useState<string | null>(null); 
+  const [userApiKey, setUserApiKey] = useState<string | null>(null);
   const [selectedLogoForBrandSheet, setSelectedLogoForBrandSheet] = useState<Logo | null>(null);
+  const [brandGuideText, setBrandGuideText] = useState<GenerateBrandGuideTextOutput | null>(null);
+  const [isGeneratingBrandText, setIsGeneratingBrandText] = useState(false);
+
   const brandSheetRef = useRef<HTMLDivElement>(null);
 
 
   useEffect(() => {
     const storedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
     if (storedApiKey) {
-      setUserApiKey(storedApiKey); 
+      setUserApiKey(storedApiKey);
     }
 
     const handleStorageChange = (event: StorageEvent) => {
@@ -54,11 +61,19 @@ export default function HomePage() {
     return undefined;
   };
 
-  const handleGenerateLogos = async (aiInput: GenerateLogoConceptsInput) => {
+  const handleGenerateLogos = async (
+    aiInput: GenerateLogoConceptsInput & {
+      missionStatement?: string;
+      brandPillars?: string;
+      brandArchetype?: string;
+      keyTagline?: string;
+    }
+  ) => {
     setIsLoading(true);
     setError(null);
     setLogoBatch(null);
-    setSelectedLogoForBrandSheet(null); // Clear previous selection
+    setSelectedLogoForBrandSheet(null);
+    setBrandGuideText(null);
     setExpectedLogoCount(aiInput.numberOfLogos || 4);
 
     const currentApiKey = getApiKey();
@@ -73,16 +88,37 @@ export default function HomePage() {
         const newLogoBatch: LogoBatch = {
           id: uuidv4(),
           logos: result.logoUrls.map(url => ({ id: uuidv4(), url })),
-          generationInput: {
-            ...aiInput, // Store the complete input used for generation
-            userApiKey: undefined // Don't store API key in the batch
+          generationInput: { // Store all inputs, including new ones for brand guide
+            businessName: aiInput.businessName,
+            industry: aiInput.industry,
+            keywords: aiInput.keywords,
+            preferredColorPalette: aiInput.preferredColorPalette,
+            preferredLogoStyle: aiInput.preferredLogoStyle,
+            composition: aiInput.composition,
+            iconPlacement: aiInput.iconPlacement,
+            fontStyle: aiInput.fontStyle,
+            iconComplexity: aiInput.iconComplexity,
+            iconSpecifics: aiInput.iconSpecifics,
+            targetAudience: aiInput.targetAudience,
+            inspirationReferences: aiInput.inspirationReferences,
+            usageContext: aiInput.usageContext,
+            negativeKeywords: aiInput.negativeKeywords,
+            competitorsToAvoid: aiInput.competitorsToAvoid,
+            variationInstructions: aiInput.variationInstructions,
+            numberOfLogos: aiInput.numberOfLogos,
+            referenceImageDataUri: aiInput.referenceImageDataUri,
+            // new fields
+            missionStatement: aiInput.missionStatement,
+            brandPillars: aiInput.brandPillars,
+            brandArchetype: aiInput.brandArchetype,
+            keyTagline: aiInput.keyTagline,
           },
           basePrompt: constructBasePrompt(aiInput),
         };
         setLogoBatch(newLogoBatch);
         toast({
           title: "Logos Generated!",
-          description: `${result.logoUrls.length} new logo concepts are ready.`,
+          description: `${result.logoUrls.length} new logo concepts are ready. Select one to view brand details.`,
         });
       } else {
         setError("No logos were generated. Please try adjusting your input or API key.");
@@ -107,15 +143,15 @@ export default function HomePage() {
   };
 
   const handleFeedback = async (
-    logoId: string, 
+    logoId: string,
     feedbackType: "thumbs_up" | "thumbs_down"
   ) => {
-    if (!logoBatch) return; 
+    if (!logoBatch) return;
 
     setLoadingFeedbackFor(logoId);
     setError(null);
 
-    const { generationInput, basePrompt } = logoBatch; 
+    const { generationInput, basePrompt } = logoBatch;
     const currentApiKey = getApiKey();
 
     const refineInput: RefineLogoGenerationInput = {
@@ -151,7 +187,7 @@ export default function HomePage() {
         description: (
           <div className="flex flex-col gap-1">
             <p>Thanks! We'll use this to improve future suggestions.</p>
-            <p className="text-xs mt-1">Refined prompt idea: "${refinedResult.prompt.substring(0,100)}..."</p>
+            <p className="text-xs mt-1">Refined prompt idea: "${refinedResult.prompt.substring(0, 100)}..."</p>
           </div>
         ),
         duration: 7000,
@@ -170,9 +206,54 @@ export default function HomePage() {
     }
   };
 
-  const handleSelectLogoForBrandSheet = (logo: Logo) => {
+  const handleSelectLogoForDisplay = async (logo: Logo) => {
     setSelectedLogoForBrandSheet(logo);
-    // Scroll to the brand sheet after a short delay to allow rendering
+    setBrandGuideText(null); // Clear previous text
+    setIsGeneratingBrandText(true);
+
+    if (!logoBatch) {
+      setIsGeneratingBrandText(false);
+      return;
+    }
+    const { generationInput } = logoBatch;
+    const currentApiKey = getApiKey();
+
+    const brandTextGenInput: GenerateBrandGuideTextInput = {
+      businessName: generationInput.businessName,
+      industry: generationInput.industry,
+      keywords: generationInput.keywords,
+      selectedLogoUrl: logo.url,
+      preferredColorPalette: generationInput.preferredColorPalette,
+      fontStyle: generationInput.fontStyle,
+      missionStatement: generationInput.missionStatement,
+      brandPillars: generationInput.brandPillars,
+      brandArchetype: generationInput.brandArchetype,
+      keyTagline: generationInput.keyTagline,
+    };
+
+    if (currentApiKey) {
+      brandTextGenInput.userApiKey = currentApiKey;
+    }
+
+    try {
+      const result = await generateBrandGuideText(brandTextGenInput);
+      setBrandGuideText(result);
+      toast({
+        title: "Brand Narrative Generated",
+        description: "Additional brand details are ready.",
+      });
+    } catch (e) {
+      console.error("Error generating brand guide text:", e);
+      const errorMessage = e instanceof Error ? e.message : "An unknown error occurred.";
+      toast({
+        title: "Brand Narrative Error",
+        description: `Could not generate brand narrative: ${errorMessage}`,
+        variant: "destructive",
+      });
+    } finally {
+      setIsGeneratingBrandText(false);
+    }
+
     setTimeout(() => {
       brandSheetRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
     }, 100);
@@ -184,7 +265,7 @@ export default function HomePage() {
         <PageHeader
           title="LogoGenius"
           description="Let AI craft the perfect logo for your brand. Describe your vision, and watch concepts come to life."
-          imageUrl="/logogenius-logo.png" 
+          imageUrl="/logogenius-logo.png"
           imageAlt="LogoGenius App Logo"
         />
 
@@ -199,7 +280,7 @@ export default function HomePage() {
         <LogoGallery
           logoBatch={logoBatch}
           onFeedback={(logoId, feedbackType) => handleFeedback(logoId, feedbackType)}
-          onSelectLogoForBrandSheet={handleSelectLogoForBrandSheet}
+          onSelectLogoForBrandSheet={handleSelectLogoForDisplay}
           loadingFeedbackFor={loadingFeedbackFor}
           isLoading={isLoading}
           expectedLogoCount={expectedLogoCount}
@@ -207,9 +288,11 @@ export default function HomePage() {
 
         {selectedLogoForBrandSheet && logoBatch && (
           <div ref={brandSheetRef} className="mt-12">
-            <BrandSheet 
-              selectedLogo={selectedLogoForBrandSheet} 
-              brandDetails={logoBatch.generationInput} 
+            <BrandGuideDisplay
+              selectedLogo={selectedLogoForBrandSheet}
+              brandDetails={logoBatch.generationInput}
+              brandNarrative={brandGuideText}
+              isLoadingNarrative={isGeneratingBrandText}
             />
           </div>
         )}

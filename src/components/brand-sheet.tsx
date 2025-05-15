@@ -6,6 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import type { Logo } from "@/types";
 import type { GenerateLogoConceptsInput } from "@/ai/flows/generate-logo-concepts";
 
+// This component might be deprecated or its content moved to BrandGuideDisplay.
+// For now, keeping it as is if it's still directly used elsewhere,
+// but its primary display logic is now part of BrandGuideDisplay.
+
 interface BrandSheetProps {
   selectedLogo: Logo;
   brandDetails?: Omit<GenerateLogoConceptsInput, "userApiKey" | "numberOfLogos">;
@@ -13,14 +17,11 @@ interface BrandSheetProps {
 
 export function BrandSheet({ selectedLogo, brandDetails }: BrandSheetProps) {
   if (!brandDetails) {
-    return null; // Or some placeholder if brandDetails are essential but missing
+    return null;
   }
 
-  // Simple parsing for color palette string for display
   const parseColorPalette = (paletteString?: string) => {
     if (!paletteString) return [];
-    // Example: "Blue for trust, Gold for luxury" -> ["Blue for trust", "Gold for luxury"]
-    // Example: "Red, Green, Blue" -> ["Red", "Green", "Blue"]
     return paletteString.split(',').map(s => s.trim()).filter(s => s.length > 0);
   };
 
@@ -39,7 +40,6 @@ export function BrandSheet({ selectedLogo, brandDetails }: BrandSheetProps) {
         )}
       </CardHeader>
       <CardContent className="space-y-10 p-6 md:p-10">
-        {/* Logo Section */}
         <section>
           <h2 className="text-2xl font-semibold mb-4 border-b pb-2">Logo</h2>
           <div className="flex justify-center items-center p-6 bg-slate-100 rounded-lg shadow-inner aspect-video max-h-[300px]">
@@ -54,7 +54,6 @@ export function BrandSheet({ selectedLogo, brandDetails }: BrandSheetProps) {
           </div>
         </section>
 
-        {/* Color Palette Section */}
         {(brandDetails.preferredColorPalette || colorPaletteItems.length > 0) && (
           <section>
             <h2 className="text-2xl font-semibold mb-4 border-b pb-2">Color Palette</h2>
@@ -66,27 +65,9 @@ export function BrandSheet({ selectedLogo, brandDetails }: BrandSheetProps) {
                     <p className="italic">"{brandDetails.preferredColorPalette}"</p>
                  </div>
             )}
-            {/* 
-            Future enhancement: If actual color values (hex, rgb) were extracted or provided,
-            swatches could be rendered here. For now, displaying the descriptive text.
-            <div className="flex flex-wrap gap-4 mt-3">
-              {colorPaletteItems.map((item, index) => (
-                <div key={index} className="flex flex-col items-center">
-                  <div
-                    className="w-16 h-16 rounded-md border shadow-md"
-                    // Attempt to use item as background if it's a valid CSS color
-                    // This is very basic and might not work for descriptive names
-                    style={{ backgroundColor: item.split(' ')[0].toLowerCase() }} 
-                  />
-                  <span className="text-xs mt-1">{item}</span>
-                </div>
-              ))}
-            </div>
-            */}
           </section>
         )}
 
-        {/* Typography Section */}
         <section>
           <h2 className="text-2xl font-semibold mb-4 border-b pb-2">Typography</h2>
           {brandDetails.fontStyle && (
@@ -109,7 +90,6 @@ export function BrandSheet({ selectedLogo, brandDetails }: BrandSheetProps) {
           </div>
         </section>
 
-        {/* Other Details Section */}
         <section>
             <h2 className="text-2xl font-semibold mb-4 border-b pb-2">Additional Brand Notes</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-sm">
@@ -127,8 +107,6 @@ export function BrandSheet({ selectedLogo, brandDetails }: BrandSheetProps) {
                 {brandDetails.competitorsToAvoid && <div><span className="font-semibold">Differentiate From:</span> {brandDetails.competitorsToAvoid}</div>}
             </div>
         </section>
-
-
       </CardContent>
     </Card>
   );
