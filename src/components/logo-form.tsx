@@ -42,10 +42,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit } from "lucide-react";
+import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush } from "lucide-react";
 
 interface LogoFormProps {
-  onSubmit: (data: GenerateLogoConceptsInput & { // Ensure onSubmit can receive the extended data
+  onSubmit: (data: GenerateLogoConceptsInput & { 
     missionStatement?: string;
     brandPillars?: string;
     brandArchetype?: string;
@@ -55,7 +55,7 @@ interface LogoFormProps {
   initialValues?: Partial<LogoFormData>;
 }
 
-const FORM_SETTINGS_KEY = "logoFormSettingsV2"; // Increment version due to new fields
+const FORM_SETTINGS_KEY = "logoFormSettingsV2"; 
 
 export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) {
   const { toast } = useToast();
@@ -67,7 +67,9 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       aestheticKeywords: "",
       emotionalKeywords: "",
       functionalKeywords: "",
-      preferredColorPalette: "",
+      primaryColors: "",
+      secondaryColors: "",
+      accentColors: "",
       preferredLogoStyle: "",
       composition: "",
       iconPlacement: "",
@@ -438,23 +440,55 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                   <Palette className="w-5 h-5 text-primary/80" /> Visual Preferences
                 </AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
+                  <div className="space-y-2">
+                     <h3 className="text-sm font-medium flex items-center gap-1.5">
+                       <Paintbrush className="w-4 h-4 text-muted-foreground" />
+                       Color Palette (Optional)
+                    </h3>
+                    <FormDescription>
+                      Define your brand's color scheme. List multiple colors, comma-separated (e.g., "Red, #00FF00, Dark Blue").
+                    </FormDescription>
+                  </div>
                   <FormField
                     control={form.control}
-                    name="preferredColorPalette"
+                    name="primaryColors"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Color Preferences (1-4 Colors) (Optional)</FormLabel>
+                        <FormLabel>Primary Colors</FormLabel>
                         <FormControl>
-                          <Input placeholder="e.g., Blue (trust), Gold (luxury)" {...field} />
+                          <Textarea placeholder="e.g., Deep Indigo, Royal Blue" className="resize-none" rows={2} {...field} />
                         </FormControl>
-                        <FormDescription>
-                          List 1-4 colors. Optionally specify roles (primary/accent) or mood.
-                        </FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
                   />
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                  <FormField
+                    control={form.control}
+                    name="secondaryColors"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Secondary Colors</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="e.g., Light Grey, Cool Silver" className="resize-none" rows={2} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="accentColors"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Accent Colors</FormLabel>
+                        <FormControl>
+                          <Textarea placeholder="e.g., Teal, Vibrant Orange" className="resize-none" rows={2} {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2 pt-4">
                     <FormField
                       control={form.control}
                       name="preferredLogoStyle"
@@ -619,7 +653,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             className="pt-2"
                           />
                         </FormControl>
-                        {value && typeof value === 'object' && (
+                        {value && typeof value === 'object' && (value as File).name && (
                           <FormDescription className="mt-1 text-xs">
                             Current file: {(value as File).name}
                           </FormDescription>
@@ -694,7 +728,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         <FormLabel>Things to Avoid (Optional)</FormLabel>
                         <FormControl>
                           <Textarea
-                            placeholder="e.g., No gradients, avoid cartoonish elements, not too corporate, avoid complex details, avoid using X, Y, Z."
+                            placeholder="e.g., No gradients, avoid cartoonish elements, not too corporate, avoid using X, Y, Z, avoid complex details."
                             className="resize-none"
                             rows={3}
                             {...field}

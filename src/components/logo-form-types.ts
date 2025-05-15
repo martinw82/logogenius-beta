@@ -14,7 +14,11 @@ export const logoFormSchema = z.object({
   aestheticKeywords: z.string().max(150, "Aesthetic keywords too long (max 150 chars).").optional(),
   emotionalKeywords: z.string().max(150, "Emotional keywords too long (max 150 chars).").optional(),
   functionalKeywords: z.string().max(150, "Functional keywords too long (max 150 chars).").optional(),
-  preferredColorPalette: z.string().max(100, "Color palette description too long.").optional(),
+  
+  primaryColors: z.string().max(150, "Primary colors description too long.").optional(),
+  secondaryColors: z.string().max(150, "Secondary colors description too long.").optional(),
+  accentColors: z.string().max(150, "Accent colors description too long.").optional(),
+
   preferredLogoStyle: z.enum([
     '',
     'logomark',
@@ -69,10 +73,13 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Gene
     emotionalKeywords,
     functionalKeywords,
     referenceImageFile,
-    brandArchetype, // Destructure new fields
+    brandArchetype,
     missionStatement,
     brandPillars,
     keyTagline,
+    primaryColors,
+    secondaryColors,
+    accentColors,
     ...rest
   } = formData;
 
@@ -86,6 +93,18 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Gene
   if (functionalKeywords && functionalKeywords.trim()) {
     combinedKeywords += `Functional: ${functionalKeywords.trim()}. `;
   }
+
+  let combinedPalette = "";
+  if (primaryColors && primaryColors.trim()) {
+    combinedPalette += `Primary Colors: ${primaryColors.trim()}. `;
+  }
+  if (secondaryColors && secondaryColors.trim()) {
+    combinedPalette += `Secondary Colors: ${secondaryColors.trim()}. `;
+  }
+  if (accentColors && accentColors.trim()) {
+    combinedPalette += `Accent Colors: ${accentColors.trim()}. `;
+  }
+
 
   let referenceImageDataUri: string | undefined = undefined;
   if (referenceImageFile) {
@@ -104,6 +123,7 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Gene
   return {
     ...rest,
     keywords: combinedKeywords.trim(),
+    preferredColorPalette: combinedPalette.trim() || undefined,
     preferredLogoStyle: preferredLogoStyle === '' ? undefined : preferredLogoStyle as GenerateLogoConceptsInput['preferredLogoStyle'],
     composition: composition === '' ? undefined : composition as GenerateLogoConceptsInput['composition'],
     iconPlacement: iconPlacement === '' ? undefined : iconPlacement as GenerateLogoConceptsInput['iconPlacement'],
@@ -111,7 +131,6 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Gene
     usageContext: formData.usageContext === '' ? undefined : formData.usageContext,
     variationInstructions: formData.variationInstructions === '' ? undefined : formData.variationInstructions,
     referenceImageDataUri,
-    // Pass through new fields
     missionStatement: missionStatement === '' ? undefined : missionStatement,
     brandPillars: brandPillars === '' ? undefined : brandPillars,
     brandArchetype: brandArchetype === '' ? undefined : brandArchetype as typeof brandArchetypes[number],
