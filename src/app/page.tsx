@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LogoForm } from "@/components/logo-form";
 import { LogoGallery } from "@/components/logo-gallery";
 import { PageHeader } from "@/components/page-header";
@@ -11,6 +11,10 @@ import { refineLogoGeneration, type RefineLogoGenerationInput } from "@/ai/flows
 import { useToast } from "@/hooks/use-toast";
 import { constructBasePrompt, uuidv4 } from "@/lib/utils";
 import { Lightbulb } from "lucide-react";
+import { ApiKeyInput } from "@/components/api-key-input"; // Added import
+
+const API_KEY_STORAGE_KEY = "userGoogleApiKey";
+
 
 export default function HomePage() {
   const [logoBatch, setLogoBatch] = useState<LogoBatch | null>(null);
@@ -18,24 +22,55 @@ export default function HomePage() {
   const [loadingFeedbackFor, setLoadingFeedbackFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expectedLogoCount, setExpectedLogoCount] = useState<number>(4); // Default to 4
+  const [userApiKey, setUserApiKey] = useState<string | null>(null);
+
+  useEffect(() => {
+    const storedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
+    if (storedApiKey) {
+      setUserApiKey(storedApiKey);
+    }
+    // Listen for changes to local storage from other tabs/windows (optional)
+    const handleStorageChange = (event: StorageEvent) => {
+      if (event.key === API_KEY_STORAGE_KEY) {
+        setUserApiKey(event.newValue);
+      }
+    };
+    window.addEventListener('storage', handleStorageChange);
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
 
 
   const { toast } = useToast();
 
-  const handleGenerateLogos = async (input: GenerateLogoConceptsInput) => {
+  const getApiKey = (): string | undefined => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem(API_KEY_STORAGE_KEY) || undefined;
+    }
+    return undefined;
+  };
+
+  const handleGenerateLogos = async (formInput: Omit<GenerateLogoConceptsInput, 'userApiKey'>) => {
     setIsLoading(true);
     setError(null);
     setLogoBatch(null);
-    setExpectedLogoCount(input.numberOfLogos || 4); // Use submitted number or default
+    setExpectedLogoCount(formInput.numberOfLogos || 4);
+
+    const currentApiKey = getApiKey();
+    const finalInput: GenerateLogoConceptsInput = { ...formInput };
+    if (currentApiKey) {
+      finalInput.userApiKey = currentApiKey;
+    }
 
     try {
-      const result = await generateLogoConcepts(input);
+      const result = await generateLogoConcepts(finalInput);
       if (result.logoUrls && result.logoUrls.length > 0) {
         const newLogoBatch: LogoBatch = {
           id: uuidv4(),
           logos: result.logoUrls.map(url => ({ id: uuidv4(), url })),
-          generationInput: input, 
-          basePrompt: constructBasePrompt(input), 
+          generationInput: formInput, // Store original form input without API key for privacy/simplicity
+          basePrompt: constructBasePrompt(formInput), 
         };
         setLogoBatch(newLogoBatch);
         toast({
@@ -75,6 +110,7 @@ export default function HomePage() {
     setError(null);
 
     const { generationInput, basePrompt } = targetLogoBatch;
+    const currentApiKey = getApiKey();
 
     const refineInput: RefineLogoGenerationInput = {
       businessName: generationInput.businessName,
@@ -87,12 +123,16 @@ export default function HomePage() {
       iconComplexity: generationInput.iconComplexity,
       targetAudience: generationInput.targetAudience,
       inspirationReferences: generationInput.inspirationReferences,
-      usageContext: generationInput.usageContext, // Now a string
+      usageContext: generationInput.usageContext,
       negativeKeywords: generationInput.negativeKeywords,
-      variationInstructions: generationInput.variationInstructions, // Added field
+      variationInstructions: generationInput.variationInstructions,
       feedback: feedbackType,
       previousPrompt: basePrompt,
     };
+
+    if (currentApiKey) {
+      refineInput.userApiKey = currentApiKey;
+    }
 
     try {
       const refinedResult = await refineLogoGeneration(refineInput);
@@ -144,6 +184,10 @@ export default function HomePage() {
           isLoading={isLoading}
           expectedLogoCount={expectedLogoCount}
         />
+        
+        <div className="mt-12">
+           <ApiKeyInput />
+        </div>
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">
         © {new Date().getFullYear()} LogoGenius. All rights reserved.

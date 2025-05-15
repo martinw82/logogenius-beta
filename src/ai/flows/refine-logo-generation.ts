@@ -10,6 +10,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
 const RefineLogoGenerationInputSchema = z.object({
@@ -33,6 +35,7 @@ const RefineLogoGenerationInputSchema = z.object({
     ])
     .describe('User feedback on the previous logo generation.'),
   previousPrompt: z.string().describe('The prompt used to generate the previous logo.'),
+  userApiKey: z.string().optional().describe('Optional user-provided Google AI API key.'),
 });
 export type RefineLogoGenerationInput = z.infer<typeof RefineLogoGenerationInputSchema>;
 
@@ -45,11 +48,7 @@ export async function refineLogoGeneration(input: RefineLogoGenerationInput): Pr
   return refineLogoGenerationFlow(input);
 }
 
-const prompt = ai.definePrompt({
-  name: 'refineLogoGenerationPrompt',
-  input: {schema: RefineLogoGenerationInputSchema},
-  output: {schema: RefineLogoGenerationOutputSchema},
-  prompt: `You are an AI logo generation expert. You will refine the prompt based on user feedback and detailed parameters.
+const REFINE_PROMPT_HANDLEBARS_TEMPLATE = `You are an AI logo generation expert. You will refine the prompt based on user feedback and detailed parameters.
 
   Previous Prompt: {{{previousPrompt}}}
   Feedback: {{{feedback}}}
@@ -74,7 +73,13 @@ const prompt = ai.definePrompt({
   Consider the variation instructions if they provide insight into desired diversity or focus for a single improved concept.
 
   Return the refined prompt.
-  `,
+  `;
+
+const globallyDefinedPrompt = ai.definePrompt({
+  name: 'refineLogoGenerationPrompt',
+  input: {schema: RefineLogoGenerationInputSchema.omit({ userApiKey: true })}, // Exclude userApiKey from prompt template data
+  output: {schema: RefineLogoGenerationOutputSchema},
+  prompt: REFINE_PROMPT_HANDLEBARS_TEMPLATE,
 });
 
 const refineLogoGenerationFlow = ai.defineFlow(
@@ -83,8 +88,32 @@ const refineLogoGenerationFlow = ai.defineFlow(
     inputSchema: RefineLogoGenerationInputSchema,
     outputSchema: RefineLogoGenerationOutputSchema,
   },
-  async input => {
-    const {output} = await prompt(input);
-    return output!;
+  async (flowInput: RefineLogoGenerationInput) => {
+    let currentAi = ai;
+    const promptData = { ...flowInput };
+    // Do not pass userApiKey to the Handlebars template itself
+    if (promptData.userApiKey) {
+        delete (promptData as any).userApiKey;
+    }
+
+    if (flowInput.userApiKey) {
+      currentAi = genkit({
+        plugins: [googleAI({ apiKey: flowInput.userApiKey })],
+      });
+      
+      // Use currentAi.generate with the template string and specific model
+      const { output } = await currentAi.generate({
+        model: 'googleai/gemini-2.0-flash', // Default model for text prompts in this app
+        prompt: REFINE_PROMPT_HANDLEBARS_TEMPLATE,
+        input: promptData,
+        output: { schema: RefineLogoGenerationOutputSchema },
+        // config: globallyDefinedPrompt.config, // if any safetySettings or other configs were on the original prompt
+      });
+      return output as RefineLogoGenerationOutput; // Cast needed as generate returns candidate value
+    } else {
+      // Use the globally defined prompt object which uses the global 'ai' instance
+      const {output} = await globallyDefinedPrompt(promptData);
+      return output!;
+    }
   }
 );

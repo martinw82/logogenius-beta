@@ -14,6 +14,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
 const GenerateLogoConceptsInputSchema = z.object({
@@ -48,6 +50,7 @@ const GenerateLogoConceptsInputSchema = z.object({
   negativeKeywords: z.string().optional().describe('Optional keywords or concepts to avoid (e.g., "No gradients", "Avoid cartoonish").'),
   variationInstructions: z.string().optional().describe('Optional instructions on how the generated variations should differ (e.g., "emphasize different fonts for each").'),
   numberOfLogos: z.number().default(4).describe('Number of logos to generate'),
+  userApiKey: z.string().optional().describe('Optional user-provided Google AI API key.'),
 });
 
 export type GenerateLogoConceptsInput = z.infer<typeof GenerateLogoConceptsInputSchema>;
@@ -67,10 +70,11 @@ export async function generateLogoConcepts(
 // This Handlebars prompt is not directly used for image generation in this flow's implementation,
 // as image generation happens in a loop calling ai.generate directly.
 // It's kept for potential future use or as a reference.
-const prompt = ai.definePrompt({
+// Note: userApiKey is part of the schema but not intended for this Handlebars template.
+const generateLogoConceptsPromptObject = ai.definePrompt({
   name: 'generateLogoConceptsPrompt',
   input: {
-    schema: GenerateLogoConceptsInputSchema,
+    schema: GenerateLogoConceptsInputSchema.omit({ userApiKey: true }), // Exclude userApiKey from prompt template data
   },
   output: {
     schema: GenerateLogoConceptsOutputSchema,
@@ -130,53 +134,56 @@ const generateLogoConceptsFlow = ai.defineFlow(
     inputSchema: GenerateLogoConceptsInputSchema,
     outputSchema: GenerateLogoConceptsOutputSchema,
   },
-  async input => {
+  async (flowInput: GenerateLogoConceptsInput) => {
+    let currentAi = ai;
+    if (flowInput.userApiKey) {
+      currentAi = genkit({
+        plugins: [googleAI({ apiKey: flowInput.userApiKey })],
+      });
+    }
+
     const logoUrls: string[] = [];
-    let baseImagePrompt = `Logo concept for a business named "${input.businessName}" in the "${input.industry}" industry. Brand identity keywords: ${input.keywords}.`;
+    let baseImagePrompt = `Logo concept for a business named "${flowInput.businessName}" in the "${flowInput.industry}" industry. Brand identity keywords: ${flowInput.keywords}.`;
 
-    if (input.preferredColorPalette) {
-      baseImagePrompt += ` Preferred color palette: ${input.preferredColorPalette}.`;
+    if (flowInput.preferredColorPalette) {
+      baseImagePrompt += ` Preferred color palette: ${flowInput.preferredColorPalette}.`;
     }
-    if (input.preferredLogoStyle) {
-      baseImagePrompt += ` Preferred logo style: ${input.preferredLogoStyle}.`;
+    if (flowInput.preferredLogoStyle) {
+      baseImagePrompt += ` Preferred logo style: ${flowInput.preferredLogoStyle}.`;
     }
-    if (input.iconPlacement) {
-      baseImagePrompt += ` Icon placement: ${input.iconPlacement}.`;
+    if (flowInput.iconPlacement) {
+      baseImagePrompt += ` Icon placement: ${flowInput.iconPlacement}.`;
     }
-    if (input.fontStyle) {
-      baseImagePrompt += ` Font style: ${input.fontStyle}.`;
+    if (flowInput.fontStyle) {
+      baseImagePrompt += ` Font style: ${flowInput.fontStyle}.`;
     }
-    if (input.iconComplexity) {
-      baseImagePrompt += ` Icon complexity: ${input.iconComplexity}.`;
+    if (flowInput.iconComplexity) {
+      baseImagePrompt += ` Icon complexity: ${flowInput.iconComplexity}.`;
     }
-    if (input.targetAudience) {
-      baseImagePrompt += ` Target audience: ${input.targetAudience}.`;
+    if (flowInput.targetAudience) {
+      baseImagePrompt += ` Target audience: ${flowInput.targetAudience}.`;
     }
-    if (input.inspirationReferences) {
-      baseImagePrompt += ` Inspiration references: ${input.inspirationReferences}.`;
+    if (flowInput.inspirationReferences) {
+      baseImagePrompt += ` Inspiration references: ${flowInput.inspirationReferences}.`;
     }
-    if (input.usageContext) {
-      baseImagePrompt += ` Primary usage context: ${input.usageContext}.`;
+    if (flowInput.usageContext) {
+      baseImagePrompt += ` Primary usage context: ${flowInput.usageContext}.`;
     }
-    if (input.negativeKeywords) {
-      baseImagePrompt += ` Avoid the following: ${input.negativeKeywords}.`;
+    if (flowInput.negativeKeywords) {
+      baseImagePrompt += ` Avoid the following: ${flowInput.negativeKeywords}.`;
     }
 
-
-    for (let i = 0; i < input.numberOfLogos; i++) {
+    for (let i = 0; i < flowInput.numberOfLogos; i++) {
       let imagePrompt = baseImagePrompt;
-      // Add variation instructions if provided
-      if (input.variationInstructions) {
-        imagePrompt += ` ${input.variationInstructions}`;
+      if (flowInput.variationInstructions) {
+        imagePrompt += ` ${flowInput.variationInstructions}`;
       }
-      // Add a variation marker for subsequent logos
       if (i > 0) {
         imagePrompt += ` (variation ${i + 1})`;
       }
       
-
-      const {media} = await ai.generate({
-        model: 'googleai/gemini-2.0-flash-exp',
+      const {media} = await currentAi.generate({
+        model: 'googleai/gemini-2.0-flash-exp', // Crucial for image generation
         prompt: imagePrompt,
         config: {
           responseModalities: ['TEXT', 'IMAGE'],
