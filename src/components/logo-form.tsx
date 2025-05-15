@@ -196,9 +196,17 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 <FormItem>
                   <FormLabel>Number of Logos to Generate</FormLabel>
                   <FormControl>
-                    <Input type="number" min="1" max="8" {...field}
-                           onChange={event => field.onChange(+event.target.value)} />
+                    <Input 
+                      type="number" 
+                      min="1" 
+                      max="8" 
+                      {...field}
+                      onChange={event => field.onChange(+event.target.value)} // Ensure value is a number
+                     />
                   </FormControl>
+                  <FormDescription>
+                    Choose between 1 and 8 logos.
+                  </FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

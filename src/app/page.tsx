@@ -16,7 +16,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingFeedbackFor, setLoadingFeedbackFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [expectedLogoCount, setExpectedLogoCount] = useState<number>(4);
+  const [expectedLogoCount, setExpectedLogoCount] = useState<number>(4); // Default to 4
 
 
   const { toast } = useToast();
@@ -25,7 +25,7 @@ export default function HomePage() {
     setIsLoading(true);
     setError(null);
     setLogoBatch(null);
-    setExpectedLogoCount(input.numberOfLogos);
+    setExpectedLogoCount(input.numberOfLogos || 4); // Use submitted number or default
 
     try {
       const result = await generateLogoConcepts(input);
@@ -33,8 +33,8 @@ export default function HomePage() {
         const newLogoBatch: LogoBatch = {
           id: uuidv4(),
           logos: result.logoUrls.map(url => ({ id: uuidv4(), url })),
-          generationInput: input, // Store the complete input used for generation
-          basePrompt: constructBasePrompt(input), // constructBasePrompt now uses the extended input
+          generationInput: input, 
+          basePrompt: constructBasePrompt(input), 
         };
         setLogoBatch(newLogoBatch);
         toast({
@@ -65,7 +65,7 @@ export default function HomePage() {
 
   const handleFeedback = async (
     targetLogoBatch: LogoBatch,
-    logoId: string, // Kept for potential future use if feedback becomes per-logo specific
+    logoId: string, 
     feedbackType: "thumbs_up" | "thumbs_down"
   ) => {
     if (!targetLogoBatch) return;
@@ -81,8 +81,8 @@ export default function HomePage() {
       keywords: generationInput.keywords,
       colorPalette: generationInput.preferredColorPalette,
       logoStyle: generationInput.preferredLogoStyle,
-      iconPlacement: generationInput.iconPlacement, // Pass new field
-      fontStyle: generationInput.fontStyle,       // Pass new field
+      iconPlacement: generationInput.iconPlacement, 
+      fontStyle: generationInput.fontStyle,       
       feedback: feedbackType,
       previousPrompt: basePrompt,
     };
@@ -94,13 +94,11 @@ export default function HomePage() {
         description: (
           <div className="flex flex-col gap-1">
             <p>Thanks! We'll use this to improve future suggestions.</p>
-            <p className="text-xs mt-1">Refined prompt idea: "{refinedResult.prompt.substring(0,100)}..."</p>
+            <p className="text-xs mt-1">Refined prompt idea: "${refinedResult.prompt.substring(0,100)}..."</p>
           </div>
         ),
         duration: 7000,
       });
-      // Potentially update form with refinedResult.prompt or parts of it
-      // For now, we just show the refined prompt in a toast.
     } catch (e) {
       console.error("Error refining prompt:", e);
       const errorMessage = e instanceof Error ? e.message : "An unknown error occurred.";
