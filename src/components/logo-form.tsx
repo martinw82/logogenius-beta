@@ -35,7 +35,14 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp } from "lucide-react";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings } from "lucide-react";
 
 interface LogoFormProps {
   onSubmit: (data: GenerateLogoConceptsInput) => Promise<void>;
@@ -222,7 +229,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
             <Accordion type="multiple" defaultValue={["basic-info", "brand-keywords", "visual-prefs"]} className="w-full space-y-4">
-              <AccordionItem value="basic-info" className="border-b-0 rounded-md border p-4 shadow-sm">
+              <AccordionItem value="basic-info" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
                 <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline">Basic Information</AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <FormField
@@ -268,7 +275,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="brand-keywords" className="border-b-0 rounded-md border p-4 shadow-sm">
+              <AccordionItem value="brand-keywords" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
                 <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline">Brand Keywords</AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <FormDescription>
@@ -331,7 +338,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="visual-prefs" className="border-b-0 rounded-md border p-4 shadow-sm">
+              <AccordionItem value="visual-prefs" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
                 <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline">Visual Preferences</AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <FormField
@@ -488,7 +495,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="advanced-details" className="border-b-0 rounded-md border p-4 shadow-sm">
+              <AccordionItem value="advanced-details" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
                 <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline">Advanced Details & Context</AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <FormField
@@ -597,7 +604,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="gen-settings" className="border-b-0 rounded-md border p-4 shadow-sm">
+              <AccordionItem value="gen-settings" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
                 <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline">Generation Settings</AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <FormField
@@ -647,24 +654,38 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
 
             <div className="pt-4 space-y-4">
               <Card className="shadow-sm border rounded-md">
-                <CardHeader className="pb-2">
-                  <CardTitle className="text-lg">Manage Settings</CardTitle>
-                  <CardDescription className="text-xs">Save or load your form preferences.</CardDescription>
+                <CardHeader className="pb-3 pt-4">
+                  <CardTitle className="text-lg flex items-center">
+                     <Settings className="mr-2 h-5 w-5" /> Manage Form Settings
+                  </CardTitle>
+                  <CardDescription className="text-xs">
+                    Save, load, or share your current form preferences.
+                  </CardDescription>
                 </CardHeader>
-                <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <Button type="button" variant="outline" onClick={handleSaveToBrowser} className="w-full">
-                    <Save className="mr-2 h-4 w-4" /> Save to Browser
-                  </Button>
-                  <Button type="button" variant="outline" onClick={handleLoadFromBrowser} className="w-full">
-                    <FolderOpen className="mr-2 h-4 w-4" /> Load from Browser
-                  </Button>
-                  <Button type="button" variant="outline" onClick={handleExportToFile} className="w-full">
-                    <FileDown className="mr-2 h-4 w-4" /> Export to File
-                  </Button>
-                  <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full">
-                    <FileUp className="mr-2 h-4 w-4" /> Import from File
-                  </Button>
-                  <input 
+                <CardContent className="flex justify-center pb-4">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="outline" className="w-full max-w-xs">
+                          Settings Actions <ChevronDown className="ml-2 h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent className="w-64">
+                        <DropdownMenuItem onClick={handleSaveToBrowser}>
+                          <Save className="mr-2 h-4 w-4" /> Save to Browser
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={handleLoadFromBrowser}>
+                          <FolderOpen className="mr-2 h-4 w-4" /> Load from Browser
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem onClick={handleExportToFile}>
+                          <FileDown className="mr-2 h-4 w-4" /> Export to File
+                        </DropdownMenuItem>
+                        <DropdownMenuItem onClick={() => fileInputRef.current?.click()}>
+                          <FileUp className="mr-2 h-4 w-4" /> Import from File
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                   <input 
                     type="file" 
                     ref={fileInputRef} 
                     onChange={handleImportFromFile} 
