@@ -11,7 +11,7 @@ import { refineLogoGeneration, type RefineLogoGenerationInput } from "@/ai/flows
 import { useToast } from "@/hooks/use-toast";
 import { constructBasePrompt, uuidv4 } from "@/lib/utils";
 import { Lightbulb } from "lucide-react";
-import { ApiKeyInput } from "@/components/api-key-input"; // Added import
+import { ApiKeyInput } from "@/components/api-key-input";
 
 const API_KEY_STORAGE_KEY = "userGoogleApiKey";
 
@@ -21,7 +21,7 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingFeedbackFor, setLoadingFeedbackFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [expectedLogoCount, setExpectedLogoCount] = useState<number>(4); // Default to 4
+  const [expectedLogoCount, setExpectedLogoCount] = useState<number>(4); 
   const [userApiKey, setUserApiKey] = useState<string | null>(null);
 
   useEffect(() => {
@@ -29,7 +29,6 @@ export default function HomePage() {
     if (storedApiKey) {
       setUserApiKey(storedApiKey);
     }
-    // Listen for changes to local storage from other tabs/windows (optional)
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === API_KEY_STORAGE_KEY) {
         setUserApiKey(event.newValue);
@@ -51,14 +50,14 @@ export default function HomePage() {
     return undefined;
   };
 
-  const handleGenerateLogos = async (formInput: Omit<GenerateLogoConceptsInput, 'userApiKey'>) => {
+  const handleGenerateLogos = async (aiInput: GenerateLogoConceptsInput) => {
     setIsLoading(true);
     setError(null);
     setLogoBatch(null);
-    setExpectedLogoCount(formInput.numberOfLogos || 4);
+    setExpectedLogoCount(aiInput.numberOfLogos || 4);
 
     const currentApiKey = getApiKey();
-    const finalInput: GenerateLogoConceptsInput = { ...formInput };
+    const finalInput: GenerateLogoConceptsInput = { ...aiInput }; // aiInput already has data URI
     if (currentApiKey) {
       finalInput.userApiKey = currentApiKey;
     }
@@ -69,8 +68,12 @@ export default function HomePage() {
         const newLogoBatch: LogoBatch = {
           id: uuidv4(),
           logos: result.logoUrls.map(url => ({ id: uuidv4(), url })),
-          generationInput: formInput, // Store original form input without API key for privacy/simplicity
-          basePrompt: constructBasePrompt(formInput), 
+          generationInput: { // Store the input used for generation, including referenceImageDataUri
+            ...aiInput, 
+            // Ensure userApiKey is not stored in the batch for security/privacy if it was added to finalInput
+            userApiKey: undefined 
+          }, 
+          basePrompt: constructBasePrompt(aiInput), 
         };
         setLogoBatch(newLogoBatch);
         toast({
@@ -126,6 +129,7 @@ export default function HomePage() {
       usageContext: generationInput.usageContext,
       negativeKeywords: generationInput.negativeKeywords,
       variationInstructions: generationInput.variationInstructions,
+      referenceImageDataUri: generationInput.referenceImageDataUri, // Pass if it exists
       feedback: feedbackType,
       previousPrompt: basePrompt,
     };

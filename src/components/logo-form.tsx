@@ -33,7 +33,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Loader2, Wand2 } from "lucide-react";
+import { Loader2, Wand2, FileImage } from "lucide-react";
 
 interface LogoFormProps {
   onSubmit: (data: GenerateLogoConceptsInput) => Promise<void>;
@@ -61,11 +61,12 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       negativeKeywords: "",
       variationInstructions: "",
       numberOfLogos: 4,
+      referenceImageFile: null,
     },
   });
 
   const handleSubmit = async (data: LogoFormData) => {
-    const aiInput = mapFormDataToAiInput(data);
+    const aiInput = await mapFormDataToAiInput(data); // Now async
     await onSubmit(aiInput);
   };
 
@@ -311,6 +312,33 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 <AccordionContent className="pt-4 space-y-6">
                   <FormField
                     control={form.control}
+                    name="referenceImageFile"
+                    render={({ field: { onChange, onBlur, name, ref } }) => (
+                      <FormItem>
+                        <FormLabel className="flex items-center gap-2">
+                          <FileImage className="w-4 h-4" />
+                          Reference Image (Optional)
+                        </FormLabel>
+                        <FormControl>
+                          <Input
+                            type="file"
+                            accept="image/*"
+                            onBlur={onBlur}
+                            name={name}
+                            ref={ref}
+                            onChange={(e) => {
+                              onChange(e.target.files ? e.target.files[0] : null);
+                            }}
+                            className="pt-2"
+                          />
+                        </FormControl>
+                        <FormDescription>Upload an existing sketch, character, or logo for inspiration.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
                     name="inspirationReferences"
                     render={({ field }) => (
                       <FormItem>
@@ -433,5 +461,3 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     </Card>
   );
 }
-
-    

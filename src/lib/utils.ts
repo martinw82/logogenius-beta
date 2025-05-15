@@ -9,7 +9,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 // Helper function to construct the 'previousPrompt' for refinement
-export function constructBasePrompt(input: Omit<GenerateLogoConceptsInput, 'numberOfLogos'>): string {
+export function constructBasePrompt(input: Omit<GenerateLogoConceptsInput, 'numberOfLogos' | 'userApiKey'>): string {
   let prompt = `Logo concept for a business named "${input.businessName}" in the "${input.industry}" industry. Brand identity keywords: ${input.keywords}.`;
   if (input.preferredColorPalette) {
     prompt += ` Preferred color palette: ${input.preferredColorPalette}.`;
@@ -29,10 +29,13 @@ export function constructBasePrompt(input: Omit<GenerateLogoConceptsInput, 'numb
   if (input.targetAudience) {
     prompt += ` Target audience: ${input.targetAudience}.`;
   }
+  if (input.referenceImageDataUri) {
+    prompt += ` A reference image was also provided to guide the generation.`;
+  }
   if (input.inspirationReferences) {
     prompt += ` Inspiration references: ${input.inspirationReferences}.`;
   }
-  if (input.usageContext) { // Now a string
+  if (input.usageContext) { 
     prompt += ` Primary usage context: ${input.usageContext}.`;
   }
   if (input.negativeKeywords) {
@@ -48,8 +51,6 @@ export function uuidv4(): string {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
   }
-  // Fallback for environments where crypto.randomUUID is not available (e.g. older Node.js versions in some serverless contexts)
-  // This is a simplified version and not as robust as a proper polyfill.
   return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
     const r = Math.random() * 16 | 0, v = c == 'x' ? r : (r & 0x3 | 0x8);
     return v.toString(16);

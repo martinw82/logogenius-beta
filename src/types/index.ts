@@ -1,3 +1,4 @@
+
 import type { GenerateLogoConceptsInput } from '@/ai/flows/generate-logo-concepts';
 
 export interface Logo {
@@ -8,6 +9,7 @@ export interface Logo {
 export interface LogoBatch {
   id: string;
   logos: Logo[];
-  generationInput: GenerateLogoConceptsInput;
-  basePrompt: string; // The prompt constructed for refinement purposes
+  // Use Omit to exclude userApiKey from being stored, but include all other fields from GenerateLogoConceptsInput
+  generationInput: Omit<GenerateLogoConceptsInput, 'userApiKey'>;
+  basePrompt: string; 
 }

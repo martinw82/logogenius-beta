@@ -36,6 +36,7 @@ const RefineLogoGenerationInputSchema = z.object({
     .describe('User feedback on the previous logo generation.'),
   previousPrompt: z.string().describe('The prompt used to generate the previous logo.'),
   userApiKey: z.string().optional().describe('Optional user-provided Google AI API key.'),
+  referenceImageDataUri: z.string().optional().describe("Optional reference image as a data URI that was used in the previous generation. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
 });
 export type RefineLogoGenerationInput = z.infer<typeof RefineLogoGenerationInputSchema>;
 
@@ -52,6 +53,10 @@ const REFINE_PROMPT_HANDLEBARS_TEMPLATE = `You are an AI logo generation expert.
 
   Previous Prompt: {{{previousPrompt}}}
   Feedback: {{{feedback}}}
+
+  {{#if referenceImageDataUri}}
+  Context: The previous generation attempt that received this feedback also used a reference image to guide its style/character. Consider this when refining the textual prompt.
+  {{/if}}
 
   Business Name: {{{businessName}}}
   Keywords: {{{keywords}}}
@@ -71,13 +76,14 @@ const REFINE_PROMPT_HANDLEBARS_TEMPLATE = `You are an AI logo generation expert.
   The refined prompt should be detailed and specific.
   It should incorporate all relevant fields: businessName, keywords, industry, colorPalette, logoStyle, iconPlacement, fontStyle, iconComplexity, targetAudience, inspirationReferences, usageContext, and negativeKeywords.
   Consider the variation instructions if they provide insight into desired diversity or focus for a single improved concept.
+  If a reference image was part of the context for the previous attempt, ensure the refined textual prompt complements or directs how such an image (if used again) should influence the next generation.
 
-  Return the refined prompt.
+  Return ONLY the refined text prompt.
   `;
 
 const globallyDefinedPrompt = ai.definePrompt({
   name: 'refineLogoGenerationPrompt',
-  input: {schema: RefineLogoGenerationInputSchema.omit({ userApiKey: true })}, // Exclude userApiKey from prompt template data
+  input: {schema: RefineLogoGenerationInputSchema.omit({ userApiKey: true })}, 
   output: {schema: RefineLogoGenerationOutputSchema},
   prompt: REFINE_PROMPT_HANDLEBARS_TEMPLATE,
 });
@@ -91,7 +97,6 @@ const refineLogoGenerationFlow = ai.defineFlow(
   async (flowInput: RefineLogoGenerationInput) => {
     let currentAi = ai;
     const promptData = { ...flowInput };
-    // Do not pass userApiKey to the Handlebars template itself
     if (promptData.userApiKey) {
         delete (promptData as any).userApiKey;
     }
@@ -101,17 +106,14 @@ const refineLogoGenerationFlow = ai.defineFlow(
         plugins: [googleAI({ apiKey: flowInput.userApiKey })],
       });
       
-      // Use currentAi.generate with the template string and specific model
       const { output } = await currentAi.generate({
-        model: 'googleai/gemini-2.0-flash', // Default model for text prompts in this app
+        model: 'googleai/gemini-2.0-flash', 
         prompt: REFINE_PROMPT_HANDLEBARS_TEMPLATE,
         input: promptData,
         output: { schema: RefineLogoGenerationOutputSchema },
-        // config: globallyDefinedPrompt.config, // if any safetySettings or other configs were on the original prompt
       });
-      return output as RefineLogoGenerationOutput; // Cast needed as generate returns candidate value
+      return output as RefineLogoGenerationOutput; 
     } else {
-      // Use the globally defined prompt object which uses the global 'ai' instance
       const {output} = await globallyDefinedPrompt(promptData);
       return output!;
     }

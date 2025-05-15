@@ -29,23 +29,24 @@ export const logoFormSchema = z.object({
   negativeKeywords: z.string().max(150, "Negative keywords too long (max 150 chars).").optional(),
   variationInstructions: z.string().max(200, "Variation instructions too long (max 200 chars).").optional().describe('Instructions on how the generated variations should differ.'),
   numberOfLogos: z.coerce.number().min(1, "Generate at least 1 logo.").max(8, "Cannot generate more than 8 logos at a time.").default(4),
+  referenceImageFile: z.instanceof(File).optional().nullable().describe("Optional reference image file."),
 }).refine(data => data.aestheticKeywords || data.emotionalKeywords || data.functionalKeywords, {
   message: "Please provide keywords for at least one category (Aesthetic, Emotional, or Functional).",
-  path: ["aestheticKeywords"], // This error will appear under the first keyword field
+  path: ["aestheticKeywords"], 
 });
 
 
 export type LogoFormData = z.infer<typeof logoFormSchema>;
 
-export function mapFormDataToAiInput(formData: LogoFormData): GenerateLogoConceptsInput {
+export async function mapFormDataToAiInput(formData: LogoFormData): Promise<GenerateLogoConceptsInput> {
   const {
     preferredLogoStyle,
     iconPlacement,
     iconComplexity,
-    // usageContext type is now string, no need for special handling beyond empty check
     aestheticKeywords,
     emotionalKeywords,
     functionalKeywords,
+    referenceImageFile,
     ...rest
   } = formData;
 
@@ -60,6 +61,21 @@ export function mapFormDataToAiInput(formData: LogoFormData): GenerateLogoConcep
     combinedKeywords += `Functional: ${functionalKeywords.trim()}. `;
   }
 
+  let referenceImageDataUri: string | undefined = undefined;
+  if (referenceImageFile) {
+    try {
+      referenceImageDataUri = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result as string);
+        reader.onerror = (error) => reject(error);
+        reader.readAsDataURL(referenceImageFile);
+      });
+    } catch (error) {
+      console.error("Error converting file to data URI:", error);
+      // Handle error or inform user; for now, URI will remain undefined
+    }
+  }
+
   return {
     ...rest,
     keywords: combinedKeywords.trim(),
@@ -68,5 +84,6 @@ export function mapFormDataToAiInput(formData: LogoFormData): GenerateLogoConcep
     iconComplexity: iconComplexity === '' ? undefined : iconComplexity as GenerateLogoConceptsInput['iconComplexity'],
     usageContext: formData.usageContext === '' ? undefined : formData.usageContext,
     variationInstructions: formData.variationInstructions === '' ? undefined : formData.variationInstructions,
+    referenceImageDataUri,
   };
 }

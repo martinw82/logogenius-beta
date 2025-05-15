@@ -51,6 +51,7 @@ const GenerateLogoConceptsInputSchema = z.object({
   variationInstructions: z.string().optional().describe('Optional instructions on how the generated variations should differ (e.g., "emphasize different fonts for each").'),
   numberOfLogos: z.number().default(4).describe('Number of logos to generate'),
   userApiKey: z.string().optional().describe('Optional user-provided Google AI API key.'),
+  referenceImageDataUri: z.string().optional().describe("Optional reference image as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
 });
 
 export type GenerateLogoConceptsInput = z.infer<typeof GenerateLogoConceptsInputSchema>;
@@ -67,14 +68,10 @@ export async function generateLogoConcepts(
   return generateLogoConceptsFlow(input);
 }
 
-// This Handlebars prompt is not directly used for image generation in this flow's implementation,
-// as image generation happens in a loop calling ai.generate directly.
-// It's kept for potential future use or as a reference.
-// Note: userApiKey is part of the schema but not intended for this Handlebars template.
 const generateLogoConceptsPromptObject = ai.definePrompt({
   name: 'generateLogoConceptsPrompt',
   input: {
-    schema: GenerateLogoConceptsInputSchema.omit({ userApiKey: true }), // Exclude userApiKey from prompt template data
+    schema: GenerateLogoConceptsInputSchema.omit({ userApiKey: true }), 
   },
   output: {
     schema: GenerateLogoConceptsOutputSchema,
@@ -105,6 +102,10 @@ The preferred icon complexity is: {{iconComplexity}}.
 
 {{#if targetAudience}}
 The target audience is: {{targetAudience}}.
+{{/if}}
+
+{{#if referenceImageDataUri}}
+A reference image (not shown in this text prompt but used in generation) has been provided to influence the design.
 {{/if}}
 
 {{#if inspirationReferences}}
@@ -143,55 +144,57 @@ const generateLogoConceptsFlow = ai.defineFlow(
     }
 
     const logoUrls: string[] = [];
-    let baseImagePrompt = `Logo concept for a business named "${flowInput.businessName}" in the "${flowInput.industry}" industry. Brand identity keywords: ${flowInput.keywords}.`;
+    let baseImagePromptText = `Logo concept for a business named "${flowInput.businessName}" in the "${flowInput.industry}" industry. Brand identity keywords: ${flowInput.keywords}.`;
 
     if (flowInput.preferredColorPalette) {
-      baseImagePrompt += ` Preferred color palette: ${flowInput.preferredColorPalette}.`;
+      baseImagePromptText += ` Preferred color palette: ${flowInput.preferredColorPalette}.`;
     }
     if (flowInput.preferredLogoStyle) {
-      baseImagePrompt += ` Preferred logo style: ${flowInput.preferredLogoStyle}.`;
+      baseImagePromptText += ` Preferred logo style: ${flowInput.preferredLogoStyle}.`;
     }
     if (flowInput.iconPlacement) {
-      baseImagePrompt += ` Icon placement: ${flowInput.iconPlacement}.`;
+      baseImagePromptText += ` Icon placement: ${flowInput.iconPlacement}.`;
     }
     if (flowInput.fontStyle) {
-      baseImagePrompt += ` Font style: ${flowInput.fontStyle}.`;
+      baseImagePromptText += ` Font style: ${flowInput.fontStyle}.`;
     }
     if (flowInput.iconComplexity) {
-      baseImagePrompt += ` Icon complexity: ${flowInput.iconComplexity}.`;
+      baseImagePromptText += ` Icon complexity: ${flowInput.iconComplexity}.`;
     }
     if (flowInput.targetAudience) {
-      baseImagePrompt += ` Target audience: ${flowInput.targetAudience}.`;
+      baseImagePromptText += ` Target audience: ${flowInput.targetAudience}.`;
     }
     if (flowInput.inspirationReferences) {
-      baseImagePrompt += ` Inspiration references: ${flowInput.inspirationReferences}.`;
+      baseImagePromptText += ` Inspiration references: ${flowInput.inspirationReferences}.`;
     }
     if (flowInput.usageContext) {
-      baseImagePrompt += ` Primary usage context: ${flowInput.usageContext}.`;
+      baseImagePromptText += ` Primary usage context: ${flowInput.usageContext}.`;
     }
     if (flowInput.negativeKeywords) {
-      baseImagePrompt += ` Avoid the following: ${flowInput.negativeKeywords}.`;
+      baseImagePromptText += ` Avoid the following: ${flowInput.negativeKeywords}.`;
     }
 
     for (let i = 0; i < flowInput.numberOfLogos; i++) {
-      let imagePrompt = baseImagePrompt;
+      let currentImagePromptText = baseImagePromptText;
       if (flowInput.variationInstructions) {
-        // Append variation instructions to the prompt for each iteration.
-        // This allows for diverse outputs if the user provides such instructions.
-        // Example: "variation 1: focus on font, variation 2: focus on icon style X"
-        // The AI should interpret these within the context of generating a single image.
-        // A more complex approach might involve parsing these instructions to alter the prompt more structurally.
-        imagePrompt += ` ${flowInput.variationInstructions}`;
+        currentImagePromptText += ` ${flowInput.variationInstructions}`;
       }
-      // Add a simple variation counter to the prompt to encourage difference if no specific instructions.
       if (i > 0) {
-        imagePrompt += ` (variation ${i + 1} of ${flowInput.numberOfLogos})`;
+        currentImagePromptText += ` (variation ${i + 1} of ${flowInput.numberOfLogos})`;
+      }
+      
+      let finalPromptPayload: any = currentImagePromptText;
+      if (flowInput.referenceImageDataUri) {
+        finalPromptPayload = [
+          {media: {url: flowInput.referenceImageDataUri}},
+          {text: currentImagePromptText}
+        ];
       }
       
       try {
         const genResponse = await currentAi.generate({
-          model: 'googleai/gemini-2.0-flash-exp', // Crucial for image generation
-          prompt: imagePrompt,
+          model: 'googleai/gemini-2.0-flash-exp', 
+          prompt: finalPromptPayload,
           config: {
             responseModalities: ['TEXT', 'IMAGE'],
           },
@@ -200,17 +203,12 @@ const generateLogoConceptsFlow = ai.defineFlow(
         if (genResponse.media?.url) {
           logoUrls.push(genResponse.media.url);
         } else {
-          console.warn(`[generateLogoConceptsFlow] Image generation did not return a valid media URL for one concept. Prompt: "${imagePrompt}"`);
-          // Optionally, could push a placeholder URL or skip this iteration.
-          // Skipping means fewer logos might be returned than requested if generation fails.
+          console.warn(`[generateLogoConceptsFlow] Image generation did not return a valid media URL for one concept. Prompt: "${JSON.stringify(finalPromptPayload)}"`);
         }
       } catch (e) {
-        console.error(`[generateLogoConceptsFlow] Error during image generation for prompt "${imagePrompt}":`, e);
-        // Decide if one error should stop all, or if it should continue to try others.
-        // Currently, it will continue to the next iteration.
+        console.error(`[generateLogoConceptsFlow] Error during image generation for prompt "${JSON.stringify(finalPromptPayload)}":`, e);
       }
     }
     return {logoUrls: logoUrls};
   }
 );
-
