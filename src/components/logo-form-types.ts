@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { GenerateLogoConceptsInput } from '@/ai/flows/generate-logo-concepts';
 
 export const brandArchetypes = [
-  "The Innocent", "The Everyman", "The Hero", "The Rebel", "The Explorer", // Changed "The Outlaw" to "The Rebel"
+  "The Innocent", "The Everyman", "The Hero", "The Rebel", "The Explorer",
   "The Creator", "The Ruler", "The Magician", "The Lover", "The Caregiver",
   "The Jester", "The Sage"
 ] as const;
@@ -41,6 +41,8 @@ export const colorPaletteMoodsData = [
 
 export const colorPaletteMoods = colorPaletteMoodsData.map(item => item.name);
 
+const NONE_VALUE = "_NONE_"; // Special value for explicit "None" selection
+
 export const logoFormSchema = z.object({
   businessName: z.string().min(1, "Business name is required.").max(100, "Business name too long."),
   industry: z.string().min(1, "Industry is required.").max(100, "Industry too long."),
@@ -62,12 +64,13 @@ export const logoFormSchema = z.object({
     'emblem',
     'abstract',
     'mascot',
-    'minimalist'
+    'minimalist',
+    NONE_VALUE,
   ]).default('').optional(),
-  composition: z.enum(['', 'horizontal', 'vertical', 'circular', 'square']).default('').optional().describe('Preferred overall layout or arrangement of logo elements.'),
-  iconPlacement: z.enum(['', 'above_text', 'left_of_text', 'right_of_text', 'below_text', 'no_icon', 'icon_only']).default('').optional().describe('Preferred placement of the icon relative to the text.'),
+  composition: z.enum(['', 'horizontal', 'vertical', 'circular', 'square', NONE_VALUE]).default('').optional().describe('Preferred overall layout or arrangement of logo elements.'),
+  iconPlacement: z.enum(['', 'above_text', 'left_of_text', 'right_of_text', 'below_text', 'no_icon', 'icon_only', NONE_VALUE]).default('').optional().describe('Preferred placement of the icon relative to the text.'),
   fontStyle: z.string().max(100, "Font style description too long.").optional().describe('Preferred font style for the logo (e.g., modern sans-serif, elegant script).'),
-  iconComplexity: z.enum(['', 'simple', 'detailed']).default('').optional().describe('Preferred icon complexity (e.g., simple, detailed).'),
+  iconComplexity: z.enum(['', 'simple', 'detailed', NONE_VALUE]).default('').optional().describe('Preferred icon complexity (e.g., simple, detailed).'),
   iconSpecifics: z.string().max(200, "Icon specifics description too long.").optional().describe('Describe any specific imagery, objects, or concepts for the icon.'),
   
   fontHeadings: z.string().max(100, "Heading font description too long.").optional(),
@@ -85,7 +88,7 @@ export const logoFormSchema = z.object({
 
   missionStatement: z.string().max(500, "Mission statement too long (max 500 chars).").optional(),
   brandPillars: z.string().max(300, "Brand pillars description too long (max 300 chars).").optional().describe("e.g., Innovation, Customer-centricity, Sustainability"),
-  brandArchetype: z.enum(['', ...brandArchetypes]).default('').optional(),
+  brandArchetype: z.enum(['', ...brandArchetypes, NONE_VALUE]).default('').optional(),
   keyTagline: z.string().max(150, "Key tagline too long (max 150 chars).").optional(),
 
 }).refine(data => data.aestheticKeywords || data.emotionalKeywords || data.functionalKeywords, {
@@ -111,12 +114,12 @@ export type ExtendedLogoGenerationInputs = Omit<GenerateLogoConceptsInput, 'user
   primaryColors?: string;      // Direct form input
   secondaryColors?: string;    // Direct form input
   accentColors?: string;       // Direct form input
-  colorPaletteMood?: typeof colorPaletteMoods[number] | ''; // Direct form input
+  colorPaletteMood?: typeof colorPaletteMoods[number] | ''; // Direct form input, not '' if a mood is explicitly selected
 
   // Brand strategy inputs
   missionStatement?: string;
   brandPillars?: string;
-  brandArchetype?: typeof brandArchetypes[number] | '';
+  brandArchetype?: typeof brandArchetypes[number] | '' | typeof NONE_VALUE; // Include NONE_VALUE
   keyTagline?: string;
 
   // Typography inputs for brand guide
@@ -128,18 +131,10 @@ export type ExtendedLogoGenerationInputs = Omit<GenerateLogoConceptsInput, 'user
 
 export async function mapFormDataToAiInput(formData: LogoFormData): Promise<ExtendedLogoGenerationInputs & { userApiKey?: string }> {
   const {
-    preferredLogoStyle,
-    iconPlacement,
-    iconComplexity,
-    composition,
     aestheticKeywords,
     emotionalKeywords,
     functionalKeywords,
     referenceImageFile,
-    brandArchetype,
-    missionStatement,
-    brandPillars,
-    keyTagline,
     primaryColors, 
     secondaryColors, 
     accentColors, 
@@ -147,7 +142,18 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     fontHeadings,
     fontBody,
     fontOther,
-    ...rest
+    missionStatement,
+    brandPillars,
+    keyTagline,
+    // Extract fields that might have _NONE_ or '' and need to be mapped to undefined
+    preferredLogoStyle,
+    composition,
+    iconPlacement,
+    iconComplexity,
+    brandArchetype,
+    usageContext,
+    variationInstructions,
+    ...rest // a bit unsafe, ensure all specific fields are handled above
   } = formData;
 
   let combinedKeywords = "";
@@ -171,9 +177,9 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
   if (accentColors && accentColors.trim()) {
     combinedPaletteForAI += `Accent Color(s): ${accentColors.trim()}. `;
   }
-  // colorPaletteMood is primarily for the brand guide text generation,
-  // but can also inform the combinedPaletteForAI if desired, or be passed separately.
-  // For now, the combinedPaletteForAI is constructed from primary/secondary/accent.
+  if (colorPaletteMood && colorPaletteMood.trim() && colorPaletteMood !== '') {
+    combinedPaletteForAI += `Overall Mood: ${colorPaletteMood.trim()}. `;
+  }
 
 
   let referenceImageDataUri: string | undefined = undefined;
@@ -190,16 +196,28 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     }
   }
   
+  const mapOptionalField = <T extends string>(value: T | typeof NONE_VALUE | ''): T | undefined => {
+    return value === '' || value === NONE_VALUE ? undefined : value as T;
+  };
+
   const aiFlowInput: GenerateLogoConceptsInput = {
     ...rest, 
-    keywords: combinedKeywords.trim(),
+    keywords: combinedKeywords.trim() || undefined,
     preferredColorPalette: combinedPaletteForAI.trim() || undefined, // This is the combined string for the AI
-    preferredLogoStyle: preferredLogoStyle === '' ? undefined : preferredLogoStyle as GenerateLogoConceptsInput['preferredLogoStyle'],
-    composition: composition === '' ? undefined : composition as GenerateLogoConceptsInput['composition'],
-    iconPlacement: iconPlacement === '' ? undefined : iconPlacement as GenerateLogoConceptsInput['iconPlacement'],
-    iconComplexity: iconComplexity === '' ? undefined : iconComplexity as GenerateLogoConceptsInput['iconComplexity'],
+    
+    preferredLogoStyle: mapOptionalField(preferredLogoStyle as GenerateLogoConceptsInput['preferredLogoStyle'] | typeof NONE_VALUE | ''),
+    composition: mapOptionalField(composition as GenerateLogoConceptsInput['composition'] | typeof NONE_VALUE | ''),
+    iconPlacement: mapOptionalField(iconPlacement as GenerateLogoConceptsInput['iconPlacement'] | typeof NONE_VALUE | ''),
+    iconComplexity: mapOptionalField(iconComplexity as GenerateLogoConceptsInput['iconComplexity'] | typeof NONE_VALUE | ''),
+    fontStyle: formData.fontStyle === '' ? undefined : formData.fontStyle,
+    iconSpecifics: formData.iconSpecifics === '' ? undefined : formData.iconSpecifics,
+    targetAudience: formData.targetAudience === '' ? undefined : formData.targetAudience,
+    inspirationReferences: formData.inspirationReferences === '' ? undefined : formData.inspirationReferences,
+    competitorsToAvoid: formData.competitorsToAvoid === '' ? undefined : formData.competitorsToAvoid,
+    negativeKeywords: formData.negativeKeywords === '' ? undefined : formData.negativeKeywords,
+    
     usageContext: formData.usageContext === '' ? undefined : formData.usageContext,
-    variationInstructions: formData.variationInstructions === '' ? undefined : formData.variationInstructions,
+    variationInstructions: variationInstructions === '' ? undefined : variationInstructions,
     referenceImageDataUri,
     numberOfLogos: formData.numberOfLogos,
   };
@@ -207,24 +225,24 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
   const extendedInputs: ExtendedLogoGenerationInputs = {
     businessName: aiFlowInput.businessName,
     industry: aiFlowInput.industry,
-    keywords: aiFlowInput.keywords, 
-    preferredColorPalette: aiFlowInput.preferredColorPalette, // The combined palette string for AI
-    preferredLogoStyle: aiFlowInput.preferredLogoStyle,
-    composition: aiFlowInput.composition,
-    iconPlacement: aiFlowInput.iconPlacement,
-    fontStyle: aiFlowInput.fontStyle, 
-    iconComplexity: aiFlowInput.iconComplexity,
-    iconSpecifics: aiFlowInput.iconSpecifics,
-    targetAudience: aiFlowInput.targetAudience,
-    inspirationReferences: aiFlowInput.inspirationReferences,
-    usageContext: aiFlowInput.usageContext,
-    negativeKeywords: aiFlowInput.negativeKeywords,
-    competitorsToAvoid: aiFlowInput.competitorsToAvoid,
-    variationInstructions: aiFlowInput.variationInstructions,
+    keywords: aiFlowInput.keywords!, // keywords will have a value or be undefined based on combinedKeywords
+    preferredColorPalette: aiFlowInput.preferredColorPalette, 
+    
+    preferredLogoStyle: mapOptionalField(preferredLogoStyle as GenerateLogoConceptsInput['preferredLogoStyle'] | typeof NONE_VALUE | ''),
+    composition: mapOptionalField(composition as GenerateLogoConceptsInput['composition'] | typeof NONE_VALUE | ''),
+    iconPlacement: mapOptionalField(iconPlacement as GenerateLogoConceptsInput['iconPlacement'] | typeof NONE_VALUE | ''),
+    fontStyle: formData.fontStyle === '' ? undefined : formData.fontStyle, 
+    iconComplexity: mapOptionalField(iconComplexity as GenerateLogoConceptsInput['iconComplexity'] | typeof NONE_VALUE | ''),
+    iconSpecifics: formData.iconSpecifics === '' ? undefined : formData.iconSpecifics,
+    targetAudience: formData.targetAudience === '' ? undefined : formData.targetAudience,
+    inspirationReferences: formData.inspirationReferences === '' ? undefined : formData.inspirationReferences,
+    usageContext: formData.usageContext === '' ? undefined : formData.usageContext,
+    negativeKeywords: formData.negativeKeywords === '' ? undefined : formData.negativeKeywords,
+    competitorsToAvoid: formData.competitorsToAvoid === '' ? undefined : formData.competitorsToAvoid,
+    variationInstructions: variationInstructions === '' ? undefined : variationInstructions,
     referenceImageDataUri: aiFlowInput.referenceImageDataUri,
     numberOfLogos: aiFlowInput.numberOfLogos,
 
-    // Storing the granular form inputs for display and other potential uses
     primaryColors: primaryColors === '' ? undefined : primaryColors,
     secondaryColors: secondaryColors === '' ? undefined : secondaryColors,
     accentColors: accentColors === '' ? undefined : accentColors,
@@ -232,7 +250,7 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
 
     missionStatement: missionStatement === '' ? undefined : missionStatement,
     brandPillars: brandPillars === '' ? undefined : brandPillars,
-    brandArchetype: brandArchetype === '' ? undefined : brandArchetype as typeof brandArchetypes[number],
+    brandArchetype: mapOptionalField(brandArchetype as typeof brandArchetypes[number] | typeof NONE_VALUE | ''),
     keyTagline: keyTagline === '' ? undefined : keyTagline,
     fontHeadings: fontHeadings === '' ? undefined : fontHeadings,
     fontBody: fontBody === '' ? undefined : fontBody,
@@ -241,3 +259,4 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
 
   return extendedInputs;
 }
+

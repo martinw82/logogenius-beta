@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { LogoFormData, ExtendedLogoGenerationInputs } from "./logo-form-types";
-import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData, colorPaletteMoods } from "./logo-form-types"; // Ensure colorPaletteMoods is imported if used directly
+import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData, colorPaletteMoods } from "./logo-form-types"; 
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
 
@@ -51,6 +51,9 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette as PaletteIconLucide, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush, Type, Activity, HelpCircle } from "lucide-react";
 import { BrandArchetypeQuiz } from "./brand-archetype-quiz";
+
+const NONE_VALUE = "_NONE_";
+const CLEAR_MOOD_VALUE = "_CLEAR_MOOD_";
 
 
 interface LogoFormProps {
@@ -386,6 +389,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              <SelectItem value={NONE_VALUE}>No specific archetype</SelectItem>
                               {brandArchetypes.map(archetype => (
                                 <SelectItem key={archetype} value={archetype}>{archetype}</SelectItem>
                               ))}
@@ -519,12 +523,20 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             <FormLabel>Color Palette Mood (Optional)</FormLabel>
                             <Select 
                               onValueChange={(value) => {
-                                field.onChange(value); 
-                                const selectedMoodData = colorPaletteMoodsData.find(m => m.name === value);
-                                if (selectedMoodData) {
-                                  form.setValue("primaryColors", selectedMoodData.primary, { shouldValidate: true });
-                                  form.setValue("secondaryColors", selectedMoodData.secondary, { shouldValidate: true });
-                                  form.setValue("accentColors", selectedMoodData.accent, { shouldValidate: true });
+                                if (value === CLEAR_MOOD_VALUE) {
+                                  field.onChange(''); // Clear the mood
+                                  // Optionally, clear color fields or leave them as is
+                                  // form.setValue("primaryColors", "", { shouldValidate: true });
+                                  // form.setValue("secondaryColors", "", { shouldValidate: true });
+                                  // form.setValue("accentColors", "", { shouldValidate: true });
+                                } else {
+                                  field.onChange(value); 
+                                  const selectedMoodData = colorPaletteMoodsData.find(m => m.name === value);
+                                  if (selectedMoodData) {
+                                    form.setValue("primaryColors", selectedMoodData.primary, { shouldValidate: true });
+                                    form.setValue("secondaryColors", selectedMoodData.secondary, { shouldValidate: true });
+                                    form.setValue("accentColors", selectedMoodData.accent, { shouldValidate: true });
+                                  }
                                 }
                               }} 
                               value={field.value || ""}
@@ -535,12 +547,13 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                                   </SelectTrigger>
                               </FormControl>
                               <SelectContent>
+                                  <SelectItem value={CLEAR_MOOD_VALUE}>No specific mood</SelectItem>
                                   {colorPaletteMoodsData.map(moodItem => (
                                   <SelectItem key={moodItem.name} value={moodItem.name}>{moodItem.name}</SelectItem>
                                   ))}
                               </SelectContent>
                             </Select>
-                            <FormDescription>Describes the overall feeling of the brand's color scheme. Selecting a mood pre-fills colors below.</FormDescription>
+                            <FormDescription>Describes the overall feeling of the brand's color scheme. Selecting a mood pre-fills colors below. Select "No specific mood" to clear.</FormDescription>
                             <FormMessage />
                         </FormItem>
                         )}
@@ -645,6 +658,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              <SelectItem value={NONE_VALUE}>Any Style / No Preference</SelectItem>
                               <SelectItem value="logomark">Logomark: Icon-only, symbolic</SelectItem>
                               <SelectItem value="wordmark">Wordmark: Text-only, stylized typography</SelectItem>
                               <SelectItem value="lettermark">Lettermark: Initials or monogram</SelectItem>
@@ -672,6 +686,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              <SelectItem value={NONE_VALUE}>Any Composition / No Preference</SelectItem>
                               <SelectItem value="horizontal">Horizontal: Wider than tall</SelectItem>
                               <SelectItem value="vertical">Vertical: Taller than wide</SelectItem>
                               <SelectItem value="circular">Circular: Elements arranged in a circle</SelectItem>
@@ -697,6 +712,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              <SelectItem value={NONE_VALUE}>Any Placement / No Preference</SelectItem>
                               <SelectItem value="above_text">Above Text</SelectItem>
                               <SelectItem value="left_of_text">Left of Text</SelectItem>
                               <SelectItem value="right_of_text">Right of Text</SelectItem>
@@ -722,6 +738,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              <SelectItem value={NONE_VALUE}>Any Complexity / No Preference</SelectItem>
                               <SelectItem value="simple">Simple: Clean lines, minimal detail</SelectItem>
                               <SelectItem value="detailed">Detailed: More intricate, elaborate</SelectItem>
                             </SelectContent>
@@ -1049,3 +1066,4 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     </Card>
   );
 }
+
