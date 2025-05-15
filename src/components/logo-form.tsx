@@ -386,7 +386,12 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               </Button>
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-lg md:max-w-xl lg:max-w-2xl max-h-[90vh] overflow-y-auto">
-                                {/* DialogHeader and Title removed for cleaner quiz integration */}
+                                <DialogHeader>
+                                  <DialogTitle>Brand Archetype Quiz</DialogTitle>
+                                  <DialogDescription>
+                                    Answer the questions to discover your brand's archetype. This will help define its personality and voice.
+                                  </DialogDescription>
+                                </DialogHeader>
                                 <BrandArchetypeQuiz 
                                   open={isQuizDialogOpen}
                                   onOpenChange={setIsQuizDialogOpen}
@@ -1034,4 +1039,3 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     </Card>
   );
 }
-
