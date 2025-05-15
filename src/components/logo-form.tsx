@@ -235,8 +235,11 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                   <FormItem>
                     <FormLabel>Font Style (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., modern sans-serif, script" {...field} />
+                      <Input placeholder="e.g., Geometric Sans-Serif, Handwritten Script, No Text" {...field} />
                     </FormControl>
+                    <FormDescription>
+                      Describe font attributes (e.g., geometric, handwritten) or 'No Text' for icon-only logos. Consider compatibility with your chosen logo style.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
