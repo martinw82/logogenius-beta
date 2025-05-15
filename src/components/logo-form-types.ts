@@ -9,7 +9,33 @@ export const brandArchetypes = [
 ] as const;
 
 export const colorPaletteMoods = [
-  "Minimalist", "Vibrant", "Earthy", "Playful", "Corporate", "Luxurious", "Techy", "Friendly", "Bold"
+  "Happy & Playful",
+  "Calm & Peaceful",
+  "Trustworthy & Stable",
+  "Energetic & Vibrant",
+  "Sophisticated & Elegant",
+  "Bold & Powerful",
+  "Caring & Nurturing",
+  "Innovative & Modern",
+  "Wise & Formal",
+  "Romantic & Passionate",
+  "Earthy & Natural",
+  "Mysterious & Dramatic",
+  "Nostalgic & Classic",
+  "Clean & Pure",
+  "Luxurious & Indulgent",
+  "Friendly & Accessible",
+  "Secure & Reliable",
+  "Exciting & Adventurous",
+  "Spiritual & Mystical",
+  "Gritty & Authentic",
+  "Youthful & Fresh",
+  "Serious & Professional",
+  "Playful & Whimsical",
+  "Rustic & Warm",
+  "Bold & Disruptive",
+  "Minimalist & Clean",
+  "Welcoming & Inviting"
 ] as const;
 
 export const logoFormSchema = z.object({
@@ -19,9 +45,9 @@ export const logoFormSchema = z.object({
   emotionalKeywords: z.string().max(150, "Emotional keywords too long (max 150 chars).").optional(),
   functionalKeywords: z.string().max(150, "Functional keywords too long (max 150 chars).").optional(),
   
-  primaryColors: z.string().max(150, "Primary color(s) description too long.").optional().describe("Specify your primary brand color (e.g., '#3F51B5', 'Deep Indigo', or 'Blue, Light Blue')."),
-  secondaryColors: z.string().max(150, "Secondary color(s) description too long.").optional().describe("Specify your secondary brand color (e.g., '#EEEEEE', 'Light Grey')."),
-  accentColors: z.string().max(150, "Accent color(s) description too long.").optional().describe("Specify your accent brand color (e.g., '#009688', 'Teal')."),
+  primaryColors: z.string().max(150, "Primary color description too long.").optional().describe("Specify the primary brand color (e.g., '#3F51B5', 'Deep Indigo', or 'Blue, Light Blue')."),
+  secondaryColors: z.string().max(150, "Secondary color description too long.").optional().describe("Specify the secondary brand color (e.g., '#EEEEEE', 'Light Grey')."),
+  accentColors: z.string().max(150, "Accent color description too long.").optional().describe("Specify the accent brand color (e.g., '#009688', 'Teal')."),
   colorPaletteMood: z.enum(['', ...colorPaletteMoods]).default('').optional(),
 
   preferredLogoStyle: z.enum([
@@ -67,24 +93,30 @@ export const logoFormSchema = z.object({
 
 export type LogoFormData = z.infer<typeof logoFormSchema>;
 
+// This type combines direct form inputs with transformed inputs for AI
 export type ExtendedLogoGenerationInputs = Omit<GenerateLogoConceptsInput, 'userApiKey' | 'numberOfLogos' | 'preferredColorPalette' | 'keywords'> & {
   businessName: string;
   industry: string;
-  keywords: string; 
-  preferredColorPalette?: string; // Combined palette string for AI image generation
+  keywords: string; // Combined from aesthetic, emotional, functional for GenerateLogoConceptsInput
+  
+  // This is the combined string of primary, secondary, accent colors sent to the AI for logo image generation.
+  preferredColorPalette?: string; 
+  
   numberOfLogos: number;
 
-  // Store individual form color inputs for BrandGuideDisplay
-  primaryColors?: string;
-  secondaryColors?: string;
-  accentColors?: string;
-  colorPaletteMood?: typeof colorPaletteMoods[number] | '';
+  // Store individual form color inputs for BrandGuideDisplay and potentially other AI flows
+  primaryColors?: string;      // Direct form input
+  secondaryColors?: string;    // Direct form input
+  accentColors?: string;       // Direct form input
+  colorPaletteMood?: typeof colorPaletteMoods[number] | ''; // Direct form input
 
+  // Brand strategy inputs
   missionStatement?: string;
   brandPillars?: string;
   brandArchetype?: typeof brandArchetypes[number] | '';
   keyTagline?: string;
 
+  // Typography inputs for brand guide
   fontHeadings?: string;
   fontBody?: string;
   fontOther?: string;
@@ -105,13 +137,13 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     missionStatement,
     brandPillars,
     keyTagline,
-    primaryColors,
-    secondaryColors,
-    accentColors,
+    primaryColors, // direct form input
+    secondaryColors, // direct form input
+    accentColors, // direct form input
+    colorPaletteMood, // direct form input
     fontHeadings,
     fontBody,
     fontOther,
-    colorPaletteMood,
     ...rest
   } = formData;
 
@@ -170,7 +202,7 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     businessName: aiFlowInput.businessName,
     industry: aiFlowInput.industry,
     keywords: aiFlowInput.keywords, 
-    preferredColorPalette: aiFlowInput.preferredColorPalette, // The combined palette string
+    preferredColorPalette: aiFlowInput.preferredColorPalette, // The combined palette string for AI
     preferredLogoStyle: aiFlowInput.preferredLogoStyle,
     composition: aiFlowInput.composition,
     iconPlacement: aiFlowInput.iconPlacement,
@@ -186,6 +218,7 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     referenceImageDataUri: aiFlowInput.referenceImageDataUri,
     numberOfLogos: aiFlowInput.numberOfLogos,
 
+    // Storing the granular form inputs for display and other potential uses
     primaryColors: primaryColors === '' ? undefined : primaryColors,
     secondaryColors: secondaryColors === '' ? undefined : secondaryColors,
     accentColors: accentColors === '' ? undefined : accentColors,
