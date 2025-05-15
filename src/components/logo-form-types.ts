@@ -3,7 +3,7 @@ import { z } from 'zod';
 import type { GenerateLogoConceptsInput } from '@/ai/flows/generate-logo-concepts';
 
 export const brandArchetypes = [
-  "The Innocent", "The Everyman", "The Hero", "The Outlaw", "The Explorer",
+  "The Innocent", "The Everyman", "The Hero", "The Rebel", "The Explorer", // Changed "The Outlaw" to "The Rebel"
   "The Creator", "The Ruler", "The Magician", "The Lover", "The Caregiver",
   "The Jester", "The Sage"
 ] as const;
@@ -14,29 +14,29 @@ export const colorPaletteMoodsData = [
   { name: "Calm & Peaceful", primary: "#A9D6E5", secondary: "#89C2D9", accent: "#61A5C2" },
   { name: "Trustworthy & Stable", primary: "#0D47A1", secondary: "#1565C0", accent: "#1976D2" },
   { name: "Energetic & Vibrant", primary: "#FF6F00", secondary: "#FF9800", accent: "#FF5722" },
-  { name: "Sophisticated & Elegant", primary: "#4A4A4A", secondary: "#7B7B7B", accent: "#F5F5F5" }, // Adjusted grey for elegance
+  { name: "Sophisticated & Elegant", primary: "#4A4A4A", secondary: "#7B7B7B", accent: "#F5F5F5" },
   { name: "Bold & Powerful", primary: "#B71C1C", secondary: "#D32F2F", accent: "#F44336" },
-  { name: "Caring & Nurturing", primary: "#FFC0CB", secondary: "#FFDAB9", accent: "#90EE90" }, // Pink, Peach, LightGreen
-  { name: "Innovative & Modern", primary: "#00BCD4", secondary: "#26C6DA", accent: "#80DEEA" }, // Cyan shades
-  { name: "Wise & Formal", primary: "#311B92", secondary: "#4527A0", accent: "#512DA8" }, // Deep Purples
-  { name: "Romantic & Passionate", primary: "#E91E63", secondary: "#EC407A", accent: "#F06292" }, // Pinks
-  { name: "Earthy & Natural", primary: "#795548", secondary: "#A1887F", accent: "#8BC34A" }, // Brown, LightGreen
-  { name: "Mysterious & Dramatic", primary: "#263238", secondary: "#455A64", accent: "#607D8B" }, // Blue Grays
-  { name: "Nostalgic & Classic", primary: "#D7CCC8", secondary: "#BCAAA4", accent: "#A1887F" }, // Browns
-  { name: "Clean & Pure", primary: "#FFFFFF", secondary: "#F5F5F5", accent: "#E0E0E0" }, // Whites/Light Grays
-  { name: "Luxurious & Indulgent", primary: "#FFD700", secondary: "#B8860B", accent: "#D4AF37" }, // Golds
-  { name: "Friendly & Accessible", primary: "#42A5F5", secondary: "#64B5F6", accent: "#90CAF9" }, // Blues
-  { name: "Secure & Reliable", primary: "#1B5E20", secondary: "#2E7D32", accent: "#388E3C" }, // Greens
-  { name: "Exciting & Adventurous", primary: "#FF5722", secondary: "#FF7043", accent: "#FF8A65" }, // Deep Oranges
-  { name: "Spiritual & Mystical", primary: "#673AB7", secondary: "#7E57C2", accent: "#9575CD" }, // Purples
-  { name: "Gritty & Authentic", primary: "#3E2723", secondary: "#5D4037", accent: "#795548" }, // Dark Browns
-  { name: "Youthful & Fresh", primary: "#8BC34A", secondary: "#AED581", accent: "#CDDC39" }, // Light Greens/Limes
-  { name: "Serious & Professional", primary: "#212121", secondary: "#424242", accent: "#616161" }, // Grays
-  { name: "Playful & Whimsical", primary: "#AB47BC", secondary: "#BA68C8", accent: "#CE93D8" }, // Purples (lighter)
-  { name: "Rustic & Warm", primary: "#BF360C", secondary: "#D84315", accent: "#E64A19" }, // Deep Oranges/Browns
-  { name: "Bold & Disruptive", primary: "#F50057", secondary: "#FF4081", accent: "#FF80AB" }, // Bright Pinks
-  { name: "Minimalist & Clean", primary: "#E0E0E0", secondary: "#EEEEEE", accent: "#F5F5F5" }, // Light Grays
-  { name: "Welcoming & Inviting", primary: "#FFA726", secondary: "#FFB74D", accent: "#FFCC80" }, // Oranges
+  { name: "Caring & Nurturing", primary: "#FFC0CB", secondary: "#FFDAB9", accent: "#90EE90" },
+  { name: "Innovative & Modern", primary: "#00BCD4", secondary: "#26C6DA", accent: "#80DEEA" },
+  { name: "Wise & Formal", primary: "#311B92", secondary: "#4527A0", accent: "#512DA8" },
+  { name: "Romantic & Passionate", primary: "#E91E63", secondary: "#EC407A", accent: "#F06292" },
+  { name: "Earthy & Natural", primary: "#795548", secondary: "#A1887F", accent: "#8BC34A" },
+  { name: "Mysterious & Dramatic", primary: "#263238", secondary: "#455A64", accent: "#607D8B" },
+  { name: "Nostalgic & Classic", primary: "#D7CCC8", secondary: "#BCAAA4", accent: "#A1887F" },
+  { name: "Clean & Pure", primary: "#FFFFFF", secondary: "#F5F5F5", accent: "#E0E0E0" },
+  { name: "Luxurious & Indulgent", primary: "#FFD700", secondary: "#B8860B", accent: "#D4AF37" },
+  { name: "Friendly & Accessible", primary: "#42A5F5", secondary: "#64B5F6", accent: "#90CAF9" },
+  { name: "Secure & Reliable", primary: "#1B5E20", secondary: "#2E7D32", accent: "#388E3C" },
+  { name: "Exciting & Adventurous", primary: "#FF5722", secondary: "#FF7043", accent: "#FF8A65" },
+  { name: "Spiritual & Mystical", primary: "#673AB7", secondary: "#7E57C2", accent: "#9575CD" },
+  { name: "Gritty & Authentic", primary: "#3E2723", secondary: "#5D4037", accent: "#795548" },
+  { name: "Youthful & Fresh", primary: "#8BC34A", secondary: "#AED581", accent: "#CDDC39" },
+  { name: "Serious & Professional", primary: "#212121", secondary: "#424242", accent: "#616161" },
+  { name: "Playful & Whimsical", primary: "#AB47BC", secondary: "#BA68C8", accent: "#CE93D8" },
+  { name: "Rustic & Warm", primary: "#BF360C", secondary: "#D84315", accent: "#E64A19" },
+  { name: "Bold & Disruptive", primary: "#F50057", secondary: "#FF4081", accent: "#FF80AB" },
+  { name: "Minimalist & Clean", primary: "#E0E0E0", secondary: "#EEEEEE", accent: "#F5F5F5" },
+  { name: "Welcoming & Inviting", primary: "#FFA726", secondary: "#FFB74D", accent: "#FFCC80" },
 ] as const;
 
 export const colorPaletteMoods = colorPaletteMoodsData.map(item => item.name);
@@ -48,11 +48,10 @@ export const logoFormSchema = z.object({
   emotionalKeywords: z.string().max(150, "Emotional keywords too long (max 150 chars).").optional(),
   functionalKeywords: z.string().max(150, "Functional keywords too long (max 150 chars).").optional(),
   
-  // These will now be more focused on single color inputs via UI, but can still accept lists
+  colorPaletteMood: z.enum(['', ...colorPaletteMoods]).default('').optional(),
   primaryColors: z.string().max(150, "Primary color description too long.").optional().describe("Specify the primary brand color (e.g., '#3F51B5', 'Deep Indigo')."),
   secondaryColors: z.string().max(150, "Secondary color description too long.").optional().describe("Specify the secondary brand color (e.g., '#EEEEEE', 'Light Grey')."),
   accentColors: z.string().max(150, "Accent color description too long.").optional().describe("Specify the accent brand color (e.g., '#009688', 'Teal')."),
-  colorPaletteMood: z.enum(['', ...colorPaletteMoods]).default('').optional(),
 
   preferredLogoStyle: z.enum([
     '',
@@ -242,7 +241,3 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
 
   return extendedInputs;
 }
-
-    
-
-    

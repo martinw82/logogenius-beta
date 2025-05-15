@@ -17,14 +17,14 @@ const archetypeAffinities: Record<string, string[]> = {
   "Innocent": ["Jester", "Caregiver", "Everyman"],
   "Everyman": ["Innocent", "Caregiver", "Lover"],
   "Hero": ["Ruler", "Magician", "Explorer"],
-  "Rebel": ["Explorer", "Creator", "Jester"],
-  "Explorer": ["Rebel", "Sage", "Hero"],
-  "Creator": ["Magician", "Rebel", "Sage"],
+  "Rebel": ["Explorer", "Creator", "Jester"], // Changed from Outlaw
+  "Explorer": ["Rebel", "Sage", "Hero"],     // Changed from Outlaw
+  "Creator": ["Magician", "Rebel", "Sage"],  // Changed from Outlaw
   "Ruler": ["Hero", "Sage", "Caregiver"],
   "Magician": ["Creator", "Hero", "Lover"],
   "Lover": ["Caregiver", "Jester", "Magician"],
   "Caregiver": ["Innocent", "Lover", "Ruler"],
-  "Jester": ["Innocent", "Rebel", "Lover"],
+  "Jester": ["Innocent", "Rebel", "Lover"], // Changed from Outlaw
   "Sage": ["Explorer", "Creator", "Ruler"]
 };
 
@@ -33,7 +33,7 @@ const archetypeMoodSuggestions: Record<string, string[]> = {
     "The Innocent": ["Clean & Pure", "Friendly & Accessible"],
     "The Everyman": ["Friendly & Accessible", "Welcoming & Inviting"],
     "The Hero": ["Bold & Powerful", "Trustworthy & Stable"],
-    "The Rebel": ["Bold & Disruptive", "Gritty & Authentic"],
+    "The Rebel": ["Bold & Disruptive", "Gritty & Authentic"], // Changed from The Outlaw
     "The Explorer": ["Exciting & Adventurous", "Energetic & Vibrant"],
     "The Creator": ["Innovative & Modern", "Playful & Whimsical"],
     "The Ruler": ["Sophisticated & Elegant", "Secure & Reliable"],
@@ -52,7 +52,7 @@ const questions = [
       { key: 'a', text: "To help people feel safe and secure.", archetype: "Innocent" },
       { key: 'b', text: "To help people connect with each other and feel like they belong.", archetype: "Everyman" },
       { key: 'c', text: "To help people overcome challenges and succeed.", archetype: "Hero" },
-      { key: 'd', text: "To challenge the usual way of doing things and offer something new or rebellious.", archetype: "Rebel" },
+      { key: 'd', text: "To challenge the usual way of doing things and offer something new or rebellious.", archetype: "Rebel" }, // Changed from Outlaw
       { key: 'e', text: "To help people explore new possibilities and feel a sense of freedom.", archetype: "Explorer" },
       { key: 'f', text: "To create new and valuable things or ideas.", archetype: "Creator" },
       { key: 'g', text: "To be in charge and create order and stability.", archetype: "Ruler" },
@@ -69,7 +69,7 @@ const questions = [
       { key: 'a', text: "Safe and trusting.", archetype: "Innocent" },
       { key: 'b', text: "Included and connected.", archetype: "Everyman" },
       { key: 'c', text: "Inspired and capable.", archetype: "Hero" },
-      { key: 'd', text: "Excited and liberated.", archetype: "Rebel" },
+      { key: 'd', text: "Excited and liberated.", archetype: "Rebel" }, // Changed from Outlaw
       { key: 'e', text: "Adventurous and independent.", archetype: "Explorer" },
       { key: 'f', text: "Inspired and imaginative.", archetype: "Creator" },
       { key: 'g', text: "Confident and secure.", archetype: "Ruler" },
@@ -86,7 +86,7 @@ const questions = [
       { key: 'a', text: "By being reliable and straightforward.", archetype: "Innocent" },
       { key: 'b', text: "By being friendly and accessible.", archetype: "Everyman" },
       { key: 'c', text: "By being strong and determined.", archetype: "Hero" },
-      { key: 'd', text: "By breaking the rules or doing things differently.", archetype: "Rebel" },
+      { key: 'd', text: "By breaking the rules or doing things differently.", archetype: "Rebel" }, // Changed from Outlaw
       { key: 'e', text: "By exploring new solutions and pushing boundaries.", archetype: "Explorer" },
       { key: 'f', text: "By inventing or building something new.", archetype: "Creator" },
       { key: 'g', text: "By taking control and implementing a clear plan.", archetype: "Ruler" },
@@ -103,7 +103,7 @@ const questions = [
       { key: 'a', text: "Our honesty and goodness.", archetype: "Innocent" },
       { key: 'b', text: "Our ability to connect with everyone.", archetype: "Everyman" },
       { key: 'c', text: "Our strength and impact.", archetype: "Hero" },
-      { key: 'd', text: "Our courage to be different.", archetype: "Rebel" },
+      { key: 'd', text: "Our courage to be different.", archetype: "Rebel" }, // Changed from Outlaw
       { key: 'e', text: "Our spirit of discovery and independence.", archetype: "Explorer" },
       { key: 'f', text: "Our original ideas and creations.", archetype: "Creator" },
       { key: 'g', text: "Our leadership and success.", archetype: "Ruler" },
@@ -120,7 +120,7 @@ const questions = [
       { key: 'a', text: "Optimistic and simple.", archetype: "Innocent" },
       { key: 'b', text: "Friendly and down-to-earth.", archetype: "Everyman" },
       { key: 'c', text: "Brave and strong.", archetype: "Hero" },
-      { key: 'd', text: "Rebellious and bold.", archetype: "Rebel" },
+      { key: 'd', text: "Rebellious and bold.", archetype: "Rebel" }, // Changed from Outlaw
       { key: 'e', text: "Adventurous and independent.", archetype: "Explorer" },
       { key: 'f', text: "Imaginative and inventive.", archetype: "Creator" },
       { key: 'g', text: "Confident and in control.", archetype: "Ruler" },
@@ -137,7 +137,7 @@ const archetypeDescriptions: Record<string, string> = {
   "Innocent": "Your brand is seen as simple, good, and trustworthy. You bring a sense of ease and happiness.",
   "Everyman": "Your brand is relatable, friendly, and approachable. You make people feel included and understood.",
   "Hero": "Your brand is courageous and inspiring. You help people achieve great things and overcome obstacles.",
-  "Rebel": "Your brand is bold and challenges the norm. You appeal to those who want to break free or do things differently.",
+  "Rebel": "Your brand is bold and challenges the norm. You appeal to those who want to break free or do things differently.", // Changed from Outlaw
   "Explorer": "Your brand is adventurous and independent. You encourage discovery and new experiences.",
   "Creator": "Your brand is imaginative and innovative. You empower people to create and express themselves.",
   "Ruler": "Your brand is powerful and in control. You offer a sense of security and stability.",
@@ -152,7 +152,7 @@ const archetypeColors: Record<string, string> = {
   "Innocent": "#FFFACD", // LemonChiffon
   "Everyman": "#90EE90", // LightGreen
   "Hero": "#FFD700",     // Gold
-  "Rebel": "#DC143C",    // Crimson
+  "Rebel": "#DC143C",    // Crimson (Changed from Outlaw)
   "Explorer": "#1E90FF", // DodgerBlue
   "Creator": "#FF8C00",  // DarkOrange
   "Ruler": "#800080",   // Purple
@@ -169,7 +169,7 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
   const [showResults, setShowResults] = useState(false);
   const [results, setResults] = useState<Record<string, number>>({});
   const [crossoverView, setCrossoverView] = useState(false);
-  const [selectedArchetypeForMap, setSelectedArchetypeForMap] = useState<string | null>(null); // Renamed to avoid confusion
+  const [selectedArchetypeForMap, setSelectedArchetypeForMap] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
@@ -403,7 +403,8 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
 
   const handleConfirmArchetype = (selectedMoodName?: string) => {
     const dominant = getDominantArchetype();
-    const prefixedArchetype = dominant ? "The " + dominant : "";
+    // Ensure the archetype name is prefixed with "The " for consistency with the form's enum
+    const prefixedArchetype = dominant ? "The " + dominant : ""; 
     if (prefixedArchetype && archetypeDescriptions[dominant!]) {
       onQuizComplete(prefixedArchetype, archetypeDescriptions[dominant!], selectedMoodName);
       onOpenChange(false);
@@ -525,26 +526,6 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
               )}
             </div>
           )}
-
-          {suggestedMoods.length > 0 && (
-            <div className="mb-6 p-4 bg-muted/50 rounded-lg">
-              <h3 className="text-lg font-semibold mb-3 text-center">Suggested Color Palette Moods for "The {getDominantArchetype()}"</h3>
-              <div className="flex flex-wrap justify-center gap-2">
-                {suggestedMoods.map((moodName) => (
-                  <Button
-                    key={moodName}
-                    variant="outline"
-                    onClick={() => handleConfirmArchetype(moodName)}
-                  >
-                    Apply Mood: {moodName}
-                  </Button>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground text-center mt-2">
-                Applying a mood will pre-fill the color palette in the main form.
-              </p>
-            </div>
-          )}
           
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-3">Your Full Archetype Profile:</h3>
@@ -654,6 +635,27 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
               </ul>
             </div>
           </div>
+
+           {/* Moved Suggested Moods section here, before the DialogFooter */}
+           {suggestedMoods.length > 0 && (
+            <div className="mb-6 p-4 bg-muted/50 rounded-lg">
+              <h3 className="text-lg font-semibold mb-3 text-center">Suggested Color Palette Moods for "The {getDominantArchetype()}"</h3>
+              <div className="flex flex-wrap justify-center gap-2">
+                {suggestedMoods.map((moodName) => (
+                  <Button
+                    key={moodName}
+                    variant="outline"
+                    onClick={() => handleConfirmArchetype(moodName)}
+                  >
+                    Apply Mood: {moodName}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                Applying a mood will pre-fill the color palette in the main form.
+              </p>
+            </div>
+          )}
           
           <DialogFooter className="mt-auto pt-4">
             <Button variant="outline" onClick={handleRestartQuiz}>
