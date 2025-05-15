@@ -1,3 +1,4 @@
+
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -40,7 +41,9 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     defaultValues: initialValues || {
       businessName: "",
       industry: "",
-      keywords: "",
+      aestheticKeywords: "",
+      emotionalKeywords: "",
+      functionalKeywords: "",
       preferredColorPalette: "",
       preferredLogoStyle: "",
       iconPlacement: "",
@@ -91,26 +94,68 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 </FormItem>
               )}
             />
-            <FormField
-              control={form.control}
-              name="keywords"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Descriptive Keywords</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      placeholder="e.g., modern, minimalist, friendly, bold, innovative"
-                      className="resize-none"
-                      {...field}
-                    />
-                  </FormControl>
-                  <FormDescription>
-                    Comma-separated words that describe your brand identity.
-                  </FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+
+            <div className="space-y-4 p-4 border rounded-md">
+              <h3 className="text-lg font-medium">Brand Keywords</h3>
+              <FormDescription>
+                Describe your brand identity using keywords in the categories below. (e.g., modern, minimalist, friendly, bold)
+              </FormDescription>
+              <FormField
+                control={form.control}
+                name="aestheticKeywords"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Aesthetic Keywords</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="e.g., sleek, vintage, futuristic, minimalist, playful"
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>Visual style and appearance.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="emotionalKeywords"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Emotional Keywords</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="e.g., trustworthy, energetic, calm, joyful, sophisticated"
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>Feelings or emotions the brand should evoke.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="functionalKeywords"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Functional Keywords</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="e.g., scalable, versatile, memorable, simple, efficient"
+                        className="resize-none"
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>Practical attributes or benefits.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
