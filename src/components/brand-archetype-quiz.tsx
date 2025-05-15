@@ -399,7 +399,7 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
   const handleConfirmArchetype = () => {
     const dominant = getDominantArchetype();
     if (dominant && archetypeDescriptions[dominant]) {
-      onQuizComplete(dominant, archetypeDescriptions[dominant]);
+      onQuizComplete("The " + dominant, archetypeDescriptions[dominant]);
       onOpenChange(false);
     }
   };
@@ -642,3 +642,6 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
     </div>
   );
 }
+
+
+    
