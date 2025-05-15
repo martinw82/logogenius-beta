@@ -41,7 +41,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush, Type, Activity, PaletteIcon } from "lucide-react";
+import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette as PaletteIconLucide, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush, Type, Activity } from "lucide-react"; // Renamed Palette to PaletteIconLucide
 
 interface LogoFormProps {
   onSubmit: (data: ExtendedLogoGenerationInputs & { userApiKey?: string }) => Promise<void>;
@@ -438,7 +438,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
 
               <AccordionItem value="visual-prefs" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
                 <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline flex items-center gap-2">
-                  <Palette className="w-5 h-5 text-primary/80" /> Logo Visual Preferences
+                  <PaletteIconLucide className="w-5 h-5 text-primary/80" /> Logo Visual Preferences
                 </AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                     <div className="space-y-2 mb-6">
@@ -450,76 +450,6 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         Define your logo's color scheme. Enter hex codes (e.g. #3F51B5) or descriptive terms.
                         </FormDescription>
                     </div>
-
-                    <FormField
-                        control={form.control}
-                        name="primaryColors"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Primary Color</FormLabel>
-                            <div className="flex items-center gap-2">
-                            <FormControl>
-                                <Input placeholder="e.g., #3F51B5 or Deep Indigo" {...field} />
-                            </FormControl>
-                            <FormControl>
-                                <Input 
-                                type="color" 
-                                value={field.value?.startsWith('#') ? field.value : '#000000'} // Ensure it's a valid hex for color input
-                                onChange={(e) => field.onChange(e.target.value)}
-                                className="w-10 h-10 p-1"
-                                />
-                            </FormControl>
-                            </div>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="secondaryColors"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Secondary Color</FormLabel>
-                            <div className="flex items-center gap-2">
-                            <FormControl>
-                                <Input placeholder="e.g., #EEEEEE or Light Grey" {...field} />
-                            </FormControl>
-                            <FormControl>
-                                <Input 
-                                type="color" 
-                                value={field.value?.startsWith('#') ? field.value : '#000000'}
-                                onChange={(e) => field.onChange(e.target.value)}
-                                className="w-10 h-10 p-1"
-                                />
-                            </FormControl>
-                            </div>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
-                    <FormField
-                        control={form.control}
-                        name="accentColors"
-                        render={({ field }) => (
-                        <FormItem>
-                            <FormLabel>Accent Color</FormLabel>
-                            <div className="flex items-center gap-2">
-                            <FormControl>
-                                <Input placeholder="e.g., #009688 or Teal" {...field} />
-                            </FormControl>
-                            <FormControl>
-                                <Input 
-                                type="color" 
-                                value={field.value?.startsWith('#') ? field.value : '#000000'}
-                                onChange={(e) => field.onChange(e.target.value)}
-                                className="w-10 h-10 p-1"
-                                />
-                            </FormControl>
-                            </div>
-                            <FormMessage />
-                        </FormItem>
-                        )}
-                    />
 
                     <FormField
                         control={form.control}
@@ -544,7 +474,79 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         </FormItem>
                         )}
                     />
-
+                    
+                    <FormField
+                        control={form.control}
+                        name="primaryColors"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Primary Color</FormLabel>
+                            <div className="flex items-center gap-2">
+                            <FormControl>
+                                <Input placeholder="e.g., #3F51B5 or Deep Indigo" {...field} />
+                            </FormControl>
+                            <FormControl>
+                                <Input 
+                                type="color" 
+                                value={field.value?.startsWith('#') ? field.value : '#000000'} // Ensure it's a valid hex for color input
+                                onChange={(e) => field.onChange(e.target.value)}
+                                className="w-10 h-10 p-1"
+                                />
+                            </FormControl>
+                            </div>
+                            <FormDescription>Specify the main color for your logo.</FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="secondaryColors"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Secondary Color</FormLabel>
+                            <div className="flex items-center gap-2">
+                            <FormControl>
+                                <Input placeholder="e.g., #EEEEEE or Light Grey" {...field} />
+                            </FormControl>
+                            <FormControl>
+                                <Input 
+                                type="color" 
+                                value={field.value?.startsWith('#') ? field.value : '#000000'}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                className="w-10 h-10 p-1"
+                                />
+                            </FormControl>
+                            </div>
+                            <FormDescription>Specify a complementary or secondary color.</FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="accentColors"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Accent Color</FormLabel>
+                            <div className="flex items-center gap-2">
+                            <FormControl>
+                                <Input placeholder="e.g., #009688 or Teal" {...field} />
+                            </FormControl>
+                            <FormControl>
+                                <Input 
+                                type="color" 
+                                value={field.value?.startsWith('#') ? field.value : '#000000'}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                className="w-10 h-10 p-1"
+                                />
+                            </FormControl>
+                            </div>
+                            <FormDescription>Specify an accent color for highlights.</FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
 
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2 pt-4">
                     <FormField
