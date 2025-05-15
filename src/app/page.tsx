@@ -87,8 +87,9 @@ export default function HomePage() {
       iconComplexity: generationInput.iconComplexity,
       targetAudience: generationInput.targetAudience,
       inspirationReferences: generationInput.inspirationReferences,
-      usageContext: generationInput.usageContext,
-      negativeKeywords: generationInput.negativeKeywords,       
+      usageContext: generationInput.usageContext, // Now a string
+      negativeKeywords: generationInput.negativeKeywords,
+      variationInstructions: generationInput.variationInstructions, // Added field
       feedback: feedbackType,
       previousPrompt: basePrompt,
     };

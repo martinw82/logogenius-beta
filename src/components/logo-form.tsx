@@ -53,6 +53,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       inspirationReferences: "",
       usageContext: "",
       negativeKeywords: "",
+      variationInstructions: "",
       numberOfLogos: 4,
     },
   });
@@ -109,7 +110,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                   <FormItem>
                     <FormLabel>Target Audience (Optional)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., Young professionals, Eco-conscious consumers" {...field} />
+                      <Input placeholder="e.g., Young professionals, Eco-conscious consumers, Tech-savvy millennials" {...field} />
                     </FormControl>
                     <FormDescription>Describe who your brand is for. This helps align design with audience preferences.</FormDescription>
                     <FormMessage />
@@ -320,20 +321,15 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Primary Usage Context (Optional)</FormLabel>
-                      <Select onValueChange={field.onChange} defaultValue={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select usage context" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          <SelectItem value="digital_only">Digital Only (Websites, Apps)</SelectItem>
-                          <SelectItem value="print">Print (Business Cards, Brochures)</SelectItem>
-                          <SelectItem value="merchandise">Merchandise (T-shirts, Mugs)</SelectItem>
-                          <SelectItem value="digital_and_print">Digital & Print (Versatile)</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <FormDescription>Ensures versatility for intended applications.</FormDescription>
+                       <FormControl>
+                        <Textarea
+                          placeholder="e.g., Web (responsive), Packaging (bold & scalable), Print (high-res needed), Social media profiles."
+                          className="resize-none"
+                          rows={3}
+                          {...field}
+                        />
+                      </FormControl>
+                      <FormDescription>Describe where the logo will primarily be used. This helps tailor for versatility and specific applications (e.g., "Digital & Print", "Merchandise").</FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -346,7 +342,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                       <FormLabel>Things to Avoid (Optional)</FormLabel>
                       <FormControl>
                         <Textarea
-                          placeholder="e.g., No gradients, avoid cartoonish elements, not too corporate."
+                          placeholder="e.g., No gradients, avoid cartoonish elements, not too corporate, avoid using complex details."
                           className="resize-none"
                           rows={3}
                           {...field}
@@ -379,6 +375,25 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                     <FormDescription>
                       Choose between 1 and 8 logos.
                     </FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="variationInstructions"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Variation Instructions (Optional)</FormLabel>
+                    <FormControl>
+                      <Textarea
+                        placeholder="e.g., Create variations emphasizing different fonts; Try one with a minimalist icon and another with a more detailed one."
+                        className="resize-none"
+                        rows={3}
+                        {...field}
+                      />
+                    </FormControl>
+                    <FormDescription>Provide guidance on how the multiple logo concepts should differ from each other.</FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}

@@ -23,8 +23,9 @@ const RefineLogoGenerationInputSchema = z.object({
   iconComplexity: z.string().optional().describe('Preferred icon complexity (e.g., simple, detailed).'),
   targetAudience: z.string().optional().describe('Optional description of the target audience.'),
   inspirationReferences: z.string().optional().describe('Optional inspiration references.'),
-  usageContext: z.enum(['digital_only', 'print', 'merchandise', 'digital_and_print']).optional().describe('Optional primary usage context for the logo.'),
+  usageContext: z.string().optional().describe('Optional primary usage context for the logo (e.g., "Digital", "Print & Web").'),
   negativeKeywords: z.string().optional().describe('Optional keywords or concepts to avoid.'),
+  variationInstructions: z.string().optional().describe('Optional instructions on how generated variations should differ. This may inform the refined prompt if it is intended for multiple future variations.'),
   feedback: z
     .union([
       z.literal('thumbs_up'),
@@ -65,10 +66,12 @@ const prompt = ai.definePrompt({
   {{#if inspirationReferences}}Inspiration References: {{{inspirationReferences}}}{{/if}}
   {{#if usageContext}}Usage Context: {{{usageContext}}}{{/if}}
   {{#if negativeKeywords}}Things to Avoid: {{{negativeKeywords}}}{{/if}}
+  {{#if variationInstructions}}Previous Variation Instructions (for context): {{{variationInstructions}}}{{/if}}
 
   Based on the feedback and all available parameters, refine the prompt to generate a better logo.
   The refined prompt should be detailed and specific.
-  It should incorporate all relevant fields: business name, keywords, industry, color palette, logo style, icon placement, font style, icon complexity, target audience, inspiration references, usage context, and negative keywords.
+  It should incorporate all relevant fields: businessName, keywords, industry, colorPalette, logoStyle, iconPlacement, fontStyle, iconComplexity, targetAudience, inspirationReferences, usageContext, and negativeKeywords.
+  Consider the variation instructions if they provide insight into desired diversity or focus for a single improved concept.
 
   Return the refined prompt.
   `,

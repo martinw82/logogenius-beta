@@ -32,11 +32,14 @@ export function constructBasePrompt(input: Omit<GenerateLogoConceptsInput, 'numb
   if (input.inspirationReferences) {
     prompt += ` Inspiration references: ${input.inspirationReferences}.`;
   }
-  if (input.usageContext) {
+  if (input.usageContext) { // Now a string
     prompt += ` Primary usage context: ${input.usageContext}.`;
   }
   if (input.negativeKeywords) {
     prompt += ` Avoid the following: ${input.negativeKeywords}.`;
+  }
+  if (input.variationInstructions) {
+    prompt += ` Variation instructions were: ${input.variationInstructions}.`;
   }
   return prompt;
 }

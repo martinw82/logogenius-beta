@@ -25,8 +25,9 @@ export const logoFormSchema = z.object({
   iconComplexity: z.enum(['', 'simple', 'detailed']).default('').optional().describe('Preferred icon complexity (e.g., simple, detailed).'),
   targetAudience: z.string().max(150, "Target audience description too long (max 150 chars).").optional(),
   inspirationReferences: z.string().max(200, "Inspiration references too long (max 200 chars).").optional(),
-  usageContext: z.enum(['', 'digital_only', 'print', 'merchandise', 'digital_and_print']).default('').optional().describe('Primary intended usage context for the logo.'),
+  usageContext: z.string().max(200, "Usage context description too long (max 200 chars).").optional().describe('Primary intended usage context for the logo.'),
   negativeKeywords: z.string().max(150, "Negative keywords too long (max 150 chars).").optional(),
+  variationInstructions: z.string().max(200, "Variation instructions too long (max 200 chars).").optional().describe('Instructions on how the generated variations should differ.'),
   numberOfLogos: z.coerce.number().min(1, "Generate at least 1 logo.").max(8, "Cannot generate more than 8 logos at a time.").default(4),
 }).refine(data => data.aestheticKeywords || data.emotionalKeywords || data.functionalKeywords, {
   message: "Please provide keywords for at least one category (Aesthetic, Emotional, or Functional).",
@@ -41,7 +42,7 @@ export function mapFormDataToAiInput(formData: LogoFormData): GenerateLogoConcep
     preferredLogoStyle,
     iconPlacement,
     iconComplexity,
-    usageContext,
+    // usageContext type is now string, no need for special handling beyond empty check
     aestheticKeywords,
     emotionalKeywords,
     functionalKeywords,
@@ -65,6 +66,7 @@ export function mapFormDataToAiInput(formData: LogoFormData): GenerateLogoConcep
     preferredLogoStyle: preferredLogoStyle === '' ? undefined : preferredLogoStyle as GenerateLogoConceptsInput['preferredLogoStyle'],
     iconPlacement: iconPlacement === '' ? undefined : iconPlacement,
     iconComplexity: iconComplexity === '' ? undefined : iconComplexity as GenerateLogoConceptsInput['iconComplexity'],
-    usageContext: usageContext === '' ? undefined : usageContext as GenerateLogoConceptsInput['usageContext'],
+    usageContext: formData.usageContext === '' ? undefined : formData.usageContext,
+    variationInstructions: formData.variationInstructions === '' ? undefined : formData.variationInstructions,
   };
 }

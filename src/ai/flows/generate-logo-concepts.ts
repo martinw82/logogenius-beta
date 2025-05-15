@@ -44,8 +44,9 @@ const GenerateLogoConceptsInputSchema = z.object({
   iconComplexity: z.enum(['simple', 'detailed']).optional().describe('Optional preferred icon complexity (e.g., simple, detailed).'),
   targetAudience: z.string().optional().describe('Optional description of the target audience (e.g., "Young professionals", "Eco-conscious consumers").'),
   inspirationReferences: z.string().optional().describe('Optional inspiration references (e.g., "Inspired by Nike’s simplicity", "Apple’s sleekness").'),
-  usageContext: z.enum(['digital_only', 'print', 'merchandise', 'digital_and_print']).optional().describe('Optional primary usage context for the logo (e.g., "Digital only", "Print", "Merchandise").'),
+  usageContext: z.string().optional().describe('Optional primary usage context for the logo (e.g., "Digital only", "Print", "Merchandise", "Web, packaging, and print").'),
   negativeKeywords: z.string().optional().describe('Optional keywords or concepts to avoid (e.g., "No gradients", "Avoid cartoonish").'),
+  variationInstructions: z.string().optional().describe('Optional instructions on how the generated variations should differ (e.g., "emphasize different fonts for each").'),
   numberOfLogos: z.number().default(4).describe('Number of logos to generate'),
 });
 
@@ -63,6 +64,9 @@ export async function generateLogoConcepts(
   return generateLogoConceptsFlow(input);
 }
 
+// This Handlebars prompt is not directly used for image generation in this flow's implementation,
+// as image generation happens in a loop calling ai.generate directly.
+// It's kept for potential future use or as a reference.
 const prompt = ai.definePrompt({
   name: 'generateLogoConceptsPrompt',
   input: {
@@ -111,6 +115,10 @@ The primary usage context is: {{usageContext}}.
 Please avoid the following: {{negativeKeywords}}.
 {{/if}}
 
+{{#if variationInstructions}}
+Instructions for variations: {{variationInstructions}}.
+{{/if}}
+
 Please generate {{numberOfLogos}} logo variations.
 Output array of URLs for generated images in the format { "logoUrls": ["url1", "url2", "url3", "url4"] }.
 `,
@@ -156,8 +164,16 @@ const generateLogoConceptsFlow = ai.defineFlow(
 
 
     for (let i = 0; i < input.numberOfLogos; i++) {
-      // Add a variation instruction for subsequent logos if needed
-      const imagePrompt = i > 0 ? `${baseImagePrompt} (variation ${i + 1})` : baseImagePrompt;
+      let imagePrompt = baseImagePrompt;
+      // Add variation instructions if provided
+      if (input.variationInstructions) {
+        imagePrompt += ` ${input.variationInstructions}`;
+      }
+      // Add a variation marker for subsequent logos
+      if (i > 0) {
+        imagePrompt += ` (variation ${i + 1})`;
+      }
+      
 
       const {media} = await ai.generate({
         model: 'googleai/gemini-2.0-flash-exp',
