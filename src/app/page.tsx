@@ -21,14 +21,17 @@ export default function HomePage() {
   const [isLoading, setIsLoading] = useState(false);
   const [loadingFeedbackFor, setLoadingFeedbackFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [expectedLogoCount, setExpectedLogoCount] = useState<number>(4); 
-  const [userApiKey, setUserApiKey] = useState<string | null>(null);
+  const [expectedLogoCount, setExpectedLogoCount] = useState<number>(4);
+  const [userApiKey, setUserApiKey] = useState<string | null>(null); // Not strictly needed here anymore as we read from localStorage directly
 
   useEffect(() => {
+    // Pre-fill API key if stored, useful if ApiKeyInput component isn't immediately visible
     const storedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
     if (storedApiKey) {
-      setUserApiKey(storedApiKey);
+      setUserApiKey(storedApiKey); // Can still set this for other potential uses, though flows read directly
     }
+
+    // Listen for changes to API key in localStorage from other tabs/windows or the ApiKeyInput component itself
     const handleStorageChange = (event: StorageEvent) => {
       if (event.key === API_KEY_STORAGE_KEY) {
         setUserApiKey(event.newValue);
@@ -57,7 +60,7 @@ export default function HomePage() {
     setExpectedLogoCount(aiInput.numberOfLogos || 4);
 
     const currentApiKey = getApiKey();
-    const finalInput: GenerateLogoConceptsInput = { ...aiInput }; // aiInput already has data URI
+    const finalInput: GenerateLogoConceptsInput = { ...aiInput };
     if (currentApiKey) {
       finalInput.userApiKey = currentApiKey;
     }
@@ -68,12 +71,11 @@ export default function HomePage() {
         const newLogoBatch: LogoBatch = {
           id: uuidv4(),
           logos: result.logoUrls.map(url => ({ id: uuidv4(), url })),
-          generationInput: { // Store the input used for generation, including referenceImageDataUri
-            ...aiInput, 
-            // Ensure userApiKey is not stored in the batch for security/privacy if it was added to finalInput
-            userApiKey: undefined 
-          }, 
-          basePrompt: constructBasePrompt(aiInput), 
+          generationInput: {
+            ...aiInput,
+            userApiKey: undefined // Ensure API key is not stored in the batch
+          },
+          basePrompt: constructBasePrompt(aiInput),
         };
         setLogoBatch(newLogoBatch);
         toast({
@@ -81,10 +83,10 @@ export default function HomePage() {
           description: `${result.logoUrls.length} new logo concepts are ready.`,
         });
       } else {
-        setError("No logos were generated. Please try adjusting your input.");
+        setError("No logos were generated. Please try adjusting your input or API key.");
         toast({
           title: "Generation Issue",
-          description: "No logos were generated. Try different keywords or settings.",
+          description: "No logos were generated. Try different keywords, settings, or check your API key.",
           variant: "destructive",
         });
       }
@@ -104,12 +106,12 @@ export default function HomePage() {
 
   const handleFeedback = async (
     targetLogoBatch: LogoBatch,
-    logoId: string, 
+    logoId: string,
     feedbackType: "thumbs_up" | "thumbs_down"
   ) => {
     if (!targetLogoBatch) return;
 
-    setLoadingFeedbackFor(logoId); 
+    setLoadingFeedbackFor(logoId);
     setError(null);
 
     const { generationInput, basePrompt } = targetLogoBatch;
@@ -121,15 +123,18 @@ export default function HomePage() {
       keywords: generationInput.keywords,
       colorPalette: generationInput.preferredColorPalette,
       logoStyle: generationInput.preferredLogoStyle,
-      iconPlacement: generationInput.iconPlacement, 
+      composition: generationInput.composition,
+      iconPlacement: generationInput.iconPlacement,
       fontStyle: generationInput.fontStyle,
       iconComplexity: generationInput.iconComplexity,
+      iconSpecifics: generationInput.iconSpecifics,
       targetAudience: generationInput.targetAudience,
       inspirationReferences: generationInput.inspirationReferences,
       usageContext: generationInput.usageContext,
       negativeKeywords: generationInput.negativeKeywords,
+      competitorsToAvoid: generationInput.competitorsToAvoid,
       variationInstructions: generationInput.variationInstructions,
-      referenceImageDataUri: generationInput.referenceImageDataUri, // Pass if it exists
+      referenceImageDataUri: generationInput.referenceImageDataUri,
       feedback: feedbackType,
       previousPrompt: basePrompt,
     };
@@ -188,7 +193,7 @@ export default function HomePage() {
           isLoading={isLoading}
           expectedLogoCount={expectedLogoCount}
         />
-        
+
         <div className="mt-12">
            <ApiKeyInput />
         </div>

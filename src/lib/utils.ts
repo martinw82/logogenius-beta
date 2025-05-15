@@ -17,6 +17,9 @@ export function constructBasePrompt(input: Omit<GenerateLogoConceptsInput, 'numb
   if (input.preferredLogoStyle) {
     prompt += ` Preferred logo style: ${input.preferredLogoStyle}.`;
   }
+  if (input.composition) {
+    prompt += ` Desired composition: ${input.composition}.`;
+  }
   if (input.iconPlacement) {
     prompt += ` Icon placement: ${input.iconPlacement}.`;
   }
@@ -25,6 +28,9 @@ export function constructBasePrompt(input: Omit<GenerateLogoConceptsInput, 'numb
   }
   if (input.iconComplexity) {
     prompt += ` Icon complexity: ${input.iconComplexity}.`;
+  }
+  if (input.iconSpecifics) {
+    prompt += ` Specific icon details: ${input.iconSpecifics}.`;
   }
   if (input.targetAudience) {
     prompt += ` Target audience: ${input.targetAudience}.`;
@@ -35,11 +41,14 @@ export function constructBasePrompt(input: Omit<GenerateLogoConceptsInput, 'numb
   if (input.inspirationReferences) {
     prompt += ` Inspiration references: ${input.inspirationReferences}.`;
   }
-  if (input.usageContext) { 
+  if (input.usageContext) {
     prompt += ` Primary usage context: ${input.usageContext}.`;
   }
   if (input.negativeKeywords) {
     prompt += ` Avoid the following: ${input.negativeKeywords}.`;
+  }
+  if (input.competitorsToAvoid) {
+    prompt += ` Differentiate from competitors: ${input.competitorsToAvoid}.`;
   }
   if (input.variationInstructions) {
     prompt += ` Variation instructions were: ${input.variationInstructions}.`;

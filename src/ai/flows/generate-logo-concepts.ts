@@ -39,15 +39,18 @@ const GenerateLogoConceptsInputSchema = z.object({
     ])
       .optional()
       .describe('Optional preferred logo style (e.g., minimalist, emblem).'),
+  composition: z.enum(['horizontal', 'vertical', 'circular', 'square']).optional().describe('Optional preferred overall layout or arrangement of logo elements (e.g., horizontal, vertical).'),
   iconPlacement: z.enum(['above_text', 'left_of_text', 'right_of_text', 'below_text', 'no_icon', 'icon_only'])
     .optional()
     .describe('Optional preferred placement of the icon relative to the text.'),
   fontStyle: z.string().optional().describe('Optional preferred font style (e.g., "modern sans-serif", "elegant script", "No text").'),
   iconComplexity: z.enum(['simple', 'detailed']).optional().describe('Optional preferred icon complexity (e.g., simple, detailed).'),
+  iconSpecifics: z.string().optional().describe('Optional specific imagery or concepts desired for the icon portion of the logo.'),
   targetAudience: z.string().optional().describe('Optional description of the target audience (e.g., "Young professionals", "Eco-conscious consumers").'),
   inspirationReferences: z.string().optional().describe('Optional inspiration references (e.g., "Inspired by Nike’s simplicity", "Apple’s sleekness").'),
   usageContext: z.string().optional().describe('Optional primary usage context for the logo (e.g., "Digital only", "Print", "Merchandise", "Web, packaging, and print").'),
   negativeKeywords: z.string().optional().describe('Optional keywords or concepts to avoid (e.g., "No gradients", "Avoid cartoonish").'),
+  competitorsToAvoid: z.string().optional().describe('Optional list of competitor brands to differentiate from.'),
   variationInstructions: z.string().optional().describe('Optional instructions on how the generated variations should differ (e.g., "emphasize different fonts for each").'),
   numberOfLogos: z.number().default(4).describe('Number of logos to generate'),
   userApiKey: z.string().optional().describe('Optional user-provided Google AI API key.'),
@@ -71,7 +74,7 @@ export async function generateLogoConcepts(
 const generateLogoConceptsPromptObject = ai.definePrompt({
   name: 'generateLogoConceptsPrompt',
   input: {
-    schema: GenerateLogoConceptsInputSchema.omit({ userApiKey: true }), 
+    schema: GenerateLogoConceptsInputSchema.omit({ userApiKey: true }),
   },
   output: {
     schema: GenerateLogoConceptsOutputSchema,
@@ -88,6 +91,10 @@ The preferred color palette is: {{preferredColorPalette}}.
 The preferred logo style is: {{preferredLogoStyle}}.
 {{/if}}
 
+{{#if composition}}
+The preferred overall composition is: {{composition}}.
+{{/if}}
+
 {{#if iconPlacement}}
 The preferred icon placement is: {{iconPlacement}}.
 {{/if}}
@@ -98,6 +105,10 @@ The preferred font style is: {{fontStyle}}.
 
 {{#if iconComplexity}}
 The preferred icon complexity is: {{iconComplexity}}.
+{{/if}}
+
+{{#if iconSpecifics}}
+Specific details for the icon: {{iconSpecifics}}.
 {{/if}}
 
 {{#if targetAudience}}
@@ -118,6 +129,10 @@ The primary usage context is: {{usageContext}}.
 
 {{#if negativeKeywords}}
 Please avoid the following: {{negativeKeywords}}.
+{{/if}}
+
+{{#if competitorsToAvoid}}
+Differentiate from these competitors: {{competitorsToAvoid}}.
 {{/if}}
 
 {{#if variationInstructions}}
@@ -152,6 +167,9 @@ const generateLogoConceptsFlow = ai.defineFlow(
     if (flowInput.preferredLogoStyle) {
       baseImagePromptText += ` Preferred logo style: ${flowInput.preferredLogoStyle}.`;
     }
+    if (flowInput.composition) {
+      baseImagePromptText += ` Overall composition: ${flowInput.composition}.`;
+    }
     if (flowInput.iconPlacement) {
       baseImagePromptText += ` Icon placement: ${flowInput.iconPlacement}.`;
     }
@@ -160,6 +178,9 @@ const generateLogoConceptsFlow = ai.defineFlow(
     }
     if (flowInput.iconComplexity) {
       baseImagePromptText += ` Icon complexity: ${flowInput.iconComplexity}.`;
+    }
+    if (flowInput.iconSpecifics) {
+      baseImagePromptText += ` Specific icon details: ${flowInput.iconSpecifics}.`;
     }
     if (flowInput.targetAudience) {
       baseImagePromptText += ` Target audience: ${flowInput.targetAudience}.`;
@@ -173,16 +194,20 @@ const generateLogoConceptsFlow = ai.defineFlow(
     if (flowInput.negativeKeywords) {
       baseImagePromptText += ` Avoid the following: ${flowInput.negativeKeywords}.`;
     }
+    if (flowInput.competitorsToAvoid) {
+      baseImagePromptText += ` Differentiate from competitors: ${flowInput.competitorsToAvoid}.`;
+    }
+
 
     for (let i = 0; i < flowInput.numberOfLogos; i++) {
       let currentImagePromptText = baseImagePromptText;
       if (flowInput.variationInstructions) {
-        currentImagePromptText += ` ${flowInput.variationInstructions}`;
+        currentImagePromptText += ` Variation instructions: ${flowInput.variationInstructions}`;
       }
       if (i > 0) {
         currentImagePromptText += ` (variation ${i + 1} of ${flowInput.numberOfLogos})`;
       }
-      
+
       let finalPromptPayload: any = currentImagePromptText;
       if (flowInput.referenceImageDataUri) {
         finalPromptPayload = [
@@ -190,10 +215,10 @@ const generateLogoConceptsFlow = ai.defineFlow(
           {text: currentImagePromptText}
         ];
       }
-      
+
       try {
         const genResponse = await currentAi.generate({
-          model: 'googleai/gemini-2.0-flash-exp', 
+          model: 'googleai/gemini-2.0-flash-exp',
           prompt: finalPromptPayload,
           config: {
             responseModalities: ['TEXT', 'IMAGE'],

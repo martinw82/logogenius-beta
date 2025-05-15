@@ -52,13 +52,16 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       functionalKeywords: "",
       preferredColorPalette: "",
       preferredLogoStyle: "",
+      composition: "",
       iconPlacement: "",
       fontStyle: "",
       iconComplexity: "",
+      iconSpecifics: "",
       targetAudience: "",
       inspirationReferences: "",
       usageContext: "",
       negativeKeywords: "",
+      competitorsToAvoid: "",
       variationInstructions: "",
       numberOfLogos: 4,
       referenceImageFile: null,
@@ -82,7 +85,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-            <Accordion type="multiple" defaultValue={["basic-info", "brand-keywords"]} className="w-full space-y-4">
+            <Accordion type="multiple" defaultValue={["basic-info", "brand-keywords", "visual-prefs"]} className="w-full space-y-4">
               <AccordionItem value="basic-info" className="border-b-0 rounded-md border p-4 shadow-sm">
                 <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline">Basic Information</AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
@@ -239,6 +242,31 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         </FormItem>
                       )}
                     />
+                     <FormField
+                      control={form.control}
+                      name="composition"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Overall Composition (Optional)</FormLabel>
+                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select composition" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="horizontal">Horizontal: Wider than tall</SelectItem>
+                              <SelectItem value="vertical">Vertical: Taller than wide</SelectItem>
+                              <SelectItem value="circular">Circular: Elements arranged in a circle</SelectItem>
+                              <SelectItem value="square">Square: Balanced width and height</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                     <FormField
                       control={form.control}
                       name="iconPlacement"
@@ -260,24 +288,6 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               <SelectItem value="icon_only">Icon Only (Logomark)</SelectItem>
                             </SelectContent>
                           </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                  <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="fontStyle"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Font Style (Optional)</FormLabel>
-                          <FormControl>
-                            <Input placeholder="e.g., Geometric Sans-Serif, Handwritten Script, No Text" {...field} />
-                          </FormControl>
-                          <FormDescription>
-                            Describe font attributes (e.g., geometric, handwritten) or 'No Text' for icon-only logos.
-                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
@@ -304,11 +314,46 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                       )}
                     />
                   </div>
+                   <FormField
+                    control={form.control}
+                    name="fontStyle"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Font Style (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Geometric Sans-Serif, Handwritten Script, No Text" {...field} />
+                        </FormControl>
+                        <FormDescription>
+                          Describe font attributes (e.g., geometric, handwritten) or 'No Text' for icon-only logos.
+                        </FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="iconSpecifics"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Specific Icon Imagery (Optional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="e.g., A soaring eagle, intertwined gears, a subtle leaf motif"
+                            className="resize-none"
+                            rows={3}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>Describe specific objects, symbols, or concepts you want in the icon.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
                 </AccordionContent>
               </AccordionItem>
 
               <AccordionItem value="advanced-details" className="border-b-0 rounded-md border p-4 shadow-sm">
-                <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline">Advanced Details</AccordionTrigger>
+                <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline">Advanced Details & Context</AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <FormField
                     control={form.control}
@@ -352,6 +397,25 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                           />
                         </FormControl>
                         <FormDescription>Provide visual or brand benchmarks.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                   <FormField
+                    control={form.control}
+                    name="competitorsToAvoid"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Competitor Brands to Differentiate From (Optional)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="e.g., Brand X (too similar style), Brand Y (want to be more modern)"
+                            className="resize-none"
+                            rows={3}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormDescription>List brands you want your logo to stand apart from.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}

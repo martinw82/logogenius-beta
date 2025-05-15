@@ -11,5 +11,5 @@ export interface LogoBatch {
   logos: Logo[];
   // Use Omit to exclude userApiKey from being stored, but include all other fields from GenerateLogoConceptsInput
   generationInput: Omit<GenerateLogoConceptsInput, 'userApiKey'>;
-  basePrompt: string; 
+  basePrompt: string;
 }
