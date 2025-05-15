@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { LogoFormData, ExtendedLogoGenerationInputs } from "./logo-form-types";
-import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData } from "./logo-form-types"; // Updated import
+import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData } from "./logo-form-types";
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
 
@@ -35,13 +35,23 @@ import {
   AccordionTrigger,
 } from "@/components/ui/accordion";
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette as PaletteIconLucide, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush, Type, Activity } from "lucide-react";
+import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette as PaletteIconLucide, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush, Type, Activity, HelpCircle } from "lucide-react";
+import { BrandArchetypeQuiz } from "./brand-archetype-quiz";
+
 
 interface LogoFormProps {
   onSubmit: (data: ExtendedLogoGenerationInputs & { userApiKey?: string }) => Promise<void>;
@@ -53,6 +63,8 @@ const FORM_SETTINGS_KEY = "logoFormSettingsV3";
 
 export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) {
   const { toast } = useToast();
+  const [isQuizDialogOpen, setIsQuizDialogOpen] = React.useState(false);
+
   const form = useForm<LogoFormData>({
     resolver: zodResolver(logoFormSchema),
     defaultValues: initialValues || {
@@ -95,6 +107,21 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
   const handleSubmit = async (data: LogoFormData) => {
     const extendedAiInput = await mapFormDataToAiInput(data);
     await onSubmit(extendedAiInput);
+  };
+
+  const handleQuizComplete = (archetype: string, analysis: string) => {
+    form.setValue('brandArchetype', archetype as typeof brandArchetypes[number], { shouldValidate: true });
+    setIsQuizDialogOpen(false);
+    toast({
+      title: `Archetype Identified: ${archetype}`,
+      description: (
+        <p className="text-sm">
+          {analysis} <br />
+          Your "Brand Archetype" field has been updated.
+        </p>
+      ),
+      duration: 9000,
+    });
   };
 
   const handleSaveToBrowser = () => {
@@ -292,7 +319,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                   <BrainCircuit className="w-5 h-5 text-primary/80" /> Brand Strategy (Optional)
                 </AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
-                   <FormDescription>
+                   <FormDescription className="pb-2">
                     Define core strategic elements for your brand narrative.
                   </FormDescription>
                   <FormField
@@ -338,19 +365,37 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Brand Archetype</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select an archetype (optional)" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {brandArchetypes.map(archetype => (
-                              <SelectItem key={archetype} value={archetype}>{archetype}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>Defines brand personality and narrative style.</FormDescription>
+                        <div className="flex items-center gap-2">
+                          <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select an archetype" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              {brandArchetypes.map(archetype => (
+                                <SelectItem key={archetype} value={archetype}>{archetype}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Dialog open={isQuizDialogOpen} onOpenChange={setIsQuizDialogOpen}>
+                            <DialogTrigger asChild>
+                              <Button variant="outline" type="button" className="shrink-0">
+                                <HelpCircle className="w-4 h-4 mr-2" />
+                                Take Quiz
+                              </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-lg md:max-w-xl lg:max-w-2xl max-h-[90vh] overflow-y-auto">
+                                {/* DialogHeader and Title removed for cleaner quiz integration */}
+                                <BrandArchetypeQuiz 
+                                  open={isQuizDialogOpen}
+                                  onOpenChange={setIsQuizDialogOpen}
+                                  onQuizComplete={handleQuizComplete} 
+                                />
+                            </DialogContent>
+                          </Dialog>
+                        </div>
+                        <FormDescription>Defines brand personality and narrative style. Or, take the quiz!</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -441,7 +486,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                   <PaletteIconLucide className="w-5 h-5 text-primary/80" /> Logo Visual Preferences
                 </AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
-                    <div className="space-y-2 mb-6">
+                    <div className="space-y-2 mb-4">
                         <h3 className="text-sm font-medium flex items-center gap-1.5">
                         <Paintbrush className="w-4 h-4 text-muted-foreground" />
                         Logo Color Palette Input
@@ -455,7 +500,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         control={form.control}
                         name="colorPaletteMood"
                         render={({ field }) => (
-                        <FormItem className="pt-2">
+                        <FormItem>
                             <FormLabel>Color Palette Mood (Optional)</FormLabel>
                             <Select 
                               onValueChange={(value) => {
@@ -467,8 +512,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                                   form.setValue("accentColors", selectedMoodData.accent, { shouldValidate: true });
                                 }
                               }} 
-                              value={field.value || ""} 
-                              defaultValue={field.value || ""}
+                              value={field.value || ""}
                             >
                               <FormControl>
                                   <SelectTrigger>
@@ -504,7 +548,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             <FormControl>
                                 <Input 
                                 type="color" 
-                                value={field.value && field.value.startsWith('#') && field.value.length === 7 ? field.value : '#000000'}
+                                value={(field.value && field.value.startsWith('#') && (field.value.length === 7 || field.value.length === 4)) ? field.value : '#000000'}
                                 onChange={(e) => field.onChange(e.target.value)}
                                 className="w-10 h-10 p-1 min-w-[2.5rem]"
                                 />
@@ -532,7 +576,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             <FormControl>
                                 <Input 
                                 type="color" 
-                                value={field.value && field.value.startsWith('#') && field.value.length === 7 ? field.value : '#000000'}
+                                value={(field.value && field.value.startsWith('#') && (field.value.length === 7 || field.value.length === 4)) ? field.value : '#000000'}
                                 onChange={(e) => field.onChange(e.target.value)}
                                 className="w-10 h-10 p-1 min-w-[2.5rem]"
                                 />
@@ -560,7 +604,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             <FormControl>
                                 <Input 
                                 type="color" 
-                                value={field.value && field.value.startsWith('#') && field.value.length === 7 ? field.value : '#000000'}
+                                value={(field.value && field.value.startsWith('#') && (field.value.length === 7 || field.value.length === 4)) ? field.value : '#000000'}
                                 onChange={(e) => field.onChange(e.target.value)}
                                 className="w-10 h-10 p-1 min-w-[2.5rem]"
                                 />
@@ -579,7 +623,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Preferred Logo Style (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select a style" />
@@ -606,7 +650,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Overall Composition (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select composition" />
@@ -631,7 +675,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Icon Placement (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select icon placement" />
@@ -656,7 +700,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Icon Complexity (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
+                          <Select onValueChange={field.onChange} value={field.value || ""}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select icon complexity" />
@@ -990,3 +1034,4 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     </Card>
   );
 }
+
