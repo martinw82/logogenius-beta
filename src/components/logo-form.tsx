@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { LogoFormData, ExtendedLogoGenerationInputs } from "./logo-form-types";
-import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData } from "./logo-form-types";
+import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData, colorPaletteMoods } from "./logo-form-types"; // Ensure colorPaletteMoods is imported if used directly
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
 
@@ -109,15 +109,28 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     await onSubmit(extendedAiInput);
   };
 
-  const handleQuizComplete = (archetype: string, analysis: string) => {
+  const handleQuizComplete = (archetype: string, analysis: string, selectedMoodName?: string) => {
     form.setValue('brandArchetype', archetype as typeof brandArchetypes[number], { shouldValidate: true });
+
+    let toastMessage = `Your "Brand Archetype" field has been updated to ${archetype}. ${analysis}`;
+
+    if (selectedMoodName) {
+      const moodData = colorPaletteMoodsData.find(m => m.name === selectedMoodName);
+      if (moodData) {
+        form.setValue('colorPaletteMood', moodData.name as (typeof colorPaletteMoods)[number], { shouldValidate: true });
+        form.setValue("primaryColors", moodData.primary, { shouldValidate: true });
+        form.setValue("secondaryColors", moodData.secondary, { shouldValidate: true });
+        form.setValue("accentColors", moodData.accent, { shouldValidate: true });
+        toastMessage += ` The color palette mood has been set to "${selectedMoodName}" and colors have been pre-filled.`;
+      }
+    }
+
     setIsQuizDialogOpen(false);
     toast({
-      title: `Archetype Identified: ${archetype}`,
+      title: `Archetype Applied: ${archetype}`,
       description: (
         <p className="text-sm">
-          {analysis} <br />
-          Your "Brand Archetype" field has been updated.
+          {toastMessage}
         </p>
       ),
       duration: 9000,
@@ -366,7 +379,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                       <FormItem>
                         <FormLabel>Brand Archetype</FormLabel>
                         <div className="flex items-center gap-2">
-                          <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
+                          <Select onValueChange={field.onChange} value={field.value || ""} >
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select an archetype" />
@@ -496,9 +509,6 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         <Paintbrush className="w-4 h-4 text-muted-foreground" />
                         Logo Color Palette Input
                         </h3>
-                        <FormDescription>
-                        Define your logo's color scheme. Selecting a mood can pre-fill colors.
-                        </FormDescription>
                     </div>
                     
                     <FormField
@@ -530,7 +540,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                                   ))}
                               </SelectContent>
                             </Select>
-                            <FormDescription>Describes the overall feeling of the brand's color scheme. Influences Brand Guide and pre-fills colors below.</FormDescription>
+                            <FormDescription>Describes the overall feeling of the brand's color scheme. Selecting a mood pre-fills colors below.</FormDescription>
                             <FormMessage />
                         </FormItem>
                         )}

@@ -9,7 +9,7 @@ import { DialogFooter, DialogClose } from "@/components/ui/dialog";
 interface BrandArchetypeQuizProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onQuizComplete: (archetype: string, analysis: string) => void;
+  onQuizComplete: (archetype: string, analysis: string, selectedMoodName?: string) => void;
 }
 
 // Mapping of complementary archetypes based on natural affinities
@@ -27,6 +27,23 @@ const archetypeAffinities: Record<string, string[]> = {
   "Jester": ["Innocent", "Rebel", "Lover"],
   "Sage": ["Explorer", "Creator", "Ruler"]
 };
+
+// Archetype to mood mapping
+const archetypeMoodSuggestions: Record<string, string[]> = {
+    "The Innocent": ["Clean & Pure", "Friendly & Accessible"],
+    "The Everyman": ["Friendly & Accessible", "Welcoming & Inviting"],
+    "The Hero": ["Bold & Powerful", "Trustworthy & Stable"],
+    "The Rebel": ["Bold & Disruptive", "Gritty & Authentic"],
+    "The Explorer": ["Exciting & Adventurous", "Energetic & Vibrant"],
+    "The Creator": ["Innovative & Modern", "Playful & Whimsical"],
+    "The Ruler": ["Sophisticated & Elegant", "Secure & Reliable"],
+    "The Magician": ["Spiritual & Mystical", "Mysterious & Dramatic"],
+    "The Lover": ["Romantic & Passionate", "Luxurious & Indulgent"],
+    "The Caregiver": ["Caring & Nurturing", "Calm & Peaceful"],
+    "The Jester": ["Happy & Playful", "Youthful & Fresh"],
+    "The Sage": ["Wise & Formal", "Serious & Professional"]
+  };
+
 
 const questions = [
   {
@@ -152,11 +169,10 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
   const [showResults, setShowResults] = useState(false);
   const [results, setResults] = useState<Record<string, number>>({});
   const [crossoverView, setCrossoverView] = useState(false);
-  const [selectedArchetype, setSelectedArchetype] = useState<string | null>(null);
+  const [selectedArchetypeForMap, setSelectedArchetypeForMap] = useState<string | null>(null); // Renamed to avoid confusion
   const canvasRef = useRef<HTMLCanvasElement>(null);
 
   useEffect(() => {
-    // Reset quiz when it's re-opened
     if (open) {
       resetQuizInternal();
     }
@@ -166,7 +182,7 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
     if (showResults && crossoverView && canvasRef.current) {
       drawCrossoverMap();
     }
-  }, [showResults, crossoverView, selectedArchetype, results]); // Added results to dependencies
+  }, [showResults, crossoverView, selectedArchetypeForMap, results]);
   
   const drawCrossoverMap = () => {
     const canvas = canvasRef.current;
@@ -179,13 +195,13 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
     const height = canvas.height;
     const centerX = width / 2;
     const centerY = height / 2;
-    const radius = Math.min(width, height) / 2 - 40; // Adjusted radius for labels
+    const radius = Math.min(width, height) / 2 - 40; 
     
     ctx.clearRect(0, 0, width, height);
     
     ctx.beginPath();
     ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
-    ctx.strokeStyle = '#ccc'; // Lighter stroke
+    ctx.strokeStyle = '#ccc'; 
     ctx.lineWidth = 1;
     ctx.stroke();
     
@@ -194,14 +210,10 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
     
     const currentDominantArchetype = getDominantArchetype();
 
-    if (selectedArchetype && currentDominantArchetype) { // Ensure currentDominantArchetype is available
-      const selectedIndex = archetypesList.indexOf(selectedArchetype);
-      const complementary = archetypeAffinities[selectedArchetype] || [];
+    if (selectedArchetypeForMap && currentDominantArchetype) { 
+      const selectedIndex = archetypesList.indexOf(selectedArchetypeForMap);
+      const complementary = archetypeAffinities[selectedArchetypeForMap] || [];
       
-      const dominantX = centerX + (radius * 0.7) * Math.cos(archetypesList.indexOf(currentDominantArchetype) * angleStep - Math.PI / 2);
-      const dominantY = centerY + (radius * 0.7) * Math.sin(archetypesList.indexOf(currentDominantArchetype) * angleStep - Math.PI / 2);
-
-
       archetypesList.forEach((archetype, i) => {
         if (complementary.includes(archetype)) {
           const angle = i * angleStep - Math.PI / 2;
@@ -209,14 +221,13 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
           const y = centerY + (radius*0.7) * Math.sin(angle);
           
           ctx.beginPath();
-           // From selected archetype node center (smaller radius)
           const selectedAngle = selectedIndex * angleStep - Math.PI / 2;
           ctx.moveTo(
             centerX + (radius * 0.7) * Math.cos(selectedAngle), 
             centerY + (radius * 0.7) * Math.sin(selectedAngle)
           );
           ctx.lineTo(x, y);
-          ctx.strokeStyle = 'rgba(65, 105, 225, 0.5)'; // Lighter blue
+          ctx.strokeStyle = 'rgba(65, 105, 225, 0.5)'; 
           ctx.lineWidth = 2;
           ctx.stroke();
         }
@@ -229,13 +240,13 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
       const nodeY = centerY + radius * Math.sin(angle);
       
       ctx.beginPath();
-      const nodeRadius = (archetype === selectedArchetype) ? 12 : 
-                         (selectedArchetype && archetypeAffinities[selectedArchetype]?.includes(archetype)) ? 10 : 8;
+      const nodeRadius = (archetype === selectedArchetypeForMap) ? 12 : 
+                         (selectedArchetypeForMap && archetypeAffinities[selectedArchetypeForMap]?.includes(archetype)) ? 10 : 8;
       ctx.arc(nodeX, nodeY, nodeRadius, 0, 2 * Math.PI);
       ctx.fillStyle = archetypeColors[archetype] || 'rgba(200, 200, 200, 0.8)';
-      if (archetype === selectedArchetype) {
-         ctx.fillStyle = archetypeColors[selectedArchetype];
-      } else if (selectedArchetype && archetypeAffinities[selectedArchetype]?.includes(archetype)) {
+      if (archetype === selectedArchetypeForMap) {
+         ctx.fillStyle = archetypeColors[selectedArchetypeForMap];
+      } else if (selectedArchetypeForMap && archetypeAffinities[selectedArchetypeForMap]?.includes(archetype)) {
          ctx.fillStyle = archetypeColors[archetype];
          ctx.globalAlpha = 0.7;
       } else {
@@ -243,16 +254,16 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
       }
       ctx.fill();
       ctx.globalAlpha = 1.0;
-      ctx.strokeStyle = '#888'; // Darker stroke for nodes
+      ctx.strokeStyle = '#888'; 
       ctx.lineWidth = 1;
       ctx.stroke();
       
-      ctx.font = '10px Arial'; // Smaller font
-      ctx.fillStyle = '#333'; // Darker text
+      ctx.font = '10px Arial'; 
+      ctx.fillStyle = '#333'; 
       ctx.textAlign = 'center';
       ctx.textBaseline = 'middle';
       
-      const labelRadius = radius + 15; // Closer labels
+      const labelRadius = radius + 15; 
       const labelX = centerX + labelRadius * Math.cos(angle);
       const labelY = centerY + labelRadius * Math.sin(angle);
       
@@ -269,7 +280,7 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
     
     if (currentDominantArchetype) {
       ctx.beginPath();
-      ctx.arc(centerX, centerY, 25, 0, 2 * Math.PI); // Larger central node
+      ctx.arc(centerX, centerY, 25, 0, 2 * Math.PI); 
       ctx.fillStyle = archetypeColors[currentDominantArchetype];
       ctx.fill();
       ctx.strokeStyle = '#333';
@@ -298,15 +309,9 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
     return (yiq >= 128) ? '#000000' : '#FFFFFF';
   };
 
-
   const handleAnswer = (questionIndex: number, optionKey: string) => {
     const newAnswers = { ...answers, [questionIndex]: optionKey };
     setAnswers(newAnswers);
-    
-    // Do not automatically advance, let user click Next or See Results
-    // if (questionIndex < questions.length - 1) {
-    //   setCurrentQuestion(questionIndex + 1);
-    // }
   };
 
   const calculateResults = () => {
@@ -315,8 +320,8 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
       archetypeCounts[archetype] = 0;
     });
     
-    Object.values(answers).forEach((optionKey, index) => { // Use index from Object.values
-      const question = questions[Number(Object.keys(answers)[index])]; // Get original question index
+    Object.values(answers).forEach((optionKey, index) => { 
+      const question = questions[Number(Object.keys(answers)[index])]; 
       const selectedOption = question.options.find(option => option.key === optionKey);
       if (selectedOption) {
         archetypeCounts[selectedOption.archetype] = (archetypeCounts[selectedOption.archetype] || 0) + 1;
@@ -332,7 +337,7 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
     
     setResults(sortedResults);
     const dominant = Object.keys(sortedResults)[0];
-    setSelectedArchetype(dominant); // Set dominant as initially selected for map
+    setSelectedArchetypeForMap(dominant); 
     setShowResults(true);
   };
 
@@ -341,13 +346,13 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
     setCurrentQuestion(0);
     setShowResults(false);
     setResults({});
-    setSelectedArchetype(null);
+    setSelectedArchetypeForMap(null);
     setCrossoverView(false);
   };
 
   const handleRestartQuiz = () => {
     resetQuizInternal();
-    onOpenChange(true); // Keep dialog open
+    onOpenChange(true); 
   }
 
   const goToPreviousQuestion = () => {
@@ -396,10 +401,11 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
 
   const canCalculateResults = Object.keys(answers).length === questions.length;
 
-  const handleConfirmArchetype = () => {
+  const handleConfirmArchetype = (selectedMoodName?: string) => {
     const dominant = getDominantArchetype();
-    if (dominant && archetypeDescriptions[dominant]) {
-      onQuizComplete("The " + dominant, archetypeDescriptions[dominant]);
+    const prefixedArchetype = dominant ? "The " + dominant : "";
+    if (prefixedArchetype && archetypeDescriptions[dominant!]) {
+      onQuizComplete(prefixedArchetype, archetypeDescriptions[dominant!], selectedMoodName);
       onOpenChange(false);
     }
   };
@@ -407,9 +413,12 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
   if (!open) return null;
 
   const progressPercentage = ((currentQuestion + 1) / questions.length) * 100;
+  const dominantArchetypeFullName = getDominantArchetype() ? "The " + getDominantArchetype() : null;
+  const suggestedMoods = dominantArchetypeFullName ? archetypeMoodSuggestions[dominantArchetypeFullName] || [] : [];
+
 
   return (
-    <div className="p-2 md:p-4 space-y-6 max-h-[80vh] overflow-y-auto"> {/* Adjusted padding */}
+    <div className="p-2 md:p-4 space-y-6 max-h-[80vh] overflow-y-auto">
       {!showResults ? (
         <>
           <div className="mb-4">
@@ -420,7 +429,7 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
             <Progress value={progressPercentage} className="w-full h-2" />
           </div>
           
-          <div className="mb-6 min-h-[200px]"> {/* Min height for question area */}
+          <div className="mb-6 min-h-[200px]"> 
             <h2 className="text-lg font-medium mb-4">{questions[currentQuestion].question}</h2>
             <div className="grid gap-3">
               {questions[currentQuestion].options.map((option) => (
@@ -516,6 +525,26 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
               )}
             </div>
           )}
+
+          {suggestedMoods.length > 0 && (
+            <div className="mb-6 p-4 bg-muted/50 rounded-lg">
+              <h3 className="text-lg font-semibold mb-3 text-center">Suggested Color Palette Moods for "The {getDominantArchetype()}"</h3>
+              <div className="flex flex-wrap justify-center gap-2">
+                {suggestedMoods.map((moodName) => (
+                  <Button
+                    key={moodName}
+                    variant="outline"
+                    onClick={() => handleConfirmArchetype(moodName)}
+                  >
+                    Apply Mood: {moodName}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground text-center mt-2">
+                Applying a mood will pre-fill the color palette in the main form.
+              </p>
+            </div>
+          )}
           
           <div className="mb-6">
             <h3 className="text-lg font-semibold mb-3">Your Full Archetype Profile:</h3>
@@ -560,7 +589,7 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
                   <canvas 
                     ref={canvasRef}
                     id="crossoverCanvas" 
-                    width="300"  // Reduced size for dialog
+                    width="300" 
                     height="300" 
                     className="max-w-full border rounded-md"
                   ></canvas>
@@ -571,14 +600,14 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
                       key={archetype}
                       variant="outline"
                       size="sm"
-                      onClick={() => setSelectedArchetype(archetype)}
+                      onClick={() => setSelectedArchetypeForMap(archetype)}
                       className="text-xs h-7 px-2"
                       style={{ 
-                        backgroundColor: archetype === selectedArchetype ? 
+                        backgroundColor: archetype === selectedArchetypeForMap ? 
                           archetypeColors[archetype] : 
                           'transparent',
                         borderColor: archetypeColors[archetype],
-                        color: archetype === selectedArchetype ? getContrastColor(archetypeColors[archetype]) : archetypeColors[archetype]
+                        color: archetype === selectedArchetypeForMap ? getContrastColor(archetypeColors[archetype]) : archetypeColors[archetype]
                       }}
                     >
                       {archetype}
@@ -595,7 +624,7 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
                   {getComplementaryArchetypes().map(archetype => (
                     <div 
                       key={archetype}
-                      className="px-2 py-0.5 rounded-full text-xs font-medium text-white" // Assuming white text is okay on most archetypeColors
+                      className="px-2 py-0.5 rounded-full text-xs font-medium"
                       style={{ backgroundColor: archetypeColors[archetype], color: getContrastColor(archetypeColors[archetype]) }}
                     >
                       The {archetype}
@@ -606,8 +635,8 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
                 <div className="mb-4">
                   <h4 className="font-semibold text-md mb-1">How to Apply Your Archetype Blend:</h4>
                   <ol className="list-decimal pl-5 space-y-1 text-xs">
-                    <li><strong>Core Identity:</strong> Lead with your {getDominantArchetype()} qualities.</li>
-                    <li><strong>Supporting Elements:</strong> Incorporate aspects of your {getSecondaryArchetype() || "secondary"} archetype.</li>
+                    <li><strong>Core Identity:</strong> Lead with your {"The " + getDominantArchetype()!} qualities.</li>
+                    <li><strong>Supporting Elements:</strong> Incorporate aspects of your {"The " + (getSecondaryArchetype() || "secondary")} archetype.</li>
                     <li><strong>Brand Expression:</strong> Use this blend in messaging, visuals, and interactions.</li>
                     <li><strong>Consistency:</strong> Ensure all brand touchpoints reflect this blend.</li>
                   </ol>
@@ -630,7 +659,7 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
             <Button variant="outline" onClick={handleRestartQuiz}>
               Take Quiz Again
             </Button>
-            <Button onClick={handleConfirmArchetype} disabled={!getDominantArchetype()}>
+            <Button onClick={() => handleConfirmArchetype()} disabled={!getDominantArchetype()}>
               Use This Archetype & Close
             </Button>
              <DialogClose asChild>
@@ -642,6 +671,3 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
     </div>
   );
 }
-
-
-    
