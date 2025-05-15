@@ -18,17 +18,16 @@ interface BrandGuideDisplayProps {
 }
 
 const ColorDisplaySwatch = ({ colorValue }: { colorValue?: string }) => {
-  if (!colorValue) return null;
+  if (!colorValue || colorValue.trim() === "") return null;
   
-  // Attempt to create a swatch if it's a valid hex or known color name
-  // This is a basic check; more robust validation might be needed for all CSS color names
-  const isValidColor = /^#([0-9A-Fa-f]{3}){1,2}$/.test(colorValue) || /^[a-zA-Z]+$/.test(colorValue);
+  // Basic check for hex or common color names. More robust parsing might be needed for all CSS color names.
+  const isValidColor = /^#([0-9A-Fa-f]{3,4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/.test(colorValue) || /^[a-zA-Z]+$/.test(colorValue);
 
   return (
-    <div className="flex items-center gap-2 mb-1">
+    <div className="flex items-center gap-2"> {/* Removed mb-1 for better control when wrapped */}
       {isValidColor && (
         <div 
-          className="w-4 h-4 rounded border" 
+          className="w-4 h-4 rounded border shrink-0" 
           style={{ backgroundColor: colorValue }}
           title={`Color: ${colorValue}`}
         ></div>
@@ -40,6 +39,19 @@ const ColorDisplaySwatch = ({ colorValue }: { colorValue?: string }) => {
 
 
 export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, isLoadingNarrative }: BrandGuideDisplayProps) {
+
+  const renderColorSwatches = (colorString?: string) => {
+    if (!colorString || colorString.trim() === "") return null;
+    const colors = colorString.split(',').map(c => c.trim()).filter(Boolean);
+    if (colors.length === 0) return <p className="text-xs italic text-muted-foreground">Not specified.</p>;
+    return (
+      <div className="flex flex-wrap gap-x-4 gap-y-2 mt-1">
+        {colors.map((color, index) => (
+          <ColorDisplaySwatch key={index} colorValue={color} />
+        ))}
+      </div>
+    );
+  };
 
   return (
     <Card className="w-full max-w-4xl mx-auto shadow-xl mt-12">
@@ -82,30 +94,33 @@ export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, 
                   Color Palette Inputs
                 </h2>
                  <p className="text-sm text-muted-foreground mb-3">
-                  The following color preferences were specified:
+                  The following color preferences were specified during form input:
                 </p>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
+                  <div className="space-y-4">
                     {brandDetails.primaryColors && (
-                      <div className="p-3 bg-muted/30 rounded-md mb-2">
-                          <h3 className="font-medium mb-1 text-sm flex items-center gap-1.5"><Droplet className="w-3.5 h-3.5"/>Primary Color:</h3>
-                          <ColorDisplaySwatch colorValue={brandDetails.primaryColors} />
+                      <div className="p-3 bg-muted/30 rounded-md">
+                          <h3 className="font-medium mb-1 text-sm flex items-center gap-1.5"><Droplet className="w-3.5 h-3.5"/>Primary Color(s):</h3>
+                          {renderColorSwatches(brandDetails.primaryColors)}
                       </div>
                     )}
                     {brandDetails.secondaryColors && (
-                      <div className="p-3 bg-muted/30 rounded-md mb-2">
-                          <h3 className="font-medium mb-1 text-sm flex items-center gap-1.5"><Droplet className="w-3.5 h-3.5"/>Secondary Color:</h3>
-                          <ColorDisplaySwatch colorValue={brandDetails.secondaryColors} />
+                      <div className="p-3 bg-muted/30 rounded-md">
+                          <h3 className="font-medium mb-1 text-sm flex items-center gap-1.5"><Droplet className="w-3.5 h-3.5"/>Secondary Color(s):</h3>
+                           {renderColorSwatches(brandDetails.secondaryColors)}
                       </div>
                     )}
                     {brandDetails.accentColors && (
                       <div className="p-3 bg-muted/30 rounded-md">
-                          <h3 className="font-medium mb-1 text-sm flex items-center gap-1.5"><Droplet className="w-3.5 h-3.5"/>Accent Color:</h3>
-                          <ColorDisplaySwatch colorValue={brandDetails.accentColors} />
+                          <h3 className="font-medium mb-1 text-sm flex items-center gap-1.5"><Droplet className="w-3.5 h-3.5"/>Accent Color(s):</h3>
+                          {renderColorSwatches(brandDetails.accentColors)}
                       </div>
                     )}
+                     {(!brandDetails.primaryColors && !brandDetails.secondaryColors && !brandDetails.accentColors) && (
+                        <p className="text-xs text-muted-foreground italic p-3 bg-muted/30 rounded-md">No specific primary, secondary, or accent colors provided.</p>
+                     )}
                   </div>
-                  <div>
+                  <div className="space-y-4">
                     {brandDetails.colorPaletteMood && (
                       <div className="p-3 bg-muted/30 rounded-md">
                         <h3 className="font-medium mb-1 text-sm">Overall Palette Mood:</h3>
@@ -113,16 +128,16 @@ export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, 
                       </div>
                     )}
                      {brandDetails.preferredColorPalette && ( 
-                         <div className="p-3 bg-muted/30 rounded-md mt-2">
-                            <h3 className="font-medium mb-1 text-sm">Combined Palette (for AI logo gen):</h3>
+                         <div className="p-3 bg-muted/30 rounded-md">
+                            <h3 className="font-medium mb-1 text-sm">Combined Palette (sent to AI for logo gen):</h3>
                             <p className="italic text-xs">"{brandDetails.preferredColorPalette}"</p>
                          </div>
                     )}
+                     {(!brandDetails.colorPaletteMood && !brandDetails.preferredColorPalette) && (
+                        <p className="text-xs text-muted-foreground italic p-3 bg-muted/30 rounded-md">No mood or combined palette string was generated for AI.</p>
+                     )}
                   </div>
                 </div>
-                 {(!brandDetails.primaryColors && !brandDetails.secondaryColors && !brandDetails.accentColors && !brandDetails.colorPaletteMood && !brandDetails.preferredColorPalette) && (
-                    <p className="text-xs text-muted-foreground italic">No specific color inputs provided.</p>
-                 )}
               </section>
 
               <section>
@@ -141,7 +156,7 @@ export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, 
                 <div className="space-y-3 text-sm p-4 bg-muted/50 rounded-md">
                   {brandDetails.fontHeadings && <p><span className="font-semibold">Brand Headings Font:</span> {brandDetails.fontHeadings}</p>}
                   {brandDetails.fontBody && <p><span className="font-semibold">Brand Body Font:</span> {brandDetails.fontBody}</p>}
-                  {brandDetails.fontOther && <p><span className="font-semibold">Other Brand Fonts:</span> {brandDetails.fontOther}</p>}
+                  {brandDetails.fontOther && <p><span className="font-semibold">Brand Other Fonts:</span> {brandDetails.fontOther}</p>}
                   {(!brandDetails.fontHeadings && !brandDetails.fontBody && !brandDetails.fontOther && !brandDetails.fontStyle) && (
                     <p className="text-xs text-muted-foreground italic">No specific typography inputs provided for logo or brand.</p>
                   )}
@@ -176,6 +191,13 @@ export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, 
                       {brandDetails.competitorsToAvoid && <div><span className="font-semibold">Differentiate From:</span> {brandDetails.competitorsToAvoid}</div>}
                       {brandDetails.referenceImageDataUri && <div><span className="font-semibold">Reference Image:</span> Provided</div>}
                   </div>
+                   {Object.values(brandDetails).every(val => val === undefined || val === '' || (Array.isArray(val) && val.length === 0)) &&
+                     !brandDetails.referenceImageDataUri && // explicitly check as it's not in Object.values
+                     !brandDetails.businessName && // check common fields
+                     !brandDetails.industry &&
+                     !brandDetails.keywords &&
+                     <p className="text-xs text-muted-foreground italic mt-2">No additional logo input details were provided.</p>
+                   }
               </section>
             </div>
           </TabsContent>
@@ -212,13 +234,13 @@ export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, 
                         {brandDetails.brandPillars && <p><span className="font-semibold">Brand Pillars:</span> {brandDetails.brandPillars}</p>}
                         {brandDetails.brandArchetype && <p><span className="font-semibold">Brand Archetype:</span> {brandDetails.brandArchetype}</p>}
                         {brandDetails.keyTagline && <p><span className="font-semibold">Key Tagline:</span> {brandDetails.keyTagline}</p>}
-                        {(!brandDetails.missionStatement && !brandDetails.brandPillars && !brandDetails.brandArchetype && !brandDetails.keyTagline) && <p className="text-muted-foreground">No additional strategic inputs were provided for narrative generation.</p>}
+                        {(!brandDetails.missionStatement && !brandDetails.brandPillars && !brandDetails.brandArchetype && !brandDetails.keyTagline) && <p className="text-muted-foreground italic">No additional strategic inputs were provided for narrative generation.</p>}
                     </div>
                   </section>
                 </>
               ) : (
                 <p className="text-muted-foreground text-center py-10">
-                  Brand narrative will appear here once generated.
+                  Brand narrative will appear here once generated. Select a logo from the gallery first.
                 </p>
               )}
             </div>
