@@ -139,6 +139,8 @@ Differentiate from these competitors: {{competitorsToAvoid}}.
 Instructions for variations: {{variationInstructions}}.
 {{/if}}
 
+Generate the logo with a transparent background.
+
 Please generate {{numberOfLogos}} logo variations.
 Output array of URLs for generated images in the format { "logoUrls": ["url1", "url2", "url3", "url4"] }.
 `,
@@ -198,6 +200,9 @@ const generateLogoConceptsFlow = ai.defineFlow(
       baseImagePromptText += ` Differentiate from competitors: ${flowInput.competitorsToAvoid}.`;
     }
 
+    // Request for transparent background
+    baseImagePromptText += " Generate the logo with a transparent background.";
+
 
     for (let i = 0; i < flowInput.numberOfLogos; i++) {
       let currentImagePromptText = baseImagePromptText;
@@ -237,3 +242,4 @@ const generateLogoConceptsFlow = ai.defineFlow(
     return {logoUrls: logoUrls};
   }
 );
+
