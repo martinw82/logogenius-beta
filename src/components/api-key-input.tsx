@@ -35,7 +35,7 @@ export function ApiKeyInput() {
       localStorage.removeItem(API_KEY_STORAGE_KEY);
       toast({
         title: "API Key Cleared",
-        description: "Your Google AI API key has been cleared.",
+        description: "Your Google AI API key has been cleared from local storage.",
         variant: "default" 
       });
     }
@@ -46,14 +46,14 @@ export function ApiKeyInput() {
   }
 
   return (
-    <Card className="w-full max-w-2xl mx-auto shadow-md mt-8">
+    <Card className="w-full max-w-2xl mx-auto shadow-lg mt-8">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 text-xl">
           <KeyRound className="w-5 h-5 text-primary" />
           Use Your Own API Key (Optional)
         </CardTitle>
         <CardDescription>
-          Enter your Google AI API key to use your own quota. The key will be stored in your browser&apos;s local storage.
+          Enter your Google AI API key to use your own quota. The key will be stored in your browser&apos;s local storage and will not be sent to our servers.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
@@ -80,3 +80,4 @@ export function ApiKeyInput() {
     </Card>
   );
 }
+

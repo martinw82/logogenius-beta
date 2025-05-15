@@ -176,21 +176,41 @@ const generateLogoConceptsFlow = ai.defineFlow(
     for (let i = 0; i < flowInput.numberOfLogos; i++) {
       let imagePrompt = baseImagePrompt;
       if (flowInput.variationInstructions) {
+        // Append variation instructions to the prompt for each iteration.
+        // This allows for diverse outputs if the user provides such instructions.
+        // Example: "variation 1: focus on font, variation 2: focus on icon style X"
+        // The AI should interpret these within the context of generating a single image.
+        // A more complex approach might involve parsing these instructions to alter the prompt more structurally.
         imagePrompt += ` ${flowInput.variationInstructions}`;
       }
+      // Add a simple variation counter to the prompt to encourage difference if no specific instructions.
       if (i > 0) {
-        imagePrompt += ` (variation ${i + 1})`;
+        imagePrompt += ` (variation ${i + 1} of ${flowInput.numberOfLogos})`;
       }
       
-      const {media} = await currentAi.generate({
-        model: 'googleai/gemini-2.0-flash-exp', // Crucial for image generation
-        prompt: imagePrompt,
-        config: {
-          responseModalities: ['TEXT', 'IMAGE'],
-        },
-      });
-      logoUrls.push(media.url);
+      try {
+        const genResponse = await currentAi.generate({
+          model: 'googleai/gemini-2.0-flash-exp', // Crucial for image generation
+          prompt: imagePrompt,
+          config: {
+            responseModalities: ['TEXT', 'IMAGE'],
+          },
+        });
+
+        if (genResponse.media?.url) {
+          logoUrls.push(genResponse.media.url);
+        } else {
+          console.warn(`[generateLogoConceptsFlow] Image generation did not return a valid media URL for one concept. Prompt: "${imagePrompt}"`);
+          // Optionally, could push a placeholder URL or skip this iteration.
+          // Skipping means fewer logos might be returned than requested if generation fails.
+        }
+      } catch (e) {
+        console.error(`[generateLogoConceptsFlow] Error during image generation for prompt "${imagePrompt}":`, e);
+        // Decide if one error should stop all, or if it should continue to try others.
+        // Currently, it will continue to the next iteration.
+      }
     }
     return {logoUrls: logoUrls};
   }
 );
+
