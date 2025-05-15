@@ -162,10 +162,13 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 name="preferredColorPalette"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Preferred Colors (Optional)</FormLabel>
+                    <FormLabel>Color Preferences (1-4 Colors)</FormLabel>
                     <FormControl>
-                      <Input placeholder="e.g., shades of blue and green" {...field} />
+                      <Input placeholder="e.g., Blue (trust), Gold (luxury)" {...field} />
                     </FormControl>
+                    <FormDescription>
+                      List 1-4 colors. Optionally specify roles (primary/accent) or mood.
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
