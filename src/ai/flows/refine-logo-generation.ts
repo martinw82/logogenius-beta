@@ -1,7 +1,7 @@
 'use server';
 
 /**
- * @fileOverview Refines logo generation based on user feedback.
+ * @fileOverview Refines logo generation based on user feedback and expanded parameters.
  *
  * - refineLogoGeneration - A function that refines logo generation based on user feedback.
  * - RefineLogoGenerationInput - The input type for the refineLogoGeneration function.
@@ -17,6 +17,8 @@ const RefineLogoGenerationInputSchema = z.object({
   industry: z.string().describe('The target industry/niche.'),
   colorPalette: z.string().optional().describe('Preferred color palette.'),
   logoStyle: z.string().optional().describe('Preferred logo style.'),
+  iconPlacement: z.string().optional().describe('Preferred icon placement.'),
+  fontStyle: z.string().optional().describe('Preferred font style.'),
   feedback: z
     .union([
       z.literal('thumbs_up'),
@@ -40,7 +42,7 @@ const prompt = ai.definePrompt({
   name: 'refineLogoGenerationPrompt',
   input: {schema: RefineLogoGenerationInputSchema},
   output: {schema: RefineLogoGenerationOutputSchema},
-  prompt: `You are an AI logo generation expert. You will refine the prompt based on user feedback.
+  prompt: `You are an AI logo generation expert. You will refine the prompt based on user feedback and detailed parameters.
 
   Previous Prompt: {{{previousPrompt}}}
   Feedback: {{{feedback}}}
@@ -48,11 +50,14 @@ const prompt = ai.definePrompt({
   Business Name: {{{businessName}}}
   Keywords: {{{keywords}}}
   Industry: {{{industry}}}
-  Color Palette: {{{colorPalette}}}
-  Logo Style: {{{logoStyle}}}
+  {{#if colorPalette}}Color Palette: {{{colorPalette}}}{{/if}}
+  {{#if logoStyle}}Logo Style: {{{logoStyle}}}{{/if}}
+  {{#if iconPlacement}}Icon Placement: {{{iconPlacement}}}{{/if}}
+  {{#if fontStyle}}Font Style: {{{fontStyle}}}{{/if}}
 
-  Based on the feedback, refine the prompt to generate a better logo. The prompt should be detailed and specific.
-  The prompt should include the business name, keywords, industry, color palette, and logo style.
+  Based on the feedback and all available parameters, refine the prompt to generate a better logo.
+  The refined prompt should be detailed and specific.
+  It should incorporate all relevant fields: business name, keywords, industry, color palette, logo style, icon placement, and font style.
 
   Return the refined prompt.
   `,

@@ -16,6 +16,12 @@ export function constructBasePrompt(input: Omit<GenerateLogoConceptsInput, 'numb
   if (input.preferredLogoStyle) {
     prompt += ` Preferred logo style: ${input.preferredLogoStyle}.`;
   }
+  if (input.iconPlacement) {
+    prompt += ` Icon placement: ${input.iconPlacement}.`;
+  }
+  if (input.fontStyle) {
+    prompt += ` Font style: ${input.fontStyle}.`;
+  }
   return prompt;
 }
 

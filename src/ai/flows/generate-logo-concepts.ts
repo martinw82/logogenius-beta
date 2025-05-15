@@ -4,8 +4,8 @@
 /**
  * @fileOverview This file defines a Genkit flow for generating logo concepts based on user input.
  *
- * The flow takes business information and keywords as input and uses a text-to-image model
- * to generate multiple logo concepts.
+ * The flow takes business information, keywords, and style preferences as input and uses a
+ * text-to-image model to generate multiple logo concepts.
  *
  * @interface GenerateLogoConceptsInput - The input type for the generateLogoConcepts function.
  * @interface GenerateLogoConceptsOutput - The output type for the generateLogoConcepts function.
@@ -27,6 +27,10 @@ const GenerateLogoConceptsInputSchema = z.object({
     z.enum(['logomark', 'wordmark', 'combination mark', 'abstract'])
       .optional()
       .describe('Optional preferred logo style.'),
+  iconPlacement: z.enum(['above_text', 'left_of_text', 'right_of_text', 'below_text', 'no_icon', 'icon_only'])
+    .optional()
+    .describe('Optional preferred placement of the icon relative to the text.'),
+  fontStyle: z.string().optional().describe('Optional preferred font style (e.g., modern sans-serif, elegant script).'),
   numberOfLogos: z.number().default(4).describe('Number of logos to generate'),
 });
 
@@ -44,6 +48,9 @@ export async function generateLogoConcepts(
   return generateLogoConceptsFlow(input);
 }
 
+// Note: The prompt variable defined here is not directly used by the generateLogoConceptsFlow
+// for image generation but could be used for other text-based LLM interactions if needed.
+// The actual image generation prompt is constructed within the flow.
 const prompt = ai.definePrompt({
   name: 'generateLogoConceptsPrompt',
   input: {
@@ -64,8 +71,16 @@ The preferred color palette is: {{preferredColorPalette}}.
 The preferred logo style is: {{preferredLogoStyle}}.
 {{/if}}
 
+{{#if iconPlacement}}
+The preferred icon placement is: {{iconPlacement}}.
+{{/if}}
+
+{{#if fontStyle}}
+The preferred font style is: {{fontStyle}}.
+{{/if}}
+
 Please generate {{numberOfLogos}} logo variations.
-Output array of URLs for generated images in the format { \"logoUrls\": [\"url1\", \"url2\", \"url3\", \"url4\"] }.
+Output array of URLs for generated images in the format { "logoUrls": ["url1", "url2", "url3", "url4"] }.
 `,
 });
 
@@ -77,14 +92,28 @@ const generateLogoConceptsFlow = ai.defineFlow(
   },
   async input => {
     const logoUrls: string[] = [];
+    let baseImagePrompt = `Logo concept for a business named "${input.businessName}" in the "${input.industry}" industry. Brand identity keywords: ${input.keywords}.`;
+
+    if (input.preferredColorPalette) {
+      baseImagePrompt += ` Preferred color palette: ${input.preferredColorPalette}.`;
+    }
+    if (input.preferredLogoStyle) {
+      baseImagePrompt += ` Preferred logo style: ${input.preferredLogoStyle}.`;
+    }
+    if (input.iconPlacement) {
+      baseImagePrompt += ` Icon placement: ${input.iconPlacement}.`;
+    }
+    if (input.fontStyle) {
+      baseImagePrompt += ` Font style: ${input.fontStyle}.`;
+    }
+
     for (let i = 0; i < input.numberOfLogos; i++) {
+      // Add a variation instruction for subsequent logos if needed
+      const imagePrompt = i > 0 ? `${baseImagePrompt} (variation ${i + 1})` : baseImagePrompt;
+
       const {media} = await ai.generate({
         model: 'googleai/gemini-2.0-flash-exp',
-        prompt: `Generate logo concepts for a business named "${input.businessName}" in the "${input.industry}" industry.
-
-        The brand identity can be described using the following keywords: ${input.keywords}.
-        ${input.preferredColorPalette ? `The preferred color palette is: ${input.preferredColorPalette}.` : ''}
-        ${input.preferredLogoStyle ? `The preferred logo style is: ${input.preferredLogoStyle}.` : ''}`,
+        prompt: imagePrompt,
         config: {
           responseModalities: ['TEXT', 'IMAGE'],
         },

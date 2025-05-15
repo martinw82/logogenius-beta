@@ -43,6 +43,8 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       keywords: "",
       preferredColorPalette: "",
       preferredLogoStyle: "",
+      iconPlacement: "",
+      fontStyle: "",
       numberOfLogos: 4,
     },
   });
@@ -136,13 +138,52 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        {/* <SelectItem value="">Any Style</SelectItem> <- Removed this line */}
                         <SelectItem value="logomark">Logomark (Icon-based)</SelectItem>
                         <SelectItem value="wordmark">Wordmark (Text-based)</SelectItem>
                         <SelectItem value="combination mark">Combination Mark (Icon + Text)</SelectItem>
                         <SelectItem value="abstract">Abstract</SelectItem>
                       </SelectContent>
                     </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <FormField
+                control={form.control}
+                name="iconPlacement"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Icon Placement (Optional)</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select icon placement" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="above_text">Above Text</SelectItem>
+                        <SelectItem value="left_of_text">Left of Text</SelectItem>
+                        <SelectItem value="right_of_text">Right of Text</SelectItem>
+                        <SelectItem value="below_text">Below Text</SelectItem>
+                        <SelectItem value="no_icon">No Icon (Wordmark)</SelectItem>
+                        <SelectItem value="icon_only">Icon Only (Logomark)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+              <FormField
+                control={form.control}
+                name="fontStyle"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Font Style (Optional)</FormLabel>
+                    <FormControl>
+                      <Input placeholder="e.g., modern sans-serif, script" {...field} />
+                    </FormControl>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -155,7 +196,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 <FormItem>
                   <FormLabel>Number of Logos to Generate</FormLabel>
                   <FormControl>
-                    <Input type="number" min="1" max="8" {...field} 
+                    <Input type="number" min="1" max="8" {...field}
                            onChange={event => field.onChange(+event.target.value)} />
                   </FormControl>
                   <FormMessage />

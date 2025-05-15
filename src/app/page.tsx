@@ -24,7 +24,7 @@ export default function HomePage() {
   const handleGenerateLogos = async (input: GenerateLogoConceptsInput) => {
     setIsLoading(true);
     setError(null);
-    setLogoBatch(null); 
+    setLogoBatch(null);
     setExpectedLogoCount(input.numberOfLogos);
 
     try {
@@ -33,8 +33,8 @@ export default function HomePage() {
         const newLogoBatch: LogoBatch = {
           id: uuidv4(),
           logos: result.logoUrls.map(url => ({ id: uuidv4(), url })),
-          generationInput: input,
-          basePrompt: constructBasePrompt(input),
+          generationInput: input, // Store the complete input used for generation
+          basePrompt: constructBasePrompt(input), // constructBasePrompt now uses the extended input
         };
         setLogoBatch(newLogoBatch);
         toast({
@@ -70,7 +70,7 @@ export default function HomePage() {
   ) => {
     if (!targetLogoBatch) return;
 
-    setLoadingFeedbackFor(logoId); // Using logoId to show loading on specific card
+    setLoadingFeedbackFor(logoId); 
     setError(null);
 
     const { generationInput, basePrompt } = targetLogoBatch;
@@ -81,6 +81,8 @@ export default function HomePage() {
       keywords: generationInput.keywords,
       colorPalette: generationInput.preferredColorPalette,
       logoStyle: generationInput.preferredLogoStyle,
+      iconPlacement: generationInput.iconPlacement, // Pass new field
+      fontStyle: generationInput.fontStyle,       // Pass new field
       feedback: feedbackType,
       previousPrompt: basePrompt,
     };
@@ -95,7 +97,7 @@ export default function HomePage() {
             <p className="text-xs mt-1">Refined prompt idea: "{refinedResult.prompt.substring(0,100)}..."</p>
           </div>
         ),
-        duration: 7000, 
+        duration: 7000,
       });
       // Potentially update form with refinedResult.prompt or parts of it
       // For now, we just show the refined prompt in a toast.
@@ -112,7 +114,7 @@ export default function HomePage() {
       setLoadingFeedbackFor(null);
     }
   };
-  
+
   return (
     <div className="min-h-screen flex flex-col">
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
@@ -121,7 +123,7 @@ export default function HomePage() {
           description="Let AI craft the perfect logo for your brand. Describe your vision, and watch concepts come to life."
           icon={Lightbulb}
         />
-        
+
         <LogoForm onSubmit={handleGenerateLogos} isLoading={isLoading} />
 
         {error && (
@@ -132,7 +134,7 @@ export default function HomePage() {
 
         <LogoGallery
           logoBatch={logoBatch}
-          onFeedback={handleFeedback} // handleFeedback now expects logoBatch as first arg internally
+          onFeedback={handleFeedback}
           loadingFeedbackFor={loadingFeedbackFor}
           isLoading={isLoading}
           expectedLogoCount={expectedLogoCount}
