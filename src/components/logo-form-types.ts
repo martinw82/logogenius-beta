@@ -8,6 +8,10 @@ export const brandArchetypes = [
   "The Jester", "The Sage"
 ] as const;
 
+export const colorPaletteMoods = [
+  "Minimalist", "Vibrant", "Earthy", "Playful", "Corporate", "Luxurious", "Techy", "Friendly", "Bold"
+] as const;
+
 export const logoFormSchema = z.object({
   businessName: z.string().min(1, "Business name is required.").max(100, "Business name too long."),
   industry: z.string().min(1, "Industry is required.").max(100, "Industry too long."),
@@ -18,6 +22,7 @@ export const logoFormSchema = z.object({
   primaryColors: z.string().max(150, "Primary colors description too long.").optional(),
   secondaryColors: z.string().max(150, "Secondary colors description too long.").optional(),
   accentColors: z.string().max(150, "Accent colors description too long.").optional(),
+  colorPaletteMood: z.enum(['', ...colorPaletteMoods]).default('').optional(),
 
   preferredLogoStyle: z.enum([
     '',
@@ -32,9 +37,14 @@ export const logoFormSchema = z.object({
   ]).default('').optional(),
   composition: z.enum(['', 'horizontal', 'vertical', 'circular', 'square']).default('').optional().describe('Preferred overall layout or arrangement of logo elements.'),
   iconPlacement: z.enum(['', 'above_text', 'left_of_text', 'right_of_text', 'below_text', 'no_icon', 'icon_only']).default('').optional().describe('Preferred placement of the icon relative to the text.'),
-  fontStyle: z.string().max(100, "Font style description too long.").optional().describe('Preferred font style (e.g., modern sans-serif, elegant script).'),
+  fontStyle: z.string().max(100, "Font style description too long.").optional().describe('Preferred font style for the logo (e.g., modern sans-serif, elegant script).'),
   iconComplexity: z.enum(['', 'simple', 'detailed']).default('').optional().describe('Preferred icon complexity (e.g., simple, detailed).'),
   iconSpecifics: z.string().max(200, "Icon specifics description too long.").optional().describe('Describe any specific imagery, objects, or concepts for the icon.'),
+  
+  fontHeadings: z.string().max(100, "Heading font description too long.").optional(),
+  fontBody: z.string().max(100, "Body font description too long.").optional(),
+  fontOther: z.string().max(100, "Other font description too long.").optional(),
+
   targetAudience: z.string().max(150, "Target audience description too long (max 150 chars).").optional(),
   inspirationReferences: z.string().max(200, "Inspiration references too long (max 200 chars).").optional(),
   usageContext: z.string().max(200, "Usage context description too long (max 200 chars).").optional().describe('Primary intended usage context for the logo.'),
@@ -58,12 +68,29 @@ export const logoFormSchema = z.object({
 
 export type LogoFormData = z.infer<typeof logoFormSchema>;
 
-export async function mapFormDataToAiInput(formData: LogoFormData): Promise<GenerateLogoConceptsInput & {
+// This type alias is for what's stored in LogoBatch and passed to BrandGuideDisplay
+// It includes fields not directly sent for logo image generation but are part of the overall brand spec.
+export type ExtendedLogoGenerationInputs = Omit<GenerateLogoConceptsInput, 'userApiKey' | 'numberOfLogos' | 'preferredColorPalette' | 'keywords'> & {
+  businessName: string;
+  industry: string;
+  keywords: string; // Combined keywords
+  preferredColorPalette?: string; // Combined palette
+  numberOfLogos: number;
+
   missionStatement?: string;
   brandPillars?: string;
-  brandArchetype?: string;
+  brandArchetype?: typeof brandArchetypes[number] | '';
   keyTagline?: string;
-}> {
+
+  // Typography and Color Mood for Brand Guide Display
+  fontHeadings?: string;
+  fontBody?: string;
+  fontOther?: string;
+  colorPaletteMood?: typeof colorPaletteMoods[number] | '';
+};
+
+
+export async function mapFormDataToAiInput(formData: LogoFormData): Promise<ExtendedLogoGenerationInputs & { userApiKey?: string }> {
   const {
     preferredLogoStyle,
     iconPlacement,
@@ -80,6 +107,10 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Gene
     primaryColors,
     secondaryColors,
     accentColors,
+    fontHeadings,
+    fontBody,
+    fontOther,
+    colorPaletteMood,
     ...rest
   } = formData;
 
@@ -119,9 +150,10 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Gene
       console.error("Error converting file to data URI:", error);
     }
   }
-
-  return {
-    ...rest,
+  
+  // This is the object that will be used for the generateLogoConcepts AI flow
+  const aiFlowInput: GenerateLogoConceptsInput = {
+    ...rest, // includes businessName, industry, etc.
     keywords: combinedKeywords.trim(),
     preferredColorPalette: combinedPalette.trim() || undefined,
     preferredLogoStyle: preferredLogoStyle === '' ? undefined : preferredLogoStyle as GenerateLogoConceptsInput['preferredLogoStyle'],
@@ -131,9 +163,44 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Gene
     usageContext: formData.usageContext === '' ? undefined : formData.usageContext,
     variationInstructions: formData.variationInstructions === '' ? undefined : formData.variationInstructions,
     referenceImageDataUri,
+    // userApiKey will be added in page.tsx
+    numberOfLogos: formData.numberOfLogos,
+  };
+
+  // This is the extended object stored in LogoBatch and used by BrandGuideDisplay
+  // It includes all form fields.
+  const extendedInputs: ExtendedLogoGenerationInputs = {
+    // Fields from aiFlowInput that are also in ExtendedLogoGenerationInputs
+    businessName: aiFlowInput.businessName,
+    industry: aiFlowInput.industry,
+    keywords: aiFlowInput.keywords, // Combined keywords
+    preferredColorPalette: aiFlowInput.preferredColorPalette, // Combined palette
+    preferredLogoStyle: aiFlowInput.preferredLogoStyle,
+    composition: aiFlowInput.composition,
+    iconPlacement: aiFlowInput.iconPlacement,
+    fontStyle: aiFlowInput.fontStyle, // Font style for logo
+    iconComplexity: aiFlowInput.iconComplexity,
+    iconSpecifics: aiFlowInput.iconSpecifics,
+    targetAudience: aiFlowInput.targetAudience,
+    inspirationReferences: aiFlowInput.inspirationReferences,
+    usageContext: aiFlowInput.usageContext,
+    negativeKeywords: aiFlowInput.negativeKeywords,
+    competitorsToAvoid: aiFlowInput.competitorsToAvoid,
+    variationInstructions: aiFlowInput.variationInstructions,
+    referenceImageDataUri: aiFlowInput.referenceImageDataUri,
+    numberOfLogos: aiFlowInput.numberOfLogos,
+
+
+    // Fields specific to ExtendedLogoGenerationInputs (from formData)
     missionStatement: missionStatement === '' ? undefined : missionStatement,
     brandPillars: brandPillars === '' ? undefined : brandPillars,
     brandArchetype: brandArchetype === '' ? undefined : brandArchetype as typeof brandArchetypes[number],
     keyTagline: keyTagline === '' ? undefined : keyTagline,
+    fontHeadings: fontHeadings === '' ? undefined : fontHeadings,
+    fontBody: fontBody === '' ? undefined : fontBody,
+    fontOther: fontOther === '' ? undefined : fontOther,
+    colorPaletteMood: colorPaletteMood === '' ? undefined : colorPaletteMood as typeof colorPaletteMoods[number],
   };
+
+  return extendedInputs;
 }

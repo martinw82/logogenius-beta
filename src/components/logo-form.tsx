@@ -3,9 +3,8 @@
 
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import type { LogoFormData } from "./logo-form-types";
-import { logoFormSchema, mapFormDataToAiInput, brandArchetypes } from "./logo-form-types";
-import type { GenerateLogoConceptsInput } from "@/ai/flows/generate-logo-concepts";
+import type { LogoFormData, ExtendedLogoGenerationInputs } from "./logo-form-types";
+import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoods } from "./logo-form-types";
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
 
@@ -42,20 +41,15 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush } from "lucide-react";
+import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush, Type, Activity } from "lucide-react";
 
 interface LogoFormProps {
-  onSubmit: (data: GenerateLogoConceptsInput & { 
-    missionStatement?: string;
-    brandPillars?: string;
-    brandArchetype?: string;
-    keyTagline?: string;
-  }) => Promise<void>;
+  onSubmit: (data: ExtendedLogoGenerationInputs & { userApiKey?: string }) => Promise<void>;
   isLoading: boolean;
   initialValues?: Partial<LogoFormData>;
 }
 
-const FORM_SETTINGS_KEY = "logoFormSettingsV2"; 
+const FORM_SETTINGS_KEY = "logoFormSettingsV3"; // Incremented version for new fields
 
 export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) {
   const { toast } = useToast();
@@ -70,12 +64,16 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       primaryColors: "",
       secondaryColors: "",
       accentColors: "",
+      colorPaletteMood: "",
       preferredLogoStyle: "",
       composition: "",
       iconPlacement: "",
       fontStyle: "",
       iconComplexity: "",
       iconSpecifics: "",
+      fontHeadings: "",
+      fontBody: "",
+      fontOther: "",
       targetAudience: "",
       inspirationReferences: "",
       usageContext: "",
@@ -92,10 +90,11 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
   });
 
   const fileInputRef = React.useRef<HTMLInputElement>(null);
+  const currentRefImageFile = form.watch("referenceImageFile");
 
   const handleSubmit = async (data: LogoFormData) => {
-    const aiInput = await mapFormDataToAiInput(data);
-    await onSubmit(aiInput);
+    const extendedAiInput = await mapFormDataToAiInput(data);
+    await onSubmit(extendedAiInput);
   };
 
   const handleSaveToBrowser = () => {
@@ -124,7 +123,9 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     if (savedDataString) {
       try {
         const savedData = JSON.parse(savedDataString);
-        form.reset({ ...savedData, referenceImageFile: null });
+        // Ensure all fields, including new ones, are correctly reset or defaulted
+        const newDefaultValues = { ...(form.formState.defaultValues as LogoFormData), ...savedData, referenceImageFile: null };
+        form.reset(newDefaultValues);
         toast({
           title: "Settings Loaded from Browser",
           description: "Your saved form settings have been loaded.",
@@ -190,10 +191,11 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
           throw new Error("File content is not readable text.");
         }
         const importedData = JSON.parse(text);
-        if (!importedData || typeof importedData.businessName === 'undefined') {
+        if (!importedData || typeof importedData.businessName === 'undefined') { // Basic validation
             throw new Error("Invalid settings file format.");
         }
-        form.reset({ ...importedData, referenceImageFile: null });
+        const newDefaultValues = { ...(form.formState.defaultValues as LogoFormData), ...importedData, referenceImageFile: null };
+        form.reset(newDefaultValues);
         toast({
           title: "Settings Imported",
           description: "Form settings have been imported from the file.",
@@ -437,16 +439,16 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
 
               <AccordionItem value="visual-prefs" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
                 <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline flex items-center gap-2">
-                  <Palette className="w-5 h-5 text-primary/80" /> Visual Preferences
+                  <Palette className="w-5 h-5 text-primary/80" /> Logo Visual Preferences
                 </AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <div className="space-y-2">
                      <h3 className="text-sm font-medium flex items-center gap-1.5">
                        <Paintbrush className="w-4 h-4 text-muted-foreground" />
-                       Color Palette (Optional)
+                       Logo Color Palette Input (Optional)
                     </h3>
                     <FormDescription>
-                      Define your brand's color scheme. List multiple colors, comma-separated (e.g., "Red, #00FF00, Dark Blue").
+                      Define your logo's color scheme. List multiple colors or descriptive terms, comma-separated.
                     </FormDescription>
                   </div>
                   <FormField
@@ -454,9 +456,9 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                     name="primaryColors"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Primary Colors</FormLabel>
+                        <FormLabel>Primary Colors for Logo</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="e.g., Deep Indigo, Royal Blue" className="resize-none" rows={2} {...field} />
+                          <Textarea placeholder="e.g., Deep Indigo, Royal Blue" className="resize-none" rows={1} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -467,9 +469,9 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                     name="secondaryColors"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Secondary Colors</FormLabel>
+                        <FormLabel>Secondary Colors for Logo</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="e.g., Light Grey, Cool Silver" className="resize-none" rows={2} {...field} />
+                          <Textarea placeholder="e.g., Light Grey, Cool Silver" className="resize-none" rows={1} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -480,9 +482,9 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                     name="accentColors"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Accent Colors</FormLabel>
+                        <FormLabel>Accent Colors for Logo</FormLabel>
                         <FormControl>
-                          <Textarea placeholder="e.g., Teal, Vibrant Orange" className="resize-none" rows={2} {...field} />
+                          <Textarea placeholder="e.g., Teal, Vibrant Orange" className="resize-none" rows={1} {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -593,12 +595,12 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                     name="fontStyle"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Font Style (Optional)</FormLabel>
+                        <FormLabel>Font Style for Logo (Optional)</FormLabel>
                         <FormControl>
                           <Input placeholder="e.g., Geometric Sans-Serif, Handwritten Script, No Text" {...field} />
                         </FormControl>
                         <FormDescription>
-                          Describe font attributes (e.g., geometric, handwritten) or 'No Text' for icon-only logos.
+                          Describe font attributes for the logo (e.g., geometric, handwritten) or 'No Text' for icon-only logos.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -609,16 +611,93 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                     name="iconSpecifics"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Specific Icon Imagery (Optional)</FormLabel>
+                        <FormLabel>Specific Icon Imagery for Logo (Optional)</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="e.g., A soaring eagle, intertwined gears, a subtle leaf motif"
                             className="resize-none"
-                            rows={3}
+                            rows={2}
                             {...field}
                           />
                         </FormControl>
-                        <FormDescription>Describe specific objects, symbols, or concepts you want in the icon.</FormDescription>
+                        <FormDescription>Describe specific objects, symbols, or concepts you want in the logo's icon.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </AccordionContent>
+              </AccordionItem>
+
+              <AccordionItem value="brand-typography-colors" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
+                <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline flex items-center gap-2">
+                  <Type className="w-5 h-5 text-primary/80" /> Brand Typography & Color Mood
+                </AccordionTrigger>
+                <AccordionContent className="pt-4 space-y-6">
+                  <FormDescription>
+                    Define overall brand typography and the desired mood for your color palette.
+                    These fields are for the brand guide output, not direct logo generation.
+                  </FormDescription>
+                  <FormField
+                    control={form.control}
+                    name="fontHeadings"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Brand Headings Font (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Montserrat Bold, Playfair Display" {...field} />
+                        </FormControl>
+                        <FormDescription>Specify the font for main headings in brand materials.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="fontBody"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Brand Body Text Font (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Open Sans Regular, Lato" {...field} />
+                        </FormControl>
+                        <FormDescription>Specify the font for paragraphs and general text.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="fontOther"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Other Brand Fonts (Optional)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., Fira Code for code snippets" {...field} />
+                        </FormControl>
+                        <FormDescription>Specify any additional fonts for captions, accents, etc.</FormDescription>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="colorPaletteMood"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Color Palette Mood (Optional)</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select a mood for the overall color palette" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {colorPaletteMoods.map(mood => (
+                              <SelectItem key={mood} value={mood}>{mood}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormDescription>Describes the overall feeling of the brand's color scheme.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -628,17 +707,17 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
 
               <AccordionItem value="advanced-details" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
                 <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline flex items-center gap-2">
-                  <Feather className="w-5 h-5 text-primary/80" /> Advanced Details & Context
+                  <Feather className="w-5 h-5 text-primary/80" /> Advanced Logo Details & Context
                 </AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <FormField
                     control={form.control}
                     name="referenceImageFile"
-                    render={({ field: { onChange, value, onBlur, name, ref } }) => (
+                    render={({ field: { onChange, value, onBlur, name, ref } }) => ( // value is used here
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
                           <FileImage className="w-4 h-4" />
-                          Reference Image (Optional)
+                          Reference Image for Logo (Optional)
                         </FormLabel>
                         <FormControl>
                           <Input
@@ -653,9 +732,9 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             className="pt-2"
                           />
                         </FormControl>
-                        {value && typeof value === 'object' && (value as File).name && (
+                         {currentRefImageFile && typeof currentRefImageFile === 'object' && currentRefImageFile.name && (
                           <FormDescription className="mt-1 text-xs">
-                            Current file: {(value as File).name}
+                            Current file: {currentRefImageFile.name}
                           </FormDescription>
                         )}
                         <FormDescription>Upload an existing sketch, character, or logo for inspiration.</FormDescription>
@@ -668,16 +747,16 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                     name="inspirationReferences"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Inspiration / References (Optional)</FormLabel>
+                        <FormLabel>Inspiration / References for Logo (Optional)</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="e.g., Inspired by Nike's simplicity, Apple's sleekness."
                             className="resize-none"
-                            rows={3}
+                            rows={2}
                             {...field}
                           />
                         </FormControl>
-                        <FormDescription>Provide visual or brand benchmarks.</FormDescription>
+                        <FormDescription>Provide visual or brand benchmarks for the logo design.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -692,7 +771,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                           <Textarea
                             placeholder="e.g., Brand X (too similar style), Brand Y (want to be more modern)"
                             className="resize-none"
-                            rows={3}
+                            rows={2}
                             {...field}
                           />
                         </FormControl>
@@ -706,12 +785,12 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                     name="usageContext"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Primary Usage Context (Optional)</FormLabel>
+                        <FormLabel>Primary Usage Context for Logo (Optional)</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="e.g., Web (responsive), Packaging (bold & scalable), Social media profiles."
                             className="resize-none"
-                            rows={3}
+                            rows={2}
                             {...field}
                           />
                         </FormControl>
@@ -725,16 +804,16 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                     name="negativeKeywords"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Things to Avoid (Optional)</FormLabel>
+                        <FormLabel>Things to Avoid in Logo (Optional)</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="e.g., No gradients, avoid cartoonish elements, not too corporate, avoid using X, Y, Z, avoid complex details."
                             className="resize-none"
-                            rows={3}
+                            rows={2}
                             {...field}
                           />
                         </FormControl>
-                        <FormDescription>List elements, styles, or concepts to exclude.</FormDescription>
+                        <FormDescription>List elements, styles, or concepts to exclude from the logo.</FormDescription>
                         <FormMessage />
                       </FormItem>
                     )}
@@ -744,7 +823,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
 
               <AccordionItem value="gen-settings" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
                 <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline flex items-center gap-2">
-                   <SlidersHorizontal className="w-5 h-5 text-primary/80" /> Generation Settings
+                   <SlidersHorizontal className="w-5 h-5 text-primary/80" /> Logo Generation Settings
                 </AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <FormField
@@ -774,12 +853,12 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                     name="variationInstructions"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel>Variation Instructions (Optional)</FormLabel>
+                        <FormLabel>Logo Variation Instructions (Optional)</FormLabel>
                         <FormControl>
                           <Textarea
                             placeholder="e.g., Emphasize different fonts; Try one minimalist icon and one detailed."
                             className="resize-none"
-                            rows={3}
+                            rows={2}
                             {...field}
                           />
                         </FormControl>
