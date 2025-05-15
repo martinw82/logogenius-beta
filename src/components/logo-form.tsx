@@ -6,6 +6,7 @@ import { useForm } from "react-hook-form";
 import type { LogoFormData } from "./logo-form-types";
 import { logoFormSchema, mapFormDataToAiInput } from "./logo-form-types";
 import type { GenerateLogoConceptsInput } from "@/ai/flows/generate-logo-concepts";
+import { useToast } from "@/hooks/use-toast";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -33,7 +34,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Loader2, Wand2, FileImage } from "lucide-react";
+import { Loader2, Wand2, FileImage, Save, FolderOpen } from "lucide-react";
 
 interface LogoFormProps {
   onSubmit: (data: GenerateLogoConceptsInput) => Promise<void>;
@@ -41,7 +42,10 @@ interface LogoFormProps {
   initialValues?: Partial<LogoFormData>;
 }
 
+const FORM_SETTINGS_KEY = "logoFormSettingsV1"; // Added V1 for potential future structure changes
+
 export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) {
+  const { toast } = useToast();
   const form = useForm<LogoFormData>({
     resolver: zodResolver(logoFormSchema),
     defaultValues: initialValues || {
@@ -69,9 +73,60 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
   });
 
   const handleSubmit = async (data: LogoFormData) => {
-    const aiInput = await mapFormDataToAiInput(data); // Now async
+    const aiInput = await mapFormDataToAiInput(data);
     await onSubmit(aiInput);
   };
+
+  const handleSaveSettings = () => {
+    const currentData = form.getValues();
+    // Create a copy and remove non-serializable fields like File objects
+    const dataToSave = { ...currentData };
+    delete dataToSave.referenceImageFile; // File objects are not directly serializable
+
+    try {
+      localStorage.setItem(FORM_SETTINGS_KEY, JSON.stringify(dataToSave));
+      toast({
+        title: "Settings Saved",
+        description: "Your form settings have been saved locally.",
+      });
+    } catch (error) {
+      console.error("Error saving settings to localStorage:", error);
+      toast({
+        title: "Save Failed",
+        description: "Could not save settings to local storage. Storage might be full.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleLoadSettings = () => {
+    const savedDataString = localStorage.getItem(FORM_SETTINGS_KEY);
+    if (savedDataString) {
+      try {
+        const savedData = JSON.parse(savedDataString);
+        // Ensure referenceImageFile is explicitly set to null as it was removed before saving
+        form.reset({ ...savedData, referenceImageFile: null });
+        toast({
+          title: "Settings Loaded",
+          description: "Your saved form settings have been loaded.",
+        });
+      } catch (error) {
+        console.error("Error parsing saved settings from localStorage:", error);
+        toast({
+          title: "Load Failed",
+          description: "Could not parse saved settings. They might be corrupted.",
+          variant: "destructive",
+        });
+      }
+    } else {
+      toast({
+        title: "No Saved Settings",
+        description: "No settings found to load.",
+        variant: "default",
+      });
+    }
+  };
+
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-xl">
@@ -221,7 +276,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Preferred Logo Style (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select a style" />
@@ -248,7 +303,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Overall Composition (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select composition" />
@@ -273,7 +328,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Icon Placement (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select icon placement" />
@@ -298,7 +353,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel>Icon Complexity (Optional)</FormLabel>
-                          <Select onValueChange={field.onChange} defaultValue={field.value}>
+                          <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
                             <FormControl>
                               <SelectTrigger>
                                 <SelectValue placeholder="Select icon complexity" />
@@ -358,7 +413,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                   <FormField
                     control={form.control}
                     name="referenceImageFile"
-                    render={({ field: { onChange, onBlur, name, ref } }) => (
+                    render={({ field: { onChange, onBlur, name, ref } }) => ( // field.value removed from render to prevent issues with File object
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
                           <FileImage className="w-4 h-4" />
@@ -508,6 +563,15 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 </AccordionContent>
               </AccordionItem>
             </Accordion>
+
+            <div className="flex flex-col sm:flex-row gap-4 pt-4">
+              <Button type="button" variant="outline" onClick={handleSaveSettings} className="w-full sm:w-auto">
+                <Save className="mr-2 h-4 w-4" /> Save Settings
+              </Button>
+              <Button type="button" variant="outline" onClick={handleLoadSettings} className="w-full sm:w-auto">
+                <FolderOpen className="mr-2 h-4 w-4" /> Load Settings
+              </Button>
+            </div>
 
             <Button type="submit" className="w-full !mt-8" disabled={isLoading}>
               {isLoading ? (
