@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { cn } from "@/lib/utils";
 
 interface PageHeaderProps {
-  title: string; // Keep for now, though not rendered, for interface consistency
+  title: string; // Still present from previous, not rendered.
   description?: string;
   icon?: LucideIcon;
   iconClassName?: string;
@@ -22,22 +22,31 @@ export function PageHeader({
   return (
     <div className="mb-8 space-y-3">
       {(imageUrl || IconComponent) && (
-        <div className="flex items-center justify-center w-32 h-32 p-0 mx-auto rounded-full bg-primary/10 text-primary shadow-md relative overflow-hidden">
-          {imageUrl ? (
+        imageUrl ? (
+          // Case for imageUrl: Larger image, smaller background circle
+          <div className="relative mx-auto flex items-center justify-center w-64 h-64"> {/* Container for the image, defines image size (256px) */}
+            {/* Background Circle - smaller and centered */}
+            <div
+              className="absolute inset-0 m-auto w-32 h-32 rounded-full bg-primary/10 shadow-md" // Circle is 128px
+            />
             <Image
               src={imageUrl}
               alt={imageAlt}
-              width={128} // Corresponds to w-32 (16 * 8px base = 128px)
-              height={128} // Corresponds to h-32
-              className="object-contain"
+              width={256} // Tailwind w-64 = 256px
+              height={256} // Tailwind h-64 = 256px
+              className="object-contain relative" // `relative` to ensure it stacks above the absolute positioned circle
               data-ai-hint="app logo"
             />
-          ) : IconComponent ? (
-            <IconComponent className={cn("w-20 h-20", iconClassName)} /> // Increased icon size as well
-          ) : null}
-        </div>
+          </div>
+        ) : IconComponent ? (
+          // Case for IconComponent (if imageUrl is not present)
+          // Icon is w-24 h-24 (96px), its circle is w-16 h-16 (64px).
+          <div className="relative mx-auto flex items-center justify-center w-24 h-24"> {/* Container for the icon */}
+              <div className="absolute inset-0 m-auto w-16 h-16 rounded-full bg-primary/10 shadow-md" /> {/* Circle is 64px */}
+              <IconComponent className={cn("w-full h-full relative text-primary object-contain", iconClassName)} /> {/* Icon fills 96px */}
+          </div>
+        ) : null
       )}
-      {/* The h1 title element has been removed as per request */}
       {description && <p className="text-sm text-center text-muted-foreground md:text-base mt-4">{description}</p>}
     </div>
   );
