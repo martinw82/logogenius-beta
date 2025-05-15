@@ -19,11 +19,11 @@ import {z} from 'genkit';
 const GenerateLogoConceptsInputSchema = z.object({
   businessName: z.string().describe('The name of the business.'),
   industry: z.string().describe('The industry of the business.'),
-  keywords: z.string().describe('Keywords describing the brand identity.'),
+  keywords: z.string().describe('Keywords describing the brand identity (may include Aesthetic, Emotional, Functional categories).'),
   preferredColorPalette: z
     .string()
     .optional()
-    .describe('Optional preferred color palette.'),
+    .describe('Optional preferred color palette (e.g., "Blue for trust, Gold for luxury").'),
   preferredLogoStyle:
     z.enum([
       'logomark',
@@ -36,12 +36,16 @@ const GenerateLogoConceptsInputSchema = z.object({
       'minimalist'
     ])
       .optional()
-      .describe('Optional preferred logo style.'),
+      .describe('Optional preferred logo style (e.g., minimalist, emblem).'),
   iconPlacement: z.enum(['above_text', 'left_of_text', 'right_of_text', 'below_text', 'no_icon', 'icon_only'])
     .optional()
     .describe('Optional preferred placement of the icon relative to the text.'),
-  fontStyle: z.string().optional().describe('Optional preferred font style (e.g., modern sans-serif, elegant script).'),
+  fontStyle: z.string().optional().describe('Optional preferred font style (e.g., "modern sans-serif", "elegant script", "No text").'),
   iconComplexity: z.enum(['simple', 'detailed']).optional().describe('Optional preferred icon complexity (e.g., simple, detailed).'),
+  targetAudience: z.string().optional().describe('Optional description of the target audience (e.g., "Young professionals", "Eco-conscious consumers").'),
+  inspirationReferences: z.string().optional().describe('Optional inspiration references (e.g., "Inspired by Nike’s simplicity", "Apple’s sleekness").'),
+  usageContext: z.enum(['digital_only', 'print', 'merchandise', 'digital_and_print']).optional().describe('Optional primary usage context for the logo (e.g., "Digital only", "Print", "Merchandise").'),
+  negativeKeywords: z.string().optional().describe('Optional keywords or concepts to avoid (e.g., "No gradients", "Avoid cartoonish").'),
   numberOfLogos: z.number().default(4).describe('Number of logos to generate'),
 });
 
@@ -59,9 +63,6 @@ export async function generateLogoConcepts(
   return generateLogoConceptsFlow(input);
 }
 
-// Note: The prompt variable defined here is not directly used by the generateLogoConceptsFlow
-// for image generation but could be used for other text-based LLM interactions if needed.
-// The actual image generation prompt is constructed within the flow.
 const prompt = ai.definePrompt({
   name: 'generateLogoConceptsPrompt',
   input: {
@@ -94,6 +95,22 @@ The preferred font style is: {{fontStyle}}.
 The preferred icon complexity is: {{iconComplexity}}.
 {{/if}}
 
+{{#if targetAudience}}
+The target audience is: {{targetAudience}}.
+{{/if}}
+
+{{#if inspirationReferences}}
+Inspiration references: {{inspirationReferences}}.
+{{/if}}
+
+{{#if usageContext}}
+The primary usage context is: {{usageContext}}.
+{{/if}}
+
+{{#if negativeKeywords}}
+Please avoid the following: {{negativeKeywords}}.
+{{/if}}
+
 Please generate {{numberOfLogos}} logo variations.
 Output array of URLs for generated images in the format { "logoUrls": ["url1", "url2", "url3", "url4"] }.
 `,
@@ -123,6 +140,18 @@ const generateLogoConceptsFlow = ai.defineFlow(
     }
     if (input.iconComplexity) {
       baseImagePrompt += ` Icon complexity: ${input.iconComplexity}.`;
+    }
+    if (input.targetAudience) {
+      baseImagePrompt += ` Target audience: ${input.targetAudience}.`;
+    }
+    if (input.inspirationReferences) {
+      baseImagePrompt += ` Inspiration references: ${input.inspirationReferences}.`;
+    }
+    if (input.usageContext) {
+      baseImagePrompt += ` Primary usage context: ${input.usageContext}.`;
+    }
+    if (input.negativeKeywords) {
+      baseImagePrompt += ` Avoid the following: ${input.negativeKeywords}.`;
     }
 
 

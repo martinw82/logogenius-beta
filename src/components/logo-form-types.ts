@@ -23,6 +23,10 @@ export const logoFormSchema = z.object({
   iconPlacement: z.enum(['', 'above_text', 'left_of_text', 'right_of_text', 'below_text', 'no_icon', 'icon_only']).default('').optional().describe('Preferred placement of the icon relative to the text.'),
   fontStyle: z.string().max(100, "Font style description too long.").optional().describe('Preferred font style (e.g., modern sans-serif, elegant script).'),
   iconComplexity: z.enum(['', 'simple', 'detailed']).default('').optional().describe('Preferred icon complexity (e.g., simple, detailed).'),
+  targetAudience: z.string().max(150, "Target audience description too long (max 150 chars).").optional(),
+  inspirationReferences: z.string().max(200, "Inspiration references too long (max 200 chars).").optional(),
+  usageContext: z.enum(['', 'digital_only', 'print', 'merchandise', 'digital_and_print']).default('').optional().describe('Primary intended usage context for the logo.'),
+  negativeKeywords: z.string().max(150, "Negative keywords too long (max 150 chars).").optional(),
   numberOfLogos: z.coerce.number().min(1, "Generate at least 1 logo.").max(8, "Cannot generate more than 8 logos at a time.").default(4),
 }).refine(data => data.aestheticKeywords || data.emotionalKeywords || data.functionalKeywords, {
   message: "Please provide keywords for at least one category (Aesthetic, Emotional, or Functional).",
@@ -37,6 +41,7 @@ export function mapFormDataToAiInput(formData: LogoFormData): GenerateLogoConcep
     preferredLogoStyle,
     iconPlacement,
     iconComplexity,
+    usageContext,
     aestheticKeywords,
     emotionalKeywords,
     functionalKeywords,
@@ -60,5 +65,6 @@ export function mapFormDataToAiInput(formData: LogoFormData): GenerateLogoConcep
     preferredLogoStyle: preferredLogoStyle === '' ? undefined : preferredLogoStyle as GenerateLogoConceptsInput['preferredLogoStyle'],
     iconPlacement: iconPlacement === '' ? undefined : iconPlacement,
     iconComplexity: iconComplexity === '' ? undefined : iconComplexity as GenerateLogoConceptsInput['iconComplexity'],
+    usageContext: usageContext === '' ? undefined : usageContext as GenerateLogoConceptsInput['usageContext'],
   };
 }

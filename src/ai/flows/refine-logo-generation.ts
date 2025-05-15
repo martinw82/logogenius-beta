@@ -14,13 +14,17 @@ import {z} from 'genkit';
 
 const RefineLogoGenerationInputSchema = z.object({
   businessName: z.string().describe('The name of the business.'),
-  keywords: z.string().describe('Descriptive keywords for brand identity.'),
+  keywords: z.string().describe('Descriptive keywords for brand identity (may include Aesthetic, Emotional, Functional categories).'),
   industry: z.string().describe('The target industry/niche.'),
   colorPalette: z.string().optional().describe('Preferred color palette.'),
   logoStyle: z.string().optional().describe('Preferred logo style.'),
   iconPlacement: z.string().optional().describe('Preferred icon placement.'),
   fontStyle: z.string().optional().describe('Preferred font style.'),
   iconComplexity: z.string().optional().describe('Preferred icon complexity (e.g., simple, detailed).'),
+  targetAudience: z.string().optional().describe('Optional description of the target audience.'),
+  inspirationReferences: z.string().optional().describe('Optional inspiration references.'),
+  usageContext: z.enum(['digital_only', 'print', 'merchandise', 'digital_and_print']).optional().describe('Optional primary usage context for the logo.'),
+  negativeKeywords: z.string().optional().describe('Optional keywords or concepts to avoid.'),
   feedback: z
     .union([
       z.literal('thumbs_up'),
@@ -57,10 +61,14 @@ const prompt = ai.definePrompt({
   {{#if iconPlacement}}Icon Placement: {{{iconPlacement}}}{{/if}}
   {{#if fontStyle}}Font Style: {{{fontStyle}}}{{/if}}
   {{#if iconComplexity}}Icon Complexity: {{{iconComplexity}}}{{/if}}
+  {{#if targetAudience}}Target Audience: {{{targetAudience}}}{{/if}}
+  {{#if inspirationReferences}}Inspiration References: {{{inspirationReferences}}}{{/if}}
+  {{#if usageContext}}Usage Context: {{{usageContext}}}{{/if}}
+  {{#if negativeKeywords}}Things to Avoid: {{{negativeKeywords}}}{{/if}}
 
   Based on the feedback and all available parameters, refine the prompt to generate a better logo.
   The refined prompt should be detailed and specific.
-  It should incorporate all relevant fields: business name, keywords, industry, color palette, logo style, icon placement, font style, and icon complexity.
+  It should incorporate all relevant fields: business name, keywords, industry, color palette, logo style, icon placement, font style, icon complexity, target audience, inspiration references, usage context, and negative keywords.
 
   Return the refined prompt.
   `,

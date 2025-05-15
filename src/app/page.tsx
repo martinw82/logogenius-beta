@@ -84,7 +84,11 @@ export default function HomePage() {
       logoStyle: generationInput.preferredLogoStyle,
       iconPlacement: generationInput.iconPlacement, 
       fontStyle: generationInput.fontStyle,
-      iconComplexity: generationInput.iconComplexity,       
+      iconComplexity: generationInput.iconComplexity,
+      targetAudience: generationInput.targetAudience,
+      inspirationReferences: generationInput.inspirationReferences,
+      usageContext: generationInput.usageContext,
+      negativeKeywords: generationInput.negativeKeywords,       
       feedback: feedbackType,
       previousPrompt: basePrompt,
     };

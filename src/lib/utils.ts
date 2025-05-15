@@ -26,6 +26,18 @@ export function constructBasePrompt(input: Omit<GenerateLogoConceptsInput, 'numb
   if (input.iconComplexity) {
     prompt += ` Icon complexity: ${input.iconComplexity}.`;
   }
+  if (input.targetAudience) {
+    prompt += ` Target audience: ${input.targetAudience}.`;
+  }
+  if (input.inspirationReferences) {
+    prompt += ` Inspiration references: ${input.inspirationReferences}.`;
+  }
+  if (input.usageContext) {
+    prompt += ` Primary usage context: ${input.usageContext}.`;
+  }
+  if (input.negativeKeywords) {
+    prompt += ` Avoid the following: ${input.negativeKeywords}.`;
+  }
   return prompt;
 }
 
