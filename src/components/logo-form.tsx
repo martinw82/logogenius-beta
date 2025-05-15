@@ -136,7 +136,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="">Any Style</SelectItem>
+                        {/* <SelectItem value="">Any Style</SelectItem> <- Removed this line */}
                         <SelectItem value="logomark">Logomark (Icon-based)</SelectItem>
                         <SelectItem value="wordmark">Wordmark (Text-based)</SelectItem>
                         <SelectItem value="combination mark">Combination Mark (Icon + Text)</SelectItem>
