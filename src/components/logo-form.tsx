@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { LogoFormData, ExtendedLogoGenerationInputs } from "./logo-form-types";
-import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoods } from "./logo-form-types";
+import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData, colorPaletteMoods } from "./logo-form-types"; // Updated import
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
 
@@ -41,7 +41,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette as PaletteIconLucide, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush, Type, Activity } from "lucide-react"; // Renamed Palette to PaletteIconLucide
+import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette as PaletteIconLucide, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush, Type, Activity } from "lucide-react";
 
 interface LogoFormProps {
   onSubmit: (data: ExtendedLogoGenerationInputs & { userApiKey?: string }) => Promise<void>;
@@ -444,32 +444,50 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                     <div className="space-y-2 mb-6">
                         <h3 className="text-sm font-medium flex items-center gap-1.5">
                         <Paintbrush className="w-4 h-4 text-muted-foreground" />
-                        Logo Color Palette Input (Optional)
+                        Logo Color Palette Input
                         </h3>
                         <FormDescription>
-                        Define your logo's color scheme. Enter hex codes (e.g. #3F51B5) or descriptive terms.
+                        Define your logo's color scheme. Selecting a mood will pre-fill colors.
                         </FormDescription>
                     </div>
-
+                    
                     <FormField
                         control={form.control}
                         name="colorPaletteMood"
                         render={({ field }) => (
                         <FormItem className="pt-2">
                             <FormLabel>Color Palette Mood (Optional)</FormLabel>
-                            <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
-                            <FormControl>
-                                <SelectTrigger>
-                                <SelectValue placeholder="Select a mood for the overall color palette" />
-                                </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                                {colorPaletteMoods.map(mood => (
-                                <SelectItem key={mood} value={mood}>{mood}</SelectItem>
-                                ))}
-                            </SelectContent>
+                            <Select 
+                              onValueChange={(value) => {
+                                field.onChange(value); // Update the RHF field for colorPaletteMood
+                                const selectedMoodData = colorPaletteMoodsData.find(m => m.name === value);
+                                if (selectedMoodData) {
+                                  form.setValue("primaryColors", selectedMoodData.primary, { shouldValidate: true });
+                                  form.setValue("secondaryColors", selectedMoodData.secondary, { shouldValidate: true });
+                                  form.setValue("accentColors", selectedMoodData.accent, { shouldValidate: true });
+                                } else if (value === "") {
+                                  // Optionally clear colors if "Select a mood" is chosen
+                                  // form.setValue("primaryColors", "", { shouldValidate: true });
+                                  // form.setValue("secondaryColors", "", { shouldValidate: true });
+                                  // form.setValue("accentColors", "", { shouldValidate: true });
+                                }
+                              }} 
+                              value={field.value || ""} 
+                              defaultValue={field.value || ""}
+                            >
+                              <FormControl>
+                                  <SelectTrigger>
+                                  <SelectValue placeholder="Select a mood to pre-fill colors" />
+                                  </SelectTrigger>
+                              </FormControl>
+                              <SelectContent>
+                                  <SelectItem value="">Select a mood (optional)</SelectItem>
+                                  {colorPaletteMoodsData.map(moodItem => (
+                                  <SelectItem key={moodItem.name} value={moodItem.name}>{moodItem.name}</SelectItem>
+                                  ))}
+                              </SelectContent>
                             </Select>
-                            <FormDescription>Describes the overall feeling of the brand's color scheme. This influences the Brand Guide.</FormDescription>
+                            <FormDescription>Describes the overall feeling of the brand's color scheme. Influences Brand Guide and pre-fills colors below.</FormDescription>
                             <FormMessage />
                         </FormItem>
                         )}
@@ -483,14 +501,18 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             <FormLabel>Primary Color</FormLabel>
                             <div className="flex items-center gap-2">
                             <FormControl>
-                                <Input placeholder="e.g., #3F51B5 or Deep Indigo" {...field} />
+                                <Input 
+                                  placeholder="e.g., #3F51B5 or Deep Indigo" 
+                                  {...field} 
+                                  value={field.value || ""}
+                                />
                             </FormControl>
                             <FormControl>
                                 <Input 
                                 type="color" 
-                                value={field.value?.startsWith('#') ? field.value : '#000000'} // Ensure it's a valid hex for color input
+                                value={field.value && field.value.startsWith('#') && field.value.length === 7 ? field.value : '#000000'}
                                 onChange={(e) => field.onChange(e.target.value)}
-                                className="w-10 h-10 p-1"
+                                className="w-10 h-10 p-1 min-w-[2.5rem]"
                                 />
                             </FormControl>
                             </div>
@@ -507,14 +529,18 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             <FormLabel>Secondary Color</FormLabel>
                             <div className="flex items-center gap-2">
                             <FormControl>
-                                <Input placeholder="e.g., #EEEEEE or Light Grey" {...field} />
+                                <Input 
+                                  placeholder="e.g., #EEEEEE or Light Grey" 
+                                  {...field} 
+                                  value={field.value || ""}
+                                />
                             </FormControl>
                             <FormControl>
                                 <Input 
                                 type="color" 
-                                value={field.value?.startsWith('#') ? field.value : '#000000'}
+                                value={field.value && field.value.startsWith('#') && field.value.length === 7 ? field.value : '#000000'}
                                 onChange={(e) => field.onChange(e.target.value)}
-                                className="w-10 h-10 p-1"
+                                className="w-10 h-10 p-1 min-w-[2.5rem]"
                                 />
                             </FormControl>
                             </div>
@@ -531,14 +557,18 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             <FormLabel>Accent Color</FormLabel>
                             <div className="flex items-center gap-2">
                             <FormControl>
-                                <Input placeholder="e.g., #009688 or Teal" {...field} />
+                                <Input 
+                                  placeholder="e.g., #009688 or Teal" 
+                                  {...field} 
+                                  value={field.value || ""}
+                                />
                             </FormControl>
                             <FormControl>
                                 <Input 
                                 type="color" 
-                                value={field.value?.startsWith('#') ? field.value : '#000000'}
+                                value={field.value && field.value.startsWith('#') && field.value.length === 7 ? field.value : '#000000'}
                                 onChange={(e) => field.onChange(e.target.value)}
-                                className="w-10 h-10 p-1"
+                                className="w-10 h-10 p-1 min-w-[2.5rem]"
                                 />
                             </FormControl>
                             </div>
@@ -562,6 +592,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              <SelectItem value="">Any Style</SelectItem>
                               <SelectItem value="logomark">Logomark: Icon-only, symbolic</SelectItem>
                               <SelectItem value="wordmark">Wordmark: Text-only, stylized typography</SelectItem>
                               <SelectItem value="lettermark">Lettermark: Initials or monogram</SelectItem>
@@ -589,6 +620,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              <SelectItem value="">Any Composition</SelectItem>
                               <SelectItem value="horizontal">Horizontal: Wider than tall</SelectItem>
                               <SelectItem value="vertical">Vertical: Taller than wide</SelectItem>
                               <SelectItem value="circular">Circular: Elements arranged in a circle</SelectItem>
@@ -614,6 +646,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              <SelectItem value="">Any Placement</SelectItem>
                               <SelectItem value="above_text">Above Text</SelectItem>
                               <SelectItem value="left_of_text">Left of Text</SelectItem>
                               <SelectItem value="right_of_text">Right of Text</SelectItem>
@@ -639,6 +672,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
+                              <SelectItem value="">Any Complexity</SelectItem>
                               <SelectItem value="simple">Simple: Clean lines, minimal detail</SelectItem>
                               <SelectItem value="detailed">Detailed: More intricate, elaborate</SelectItem>
                             </SelectContent>
@@ -966,5 +1000,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     </Card>
   );
 }
+
+    
 
     

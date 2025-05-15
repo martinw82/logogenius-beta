@@ -8,35 +8,38 @@ export const brandArchetypes = [
   "The Jester", "The Sage"
 ] as const;
 
-export const colorPaletteMoods = [
-  "Happy & Playful",
-  "Calm & Peaceful",
-  "Trustworthy & Stable",
-  "Energetic & Vibrant",
-  "Sophisticated & Elegant",
-  "Bold & Powerful",
-  "Caring & Nurturing",
-  "Innovative & Modern",
-  "Wise & Formal",
-  "Romantic & Passionate",
-  "Earthy & Natural",
-  "Mysterious & Dramatic",
-  "Nostalgic & Classic",
-  "Clean & Pure",
-  "Luxurious & Indulgent",
-  "Friendly & Accessible",
-  "Secure & Reliable",
-  "Exciting & Adventurous",
-  "Spiritual & Mystical",
-  "Gritty & Authentic",
-  "Youthful & Fresh",
-  "Serious & Professional",
-  "Playful & Whimsical",
-  "Rustic & Warm",
-  "Bold & Disruptive",
-  "Minimalist & Clean",
-  "Welcoming & Inviting"
+// Updated colorPaletteMoodsData with associated hex codes
+export const colorPaletteMoodsData = [
+  { name: "Happy & Playful", primary: "#FFD166", secondary: "#06D6A0", accent: "#EF476F" },
+  { name: "Calm & Peaceful", primary: "#A9D6E5", secondary: "#89C2D9", accent: "#61A5C2" },
+  { name: "Trustworthy & Stable", primary: "#0D47A1", secondary: "#1565C0", accent: "#1976D2" },
+  { name: "Energetic & Vibrant", primary: "#FF6F00", secondary: "#FF9800", accent: "#FF5722" },
+  { name: "Sophisticated & Elegant", primary: "#4A4A4A", secondary: "#7B7B7B", accent: "#F5F5F5" }, // Adjusted grey for elegance
+  { name: "Bold & Powerful", primary: "#B71C1C", secondary: "#D32F2F", accent: "#F44336" },
+  { name: "Caring & Nurturing", primary: "#FFC0CB", secondary: "#FFDAB9", accent: "#90EE90" }, // Pink, Peach, LightGreen
+  { name: "Innovative & Modern", primary: "#00BCD4", secondary: "#26C6DA", accent: "#80DEEA" }, // Cyan shades
+  { name: "Wise & Formal", primary: "#311B92", secondary: "#4527A0", accent: "#512DA8" }, // Deep Purples
+  { name: "Romantic & Passionate", primary: "#E91E63", secondary: "#EC407A", accent: "#F06292" }, // Pinks
+  { name: "Earthy & Natural", primary: "#795548", secondary: "#A1887F", accent: "#8BC34A" }, // Brown, LightGreen
+  { name: "Mysterious & Dramatic", primary: "#263238", secondary: "#455A64", accent: "#607D8B" }, // Blue Grays
+  { name: "Nostalgic & Classic", primary: "#D7CCC8", secondary: "#BCAAA4", accent: "#A1887F" }, // Browns
+  { name: "Clean & Pure", primary: "#FFFFFF", secondary: "#F5F5F5", accent: "#E0E0E0" }, // Whites/Light Grays
+  { name: "Luxurious & Indulgent", primary: "#FFD700", secondary: "#B8860B", accent: "#D4AF37" }, // Golds
+  { name: "Friendly & Accessible", primary: "#42A5F5", secondary: "#64B5F6", accent: "#90CAF9" }, // Blues
+  { name: "Secure & Reliable", primary: "#1B5E20", secondary: "#2E7D32", accent: "#388E3C" }, // Greens
+  { name: "Exciting & Adventurous", primary: "#FF5722", secondary: "#FF7043", accent: "#FF8A65" }, // Deep Oranges
+  { name: "Spiritual & Mystical", primary: "#673AB7", secondary: "#7E57C2", accent: "#9575CD" }, // Purples
+  { name: "Gritty & Authentic", primary: "#3E2723", secondary: "#5D4037", accent: "#795548" }, // Dark Browns
+  { name: "Youthful & Fresh", primary: "#8BC34A", secondary: "#AED581", accent: "#CDDC39" }, // Light Greens/Limes
+  { name: "Serious & Professional", primary: "#212121", secondary: "#424242", accent: "#616161" }, // Grays
+  { name: "Playful & Whimsical", primary: "#AB47BC", secondary: "#BA68C8", accent: "#CE93D8" }, // Purples (lighter)
+  { name: "Rustic & Warm", primary: "#BF360C", secondary: "#D84315", accent: "#E64A19" }, // Deep Oranges/Browns
+  { name: "Bold & Disruptive", primary: "#F50057", secondary: "#FF4081", accent: "#FF80AB" }, // Bright Pinks
+  { name: "Minimalist & Clean", primary: "#E0E0E0", secondary: "#EEEEEE", accent: "#F5F5F5" }, // Light Grays
+  { name: "Welcoming & Inviting", primary: "#FFA726", secondary: "#FFB74D", accent: "#FFCC80" }, // Oranges
 ] as const;
+
+export const colorPaletteMoods = colorPaletteMoodsData.map(item => item.name);
 
 export const logoFormSchema = z.object({
   businessName: z.string().min(1, "Business name is required.").max(100, "Business name too long."),
@@ -45,7 +48,8 @@ export const logoFormSchema = z.object({
   emotionalKeywords: z.string().max(150, "Emotional keywords too long (max 150 chars).").optional(),
   functionalKeywords: z.string().max(150, "Functional keywords too long (max 150 chars).").optional(),
   
-  primaryColors: z.string().max(150, "Primary color description too long.").optional().describe("Specify the primary brand color (e.g., '#3F51B5', 'Deep Indigo', or 'Blue, Light Blue')."),
+  // These will now be more focused on single color inputs via UI, but can still accept lists
+  primaryColors: z.string().max(150, "Primary color description too long.").optional().describe("Specify the primary brand color (e.g., '#3F51B5', 'Deep Indigo')."),
   secondaryColors: z.string().max(150, "Secondary color description too long.").optional().describe("Specify the secondary brand color (e.g., '#EEEEEE', 'Light Grey')."),
   accentColors: z.string().max(150, "Accent color description too long.").optional().describe("Specify the accent brand color (e.g., '#009688', 'Teal')."),
   colorPaletteMood: z.enum(['', ...colorPaletteMoods]).default('').optional(),
@@ -137,10 +141,10 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     missionStatement,
     brandPillars,
     keyTagline,
-    primaryColors, // direct form input
-    secondaryColors, // direct form input
-    accentColors, // direct form input
-    colorPaletteMood, // direct form input
+    primaryColors, 
+    secondaryColors, 
+    accentColors, 
+    colorPaletteMood, 
     fontHeadings,
     fontBody,
     fontOther,
@@ -168,6 +172,9 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
   if (accentColors && accentColors.trim()) {
     combinedPaletteForAI += `Accent Color(s): ${accentColors.trim()}. `;
   }
+  // colorPaletteMood is primarily for the brand guide text generation,
+  // but can also inform the combinedPaletteForAI if desired, or be passed separately.
+  // For now, the combinedPaletteForAI is constructed from primary/secondary/accent.
 
 
   let referenceImageDataUri: string | undefined = undefined;
@@ -235,5 +242,7 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
 
   return extendedInputs;
 }
+
+    
 
     
