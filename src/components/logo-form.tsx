@@ -155,7 +155,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 )}
               />
             </div>
-            
+
             <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
               <FormField
                 control={form.control}
@@ -186,10 +186,14 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="logomark">Logomark (Icon-based)</SelectItem>
-                        <SelectItem value="wordmark">Wordmark (Text-based)</SelectItem>
-                        <SelectItem value="combination mark">Combination Mark (Icon + Text)</SelectItem>
-                        <SelectItem value="abstract">Abstract</SelectItem>
+                        <SelectItem value="logomark">Logomark: Icon-only, symbolic</SelectItem>
+                        <SelectItem value="wordmark">Wordmark: Text-only, stylized typography</SelectItem>
+                        <SelectItem value="lettermark">Lettermark: Initials or monogram</SelectItem>
+                        <SelectItem value="combination">Combination Mark: Icon + Text, integrated</SelectItem>
+                        <SelectItem value="emblem">Emblem: Text inside a symbol/badge, traditional</SelectItem>
+                        <SelectItem value="abstract">Abstract Mark: Unique, conceptual shape</SelectItem>
+                        <SelectItem value="mascot">Mascot: Illustrated character</SelectItem>
+                        <SelectItem value="minimalist">Minimalist: Simple forms, clean lines</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
@@ -244,10 +248,10 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 <FormItem>
                   <FormLabel>Number of Logos to Generate</FormLabel>
                   <FormControl>
-                    <Input 
-                      type="number" 
-                      min="1" 
-                      max="8" 
+                    <Input
+                      type="number"
+                      min="1"
+                      max="8"
                       {...field}
                       onChange={event => field.onChange(+event.target.value)} // Ensure value is a number
                      />
