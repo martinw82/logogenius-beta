@@ -10,7 +10,7 @@ import { generateLogoConcepts, type GenerateLogoConceptsInput } from "@/ai/flows
 import { refineLogoGeneration, type RefineLogoGenerationInput } from "@/ai/flows/refine-logo-generation";
 import { useToast } from "@/hooks/use-toast";
 import { constructBasePrompt, uuidv4 } from "@/lib/utils";
-import { Lightbulb } from "lucide-react";
+import { Sparkles } from "lucide-react"; // Changed from Lightbulb
 import { ApiKeyInput } from "@/components/api-key-input";
 
 const API_KEY_STORAGE_KEY = "userGoogleApiKey";
@@ -105,16 +105,15 @@ export default function HomePage() {
   };
 
   const handleFeedback = async (
-    targetLogoBatch: LogoBatch,
-    logoId: string,
+    logoId: string, // Changed to logoId from targetLogoBatch for more direct use if needed
     feedbackType: "thumbs_up" | "thumbs_down"
   ) => {
-    if (!targetLogoBatch) return;
+    if (!logoBatch) return; // Use the logoBatch from state
 
     setLoadingFeedbackFor(logoId);
     setError(null);
 
-    const { generationInput, basePrompt } = targetLogoBatch;
+    const { generationInput, basePrompt } = logoBatch; // Use logoBatch from state
     const currentApiKey = getApiKey();
 
     const refineInput: RefineLogoGenerationInput = {
@@ -175,7 +174,7 @@ export default function HomePage() {
         <PageHeader
           title="LogoGenius"
           description="Let AI craft the perfect logo for your brand. Describe your vision, and watch concepts come to life."
-          icon={Lightbulb}
+          icon={Sparkles} // Changed from Lightbulb
         />
 
         <LogoForm onSubmit={handleGenerateLogos} isLoading={isLoading} />
@@ -188,7 +187,7 @@ export default function HomePage() {
 
         <LogoGallery
           logoBatch={logoBatch}
-          onFeedback={handleFeedback}
+          onFeedback={(logoId, feedbackType) => handleFeedback(logoId, feedbackType)}
           loadingFeedbackFor={loadingFeedbackFor}
           isLoading={isLoading}
           expectedLogoCount={expectedLogoCount}
