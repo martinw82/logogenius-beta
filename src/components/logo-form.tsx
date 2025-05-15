@@ -41,7 +41,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush, Type, Activity } from "lucide-react";
+import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush, Type, Activity, PaletteIcon } from "lucide-react";
 
 interface LogoFormProps {
   onSubmit: (data: ExtendedLogoGenerationInputs & { userApiKey?: string }) => Promise<void>;
@@ -49,7 +49,7 @@ interface LogoFormProps {
   initialValues?: Partial<LogoFormData>;
 }
 
-const FORM_SETTINGS_KEY = "logoFormSettingsV3"; // Incremented version for new fields
+const FORM_SETTINGS_KEY = "logoFormSettingsV3"; 
 
 export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) {
   const { toast } = useToast();
@@ -123,7 +123,6 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     if (savedDataString) {
       try {
         const savedData = JSON.parse(savedDataString);
-        // Ensure all fields, including new ones, are correctly reset or defaulted
         const newDefaultValues = { ...(form.formState.defaultValues as LogoFormData), ...savedData, referenceImageFile: null };
         form.reset(newDefaultValues);
         toast({
@@ -191,7 +190,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
           throw new Error("File content is not readable text.");
         }
         const importedData = JSON.parse(text);
-        if (!importedData || typeof importedData.businessName === 'undefined') { // Basic validation
+        if (!importedData || typeof importedData.businessName === 'undefined') { 
             throw new Error("Invalid settings file format.");
         }
         const newDefaultValues = { ...(form.formState.defaultValues as LogoFormData), ...importedData, referenceImageFile: null };
@@ -239,7 +238,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       <CardContent>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-8">
-            <Accordion type="multiple" defaultValue={["basic-info", "brand-keywords"]} className="w-full space-y-4">
+            <Accordion type="multiple" defaultValue={["basic-info", "brand-keywords", "visual-prefs"]} className="w-full space-y-4">
               <AccordionItem value="basic-info" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
                 <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline flex items-center gap-2">
                   <BookOpen className="w-5 h-5 text-primary/80" /> Basic Information
@@ -442,54 +441,111 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                   <Palette className="w-5 h-5 text-primary/80" /> Logo Visual Preferences
                 </AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
-                  <div className="space-y-2">
-                     <h3 className="text-sm font-medium flex items-center gap-1.5">
-                       <Paintbrush className="w-4 h-4 text-muted-foreground" />
-                       Logo Color Palette Input (Optional)
-                    </h3>
-                    <FormDescription>
-                      Define your logo's color scheme. List multiple colors or descriptive terms, comma-separated.
-                    </FormDescription>
-                  </div>
-                  <FormField
-                    control={form.control}
-                    name="primaryColors"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Primary Colors for Logo</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="e.g., Deep Indigo, Royal Blue" className="resize-none" rows={1} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="secondaryColors"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Secondary Colors for Logo</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="e.g., Light Grey, Cool Silver" className="resize-none" rows={1} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="accentColors"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Accent Colors for Logo</FormLabel>
-                        <FormControl>
-                          <Textarea placeholder="e.g., Teal, Vibrant Orange" className="resize-none" rows={1} {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
+                    <div className="space-y-2 mb-6">
+                        <h3 className="text-sm font-medium flex items-center gap-1.5">
+                        <Paintbrush className="w-4 h-4 text-muted-foreground" />
+                        Logo Color Palette Input (Optional)
+                        </h3>
+                        <FormDescription>
+                        Define your logo's color scheme. Enter hex codes (e.g. #3F51B5) or descriptive terms.
+                        </FormDescription>
+                    </div>
+
+                    <FormField
+                        control={form.control}
+                        name="primaryColors"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Primary Color</FormLabel>
+                            <div className="flex items-center gap-2">
+                            <FormControl>
+                                <Input placeholder="e.g., #3F51B5 or Deep Indigo" {...field} />
+                            </FormControl>
+                            <FormControl>
+                                <Input 
+                                type="color" 
+                                value={field.value?.startsWith('#') ? field.value : '#000000'} // Ensure it's a valid hex for color input
+                                onChange={(e) => field.onChange(e.target.value)}
+                                className="w-10 h-10 p-1"
+                                />
+                            </FormControl>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="secondaryColors"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Secondary Color</FormLabel>
+                            <div className="flex items-center gap-2">
+                            <FormControl>
+                                <Input placeholder="e.g., #EEEEEE or Light Grey" {...field} />
+                            </FormControl>
+                            <FormControl>
+                                <Input 
+                                type="color" 
+                                value={field.value?.startsWith('#') ? field.value : '#000000'}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                className="w-10 h-10 p-1"
+                                />
+                            </FormControl>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="accentColors"
+                        render={({ field }) => (
+                        <FormItem>
+                            <FormLabel>Accent Color</FormLabel>
+                            <div className="flex items-center gap-2">
+                            <FormControl>
+                                <Input placeholder="e.g., #009688 or Teal" {...field} />
+                            </FormControl>
+                            <FormControl>
+                                <Input 
+                                type="color" 
+                                value={field.value?.startsWith('#') ? field.value : '#000000'}
+                                onChange={(e) => field.onChange(e.target.value)}
+                                className="w-10 h-10 p-1"
+                                />
+                            </FormControl>
+                            </div>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+
+                    <FormField
+                        control={form.control}
+                        name="colorPaletteMood"
+                        render={({ field }) => (
+                        <FormItem className="pt-2">
+                            <FormLabel>Color Palette Mood (Optional)</FormLabel>
+                            <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
+                            <FormControl>
+                                <SelectTrigger>
+                                <SelectValue placeholder="Select a mood for the overall color palette" />
+                                </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                                {colorPaletteMoods.map(mood => (
+                                <SelectItem key={mood} value={mood}>{mood}</SelectItem>
+                                ))}
+                            </SelectContent>
+                            </Select>
+                            <FormDescription>Describes the overall feeling of the brand's color scheme. This influences the Brand Guide.</FormDescription>
+                            <FormMessage />
+                        </FormItem>
+                        )}
+                    />
+
+
                   <div className="grid grid-cols-1 gap-6 md:grid-cols-2 pt-4">
                     <FormField
                       control={form.control}
@@ -628,14 +684,13 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 </AccordionContent>
               </AccordionItem>
 
-              <AccordionItem value="brand-typography-colors" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
+              <AccordionItem value="brand-typography" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
                 <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline flex items-center gap-2">
-                  <Type className="w-5 h-5 text-primary/80" /> Brand Typography & Color Mood
+                  <Type className="w-5 h-5 text-primary/80" /> Brand Typography
                 </AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <FormDescription>
-                    Define overall brand typography and the desired mood for your color palette.
-                    These fields are for the brand guide output, not direct logo generation.
+                    Define overall brand typography. These fields are for the brand guide output, not direct logo generation.
                   </FormDescription>
                   <FormField
                     control={form.control}
@@ -679,29 +734,6 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                       </FormItem>
                     )}
                   />
-                  <FormField
-                    control={form.control}
-                    name="colorPaletteMood"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Color Palette Mood (Optional)</FormLabel>
-                        <Select onValueChange={field.onChange} value={field.value || ""} defaultValue={field.value || ""}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a mood for the overall color palette" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {colorPaletteMoods.map(mood => (
-                              <SelectItem key={mood} value={mood}>{mood}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>Describes the overall feeling of the brand's color scheme.</FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
                 </AccordionContent>
               </AccordionItem>
 
@@ -713,7 +745,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                   <FormField
                     control={form.control}
                     name="referenceImageFile"
-                    render={({ field: { onChange, value, onBlur, name, ref } }) => ( // value is used here
+                    render={({ field: { onChange, value, onBlur, name, ref } }) => ( 
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
                           <FileImage className="w-4 h-4" />
@@ -932,3 +964,5 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     </Card>
   );
 }
+
+    

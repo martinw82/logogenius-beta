@@ -6,16 +6,38 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import type { Logo } from "@/types";
-import type { ExtendedGenerateLogoConceptsInput } from "@/types"; // Use the extended type
+import type { ExtendedGenerateLogoConceptsInput } from "@/types"; 
 import type { GenerateBrandGuideTextOutput } from "@/ai/flows/generate-brand-guide-text";
-import { Loader2, Type, Palette } from "lucide-react";
+import { Loader2, Type, Palette as PaletteIcon, Droplet } from "lucide-react"; // Renamed Palette to PaletteIcon to avoid conflict
 
 interface BrandGuideDisplayProps {
   selectedLogo: Logo;
-  brandDetails: ExtendedGenerateLogoConceptsInput; // Updated to use the extended type
+  brandDetails: ExtendedGenerateLogoConceptsInput; 
   brandNarrative: GenerateBrandGuideTextOutput | null;
   isLoadingNarrative: boolean;
 }
+
+const ColorDisplaySwatch = ({ colorValue }: { colorValue?: string }) => {
+  if (!colorValue) return null;
+  
+  // Attempt to create a swatch if it's a valid hex or known color name
+  // This is a basic check; more robust validation might be needed for all CSS color names
+  const isValidColor = /^#([0-9A-Fa-f]{3}){1,2}$/.test(colorValue) || /^[a-zA-Z]+$/.test(colorValue);
+
+  return (
+    <div className="flex items-center gap-2 mb-1">
+      {isValidColor && (
+        <div 
+          className="w-4 h-4 rounded border" 
+          style={{ backgroundColor: colorValue }}
+          title={`Color: ${colorValue}`}
+        ></div>
+      )}
+      <span className="text-xs italic">{colorValue}</span>
+    </div>
+  );
+};
+
 
 export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, isLoadingNarrative }: BrandGuideDisplayProps) {
 
@@ -33,14 +55,13 @@ export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, 
       </CardHeader>
       <CardContent className="p-6 md:p-10">
         <Tabs defaultValue="snapshot" className="w-full">
-          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 mb-6"> {/* Adjusted for responsiveness */}
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 mb-6">
             <TabsTrigger value="snapshot">Logo & Visual Inputs</TabsTrigger>
             <TabsTrigger value="narrative">Brand Narrative</TabsTrigger>
           </TabsList>
 
           <TabsContent value="snapshot">
             <div className="space-y-10">
-              {/* Logo Section */}
               <section>
                 <h2 className="text-2xl font-semibold mb-4 border-b pb-2">Selected Logo</h2>
                 <div className="flex justify-center items-center p-6 bg-slate-100 rounded-lg shadow-inner aspect-video max-h-[300px]">
@@ -55,33 +76,55 @@ export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, 
                 </div>
               </section>
 
-              {/* Color Palette Input Section */}
               <section>
                 <h2 className="text-2xl font-semibold mb-4 border-b pb-2 flex items-center gap-2">
-                  <Palette className="w-6 h-6 text-primary/80" />
+                  <PaletteIcon className="w-6 h-6 text-primary/80" />
                   Color Palette Inputs
                 </h2>
                  <p className="text-sm text-muted-foreground mb-3">
-                  The following color preferences were specified for the logo generation and overall brand:
+                  The following color preferences were specified:
                 </p>
-                {brandDetails.preferredColorPalette && ( // This is the combined string from primary/secondary/accent for the logo
-                     <div className="p-4 bg-muted/50 rounded-md mb-3">
-                        <h3 className="font-medium mb-1 text-sm">Logo Color Input:</h3>
-                        <p className="italic text-xs">"{brandDetails.preferredColorPalette}"</p>
-                     </div>
-                )}
-                {brandDetails.colorPaletteMood && (
-                  <div className="p-4 bg-muted/50 rounded-md">
-                    <h3 className="font-medium mb-1 text-sm">Overall Palette Mood:</h3>
-                    <p className="italic text-xs">"{brandDetails.colorPaletteMood}"</p>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    {brandDetails.primaryColors && (
+                      <div className="p-3 bg-muted/30 rounded-md mb-2">
+                          <h3 className="font-medium mb-1 text-sm flex items-center gap-1.5"><Droplet className="w-3.5 h-3.5"/>Primary Color:</h3>
+                          <ColorDisplaySwatch colorValue={brandDetails.primaryColors} />
+                      </div>
+                    )}
+                    {brandDetails.secondaryColors && (
+                      <div className="p-3 bg-muted/30 rounded-md mb-2">
+                          <h3 className="font-medium mb-1 text-sm flex items-center gap-1.5"><Droplet className="w-3.5 h-3.5"/>Secondary Color:</h3>
+                          <ColorDisplaySwatch colorValue={brandDetails.secondaryColors} />
+                      </div>
+                    )}
+                    {brandDetails.accentColors && (
+                      <div className="p-3 bg-muted/30 rounded-md">
+                          <h3 className="font-medium mb-1 text-sm flex items-center gap-1.5"><Droplet className="w-3.5 h-3.5"/>Accent Color:</h3>
+                          <ColorDisplaySwatch colorValue={brandDetails.accentColors} />
+                      </div>
+                    )}
                   </div>
-                )}
-                 {(!brandDetails.preferredColorPalette && !brandDetails.colorPaletteMood) && (
+                  <div>
+                    {brandDetails.colorPaletteMood && (
+                      <div className="p-3 bg-muted/30 rounded-md">
+                        <h3 className="font-medium mb-1 text-sm">Overall Palette Mood:</h3>
+                        <p className="italic text-xs">"{brandDetails.colorPaletteMood}"</p>
+                      </div>
+                    )}
+                     {brandDetails.preferredColorPalette && ( 
+                         <div className="p-3 bg-muted/30 rounded-md mt-2">
+                            <h3 className="font-medium mb-1 text-sm">Combined Palette (for AI logo gen):</h3>
+                            <p className="italic text-xs">"{brandDetails.preferredColorPalette}"</p>
+                         </div>
+                    )}
+                  </div>
+                </div>
+                 {(!brandDetails.primaryColors && !brandDetails.secondaryColors && !brandDetails.accentColors && !brandDetails.colorPaletteMood && !brandDetails.preferredColorPalette) && (
                     <p className="text-xs text-muted-foreground italic">No specific color inputs provided.</p>
                  )}
               </section>
 
-              {/* Typography Section */}
               <section>
                 <h2 className="text-2xl font-semibold mb-4 border-b pb-2 flex items-center gap-2">
                   <Type className="w-6 h-6 text-primary/80" />
@@ -95,14 +138,15 @@ export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, 
                     </p>
                   </div>
                 )}
-                <div className="space-y-3 text-sm">
+                <div className="space-y-3 text-sm p-4 bg-muted/50 rounded-md">
                   {brandDetails.fontHeadings && <p><span className="font-semibold">Brand Headings Font:</span> {brandDetails.fontHeadings}</p>}
                   {brandDetails.fontBody && <p><span className="font-semibold">Brand Body Font:</span> {brandDetails.fontBody}</p>}
                   {brandDetails.fontOther && <p><span className="font-semibold">Other Brand Fonts:</span> {brandDetails.fontOther}</p>}
+                  {(!brandDetails.fontHeadings && !brandDetails.fontBody && !brandDetails.fontOther && !brandDetails.fontStyle) && (
+                    <p className="text-xs text-muted-foreground italic">No specific typography inputs provided for logo or brand.</p>
+                  )}
                 </div>
-                {(!brandDetails.fontStyle && !brandDetails.fontHeadings && !brandDetails.fontBody && !brandDetails.fontOther) && (
-                    <p className="text-xs text-muted-foreground italic">No specific typography inputs provided.</p>
-                 )}
+                
 
                 <div className="mt-6">
                   <h3 className="text-md font-medium mb-2 text-muted-foreground">Application Type Samples (using Inter):</h3>
@@ -115,7 +159,6 @@ export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, 
                 </div>
               </section>
 
-              {/* Other Details Section */}
               <section>
                   <h2 className="text-2xl font-semibold mb-4 border-b pb-2">Additional Logo Input Details</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm">
@@ -162,7 +205,6 @@ export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, 
                     />
                   </section>
 
-                  {/* Display user-provided strategic inputs for context */}
                   <section>
                     <h2 className="text-2xl font-semibold mb-3 border-b pb-2">Core Strategic Inputs</h2>
                     <div className="space-y-3 text-sm">
@@ -186,3 +228,5 @@ export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, 
     </Card>
   );
 }
+
+    

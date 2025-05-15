@@ -19,9 +19,9 @@ export const logoFormSchema = z.object({
   emotionalKeywords: z.string().max(150, "Emotional keywords too long (max 150 chars).").optional(),
   functionalKeywords: z.string().max(150, "Functional keywords too long (max 150 chars).").optional(),
   
-  primaryColors: z.string().max(150, "Primary colors description too long.").optional(),
-  secondaryColors: z.string().max(150, "Secondary colors description too long.").optional(),
-  accentColors: z.string().max(150, "Accent colors description too long.").optional(),
+  primaryColors: z.string().max(150, "Primary color(s) description too long.").optional().describe("Specify your primary brand color (e.g., '#3F51B5', 'Deep Indigo', or 'Blue, Light Blue')."),
+  secondaryColors: z.string().max(150, "Secondary color(s) description too long.").optional().describe("Specify your secondary brand color (e.g., '#EEEEEE', 'Light Grey')."),
+  accentColors: z.string().max(150, "Accent color(s) description too long.").optional().describe("Specify your accent brand color (e.g., '#009688', 'Teal')."),
   colorPaletteMood: z.enum(['', ...colorPaletteMoods]).default('').optional(),
 
   preferredLogoStyle: z.enum([
@@ -54,7 +54,6 @@ export const logoFormSchema = z.object({
   numberOfLogos: z.coerce.number().min(1, "Generate at least 1 logo.").max(8, "Cannot generate more than 8 logos at a time.").default(4),
   referenceImageFile: z.instanceof(File).optional().nullable().describe("Optional reference image file."),
 
-  // New fields for Brand Guide
   missionStatement: z.string().max(500, "Mission statement too long (max 500 chars).").optional(),
   brandPillars: z.string().max(300, "Brand pillars description too long (max 300 chars).").optional().describe("e.g., Innovation, Customer-centricity, Sustainability"),
   brandArchetype: z.enum(['', ...brandArchetypes]).default('').optional(),
@@ -68,25 +67,27 @@ export const logoFormSchema = z.object({
 
 export type LogoFormData = z.infer<typeof logoFormSchema>;
 
-// This type alias is for what's stored in LogoBatch and passed to BrandGuideDisplay
-// It includes fields not directly sent for logo image generation but are part of the overall brand spec.
 export type ExtendedLogoGenerationInputs = Omit<GenerateLogoConceptsInput, 'userApiKey' | 'numberOfLogos' | 'preferredColorPalette' | 'keywords'> & {
   businessName: string;
   industry: string;
-  keywords: string; // Combined keywords
-  preferredColorPalette?: string; // Combined palette
+  keywords: string; 
+  preferredColorPalette?: string; // Combined palette string for AI image generation
   numberOfLogos: number;
+
+  // Store individual form color inputs for BrandGuideDisplay
+  primaryColors?: string;
+  secondaryColors?: string;
+  accentColors?: string;
+  colorPaletteMood?: typeof colorPaletteMoods[number] | '';
 
   missionStatement?: string;
   brandPillars?: string;
   brandArchetype?: typeof brandArchetypes[number] | '';
   keyTagline?: string;
 
-  // Typography and Color Mood for Brand Guide Display
   fontHeadings?: string;
   fontBody?: string;
   fontOther?: string;
-  colorPaletteMood?: typeof colorPaletteMoods[number] | '';
 };
 
 
@@ -125,15 +126,15 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     combinedKeywords += `Functional: ${functionalKeywords.trim()}. `;
   }
 
-  let combinedPalette = "";
+  let combinedPaletteForAI = "";
   if (primaryColors && primaryColors.trim()) {
-    combinedPalette += `Primary Colors: ${primaryColors.trim()}. `;
+    combinedPaletteForAI += `Primary Color(s): ${primaryColors.trim()}. `;
   }
   if (secondaryColors && secondaryColors.trim()) {
-    combinedPalette += `Secondary Colors: ${secondaryColors.trim()}. `;
+    combinedPaletteForAI += `Secondary Color(s): ${secondaryColors.trim()}. `;
   }
   if (accentColors && accentColors.trim()) {
-    combinedPalette += `Accent Colors: ${accentColors.trim()}. `;
+    combinedPaletteForAI += `Accent Color(s): ${accentColors.trim()}. `;
   }
 
 
@@ -151,11 +152,10 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     }
   }
   
-  // This is the object that will be used for the generateLogoConcepts AI flow
   const aiFlowInput: GenerateLogoConceptsInput = {
-    ...rest, // includes businessName, industry, etc.
+    ...rest, 
     keywords: combinedKeywords.trim(),
-    preferredColorPalette: combinedPalette.trim() || undefined,
+    preferredColorPalette: combinedPaletteForAI.trim() || undefined, // This is the combined string for the AI
     preferredLogoStyle: preferredLogoStyle === '' ? undefined : preferredLogoStyle as GenerateLogoConceptsInput['preferredLogoStyle'],
     composition: composition === '' ? undefined : composition as GenerateLogoConceptsInput['composition'],
     iconPlacement: iconPlacement === '' ? undefined : iconPlacement as GenerateLogoConceptsInput['iconPlacement'],
@@ -163,22 +163,18 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     usageContext: formData.usageContext === '' ? undefined : formData.usageContext,
     variationInstructions: formData.variationInstructions === '' ? undefined : formData.variationInstructions,
     referenceImageDataUri,
-    // userApiKey will be added in page.tsx
     numberOfLogos: formData.numberOfLogos,
   };
 
-  // This is the extended object stored in LogoBatch and used by BrandGuideDisplay
-  // It includes all form fields.
   const extendedInputs: ExtendedLogoGenerationInputs = {
-    // Fields from aiFlowInput that are also in ExtendedLogoGenerationInputs
     businessName: aiFlowInput.businessName,
     industry: aiFlowInput.industry,
-    keywords: aiFlowInput.keywords, // Combined keywords
-    preferredColorPalette: aiFlowInput.preferredColorPalette, // Combined palette
+    keywords: aiFlowInput.keywords, 
+    preferredColorPalette: aiFlowInput.preferredColorPalette, // The combined palette string
     preferredLogoStyle: aiFlowInput.preferredLogoStyle,
     composition: aiFlowInput.composition,
     iconPlacement: aiFlowInput.iconPlacement,
-    fontStyle: aiFlowInput.fontStyle, // Font style for logo
+    fontStyle: aiFlowInput.fontStyle, 
     iconComplexity: aiFlowInput.iconComplexity,
     iconSpecifics: aiFlowInput.iconSpecifics,
     targetAudience: aiFlowInput.targetAudience,
@@ -190,8 +186,11 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     referenceImageDataUri: aiFlowInput.referenceImageDataUri,
     numberOfLogos: aiFlowInput.numberOfLogos,
 
+    primaryColors: primaryColors === '' ? undefined : primaryColors,
+    secondaryColors: secondaryColors === '' ? undefined : secondaryColors,
+    accentColors: accentColors === '' ? undefined : accentColors,
+    colorPaletteMood: colorPaletteMood === '' ? undefined : colorPaletteMood as typeof colorPaletteMoods[number],
 
-    // Fields specific to ExtendedLogoGenerationInputs (from formData)
     missionStatement: missionStatement === '' ? undefined : missionStatement,
     brandPillars: brandPillars === '' ? undefined : brandPillars,
     brandArchetype: brandArchetype === '' ? undefined : brandArchetype as typeof brandArchetypes[number],
@@ -199,8 +198,9 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     fontHeadings: fontHeadings === '' ? undefined : fontHeadings,
     fontBody: fontBody === '' ? undefined : fontBody,
     fontOther: fontOther === '' ? undefined : fontOther,
-    colorPaletteMood: colorPaletteMood === '' ? undefined : colorPaletteMood as typeof colorPaletteMoods[number],
   };
 
   return extendedInputs;
 }
+
+    

@@ -14,7 +14,16 @@ export type ExtendedGenerateLogoConceptsInput = Omit<GenerateLogoConceptsInput, 
   businessName: string;
   industry: string;
   keywords: string; // Combined from aesthetic, emotional, functional
-  preferredColorPalette?: string; // Combined from primary, secondary, accent
+  
+  // This is the combined string sent to the AI for image generation.
+  // It's also useful for display if the granular inputs aren't available.
+  preferredColorPalette?: string; 
+  
+  // Granular color inputs from the form, for more precise display in BrandGuide
+  primaryColors?: string;
+  secondaryColors?: string;
+  accentColors?: string;
+  colorPaletteMood?: typeof colorPaletteMoods[number] | '';
   
   // Fields for brand guide text generation and display
   missionStatement?: string;
@@ -22,11 +31,10 @@ export type ExtendedGenerateLogoConceptsInput = Omit<GenerateLogoConceptsInput, 
   brandArchetype?: typeof brandArchetypes[number] | '';
   keyTagline?: string;
   
-  // New typography and color mood fields
+  // Typography fields for brand guide
   fontHeadings?: string;
   fontBody?: string;
   fontOther?: string;
-  colorPaletteMood?: typeof colorPaletteMoods[number] | '';
 };
 
 
@@ -35,6 +43,8 @@ export interface LogoBatch {
   logos: Logo[];
   // generationInput here should match ExtendedGenerateLogoConceptsInput structure
   // plus numberOfLogos and userApiKey (which are specific to the generation call).
-  generationInput: ExtendedGenerateLogoConceptsInput;
+  generationInput: ExtendedGenerateLogoConceptsInput & { numberOfLogos: number; userApiKey?: string };
   basePrompt: string; // The base prompt text sent for logo image generation
 }
+
+    
