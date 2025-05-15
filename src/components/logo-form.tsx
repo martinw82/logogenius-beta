@@ -7,6 +7,7 @@ import type { LogoFormData } from "./logo-form-types";
 import { logoFormSchema, mapFormDataToAiInput } from "./logo-form-types";
 import type { GenerateLogoConceptsInput } from "@/ai/flows/generate-logo-concepts";
 import { useToast } from "@/hooks/use-toast";
+import React from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -34,7 +35,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { Loader2, Wand2, FileImage, Save, FolderOpen } from "lucide-react";
+import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp } from "lucide-react";
 
 interface LogoFormProps {
   onSubmit: (data: GenerateLogoConceptsInput) => Promise<void>;
@@ -42,7 +43,7 @@ interface LogoFormProps {
   initialValues?: Partial<LogoFormData>;
 }
 
-const FORM_SETTINGS_KEY = "logoFormSettingsV1"; // Added V1 for potential future structure changes
+const FORM_SETTINGS_KEY = "logoFormSettingsV1";
 
 export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) {
   const { toast } = useToast();
@@ -72,22 +73,23 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     },
   });
 
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
   const handleSubmit = async (data: LogoFormData) => {
     const aiInput = await mapFormDataToAiInput(data);
     await onSubmit(aiInput);
   };
 
-  const handleSaveSettings = () => {
+  const handleSaveToBrowser = () => {
     const currentData = form.getValues();
-    // Create a copy and remove non-serializable fields like File objects
     const dataToSave = { ...currentData };
-    delete dataToSave.referenceImageFile; // File objects are not directly serializable
+    delete dataToSave.referenceImageFile;
 
     try {
       localStorage.setItem(FORM_SETTINGS_KEY, JSON.stringify(dataToSave));
       toast({
-        title: "Settings Saved",
-        description: "Your form settings have been saved locally.",
+        title: "Settings Saved to Browser",
+        description: "Your form settings have been saved in your browser's local storage.",
       });
     } catch (error) {
       console.error("Error saving settings to localStorage:", error);
@@ -99,15 +101,14 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     }
   };
 
-  const handleLoadSettings = () => {
+  const handleLoadFromBrowser = () => {
     const savedDataString = localStorage.getItem(FORM_SETTINGS_KEY);
     if (savedDataString) {
       try {
         const savedData = JSON.parse(savedDataString);
-        // Ensure referenceImageFile is explicitly set to null as it was removed before saving
         form.reset({ ...savedData, referenceImageFile: null });
         toast({
-          title: "Settings Loaded",
+          title: "Settings Loaded from Browser",
           description: "Your saved form settings have been loaded.",
         });
       } catch (error) {
@@ -121,10 +122,90 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     } else {
       toast({
         title: "No Saved Settings",
-        description: "No settings found to load.",
+        description: "No settings found in browser storage to load.",
         variant: "default",
       });
     }
+  };
+
+  const handleExportToFile = () => {
+    const currentData = form.getValues();
+    const dataToExport = { ...currentData };
+    delete dataToExport.referenceImageFile;
+
+    try {
+      const jsonString = JSON.stringify(dataToExport, null, 2);
+      const blob = new Blob([jsonString], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "logogenius_settings.json";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+      toast({
+        title: "Settings Exported",
+        description: "Your form settings have been exported to logogenius_settings.json.",
+      });
+    } catch (error) {
+      console.error("Error exporting settings to file:", error);
+      toast({
+        title: "Export Failed",
+        description: "Could not export settings to a file.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleImportFromFile = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) {
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const text = e.target?.result;
+        if (typeof text !== 'string') {
+          throw new Error("File content is not readable text.");
+        }
+        const importedData = JSON.parse(text);
+        // Basic validation: check for a known key to ensure it's somewhat valid
+        if (!importedData || typeof importedData.businessName === 'undefined') {
+            throw new Error("Invalid settings file format.");
+        }
+        form.reset({ ...importedData, referenceImageFile: null });
+        toast({
+          title: "Settings Imported",
+          description: "Form settings have been imported from the file.",
+        });
+      } catch (error) {
+        console.error("Error importing settings from file:", error);
+        toast({
+          title: "Import Failed",
+          description: `Could not import settings: ${error instanceof Error ? error.message : "Unknown error."}`,
+          variant: "destructive",
+        });
+      } finally {
+        // Reset file input value to allow importing the same file again
+        if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+      }
+    };
+    reader.onerror = () => {
+       toast({
+        title: "File Read Error",
+        description: "Could not read the selected file.",
+        variant: "destructive",
+      });
+       if (fileInputRef.current) {
+          fileInputRef.current.value = "";
+        }
+    }
+    reader.readAsText(file);
   };
 
 
@@ -413,7 +494,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                   <FormField
                     control={form.control}
                     name="referenceImageFile"
-                    render={({ field: { onChange, onBlur, name, ref } }) => ( // field.value removed from render to prevent issues with File object
+                    render={({ field: { onChange, onBlur, name, ref } }) => ( 
                       <FormItem>
                         <FormLabel className="flex items-center gap-2">
                           <FileImage className="w-4 h-4" />
@@ -564,14 +645,36 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
               </AccordionItem>
             </Accordion>
 
-            <div className="flex flex-col sm:flex-row gap-4 pt-4">
-              <Button type="button" variant="outline" onClick={handleSaveSettings} className="w-full sm:w-auto">
-                <Save className="mr-2 h-4 w-4" /> Save Settings
-              </Button>
-              <Button type="button" variant="outline" onClick={handleLoadSettings} className="w-full sm:w-auto">
-                <FolderOpen className="mr-2 h-4 w-4" /> Load Settings
-              </Button>
+            <div className="pt-4 space-y-4">
+              <Card className="shadow-sm border rounded-md">
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-lg">Manage Settings</CardTitle>
+                  <CardDescription className="text-xs">Save or load your form preferences.</CardDescription>
+                </CardHeader>
+                <CardContent className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <Button type="button" variant="outline" onClick={handleSaveToBrowser} className="w-full">
+                    <Save className="mr-2 h-4 w-4" /> Save to Browser
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleLoadFromBrowser} className="w-full">
+                    <FolderOpen className="mr-2 h-4 w-4" /> Load from Browser
+                  </Button>
+                  <Button type="button" variant="outline" onClick={handleExportToFile} className="w-full">
+                    <FileDown className="mr-2 h-4 w-4" /> Export to File
+                  </Button>
+                  <Button type="button" variant="outline" onClick={() => fileInputRef.current?.click()} className="w-full">
+                    <FileUp className="mr-2 h-4 w-4" /> Import from File
+                  </Button>
+                  <input 
+                    type="file" 
+                    ref={fileInputRef} 
+                    onChange={handleImportFromFile} 
+                    accept=".json" 
+                    className="hidden" 
+                  />
+                </CardContent>
+              </Card>
             </div>
+
 
             <Button type="submit" className="w-full !mt-8" disabled={isLoading}>
               {isLoading ? (
@@ -589,3 +692,5 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     </Card>
   );
 }
+
+    
