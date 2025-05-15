@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { LogoFormData, ExtendedLogoGenerationInputs } from "./logo-form-types";
-import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData, colorPaletteMoods } from "./logo-form-types"; // Updated import
+import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData } from "./logo-form-types"; // Updated import
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
 
@@ -447,7 +447,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         Logo Color Palette Input
                         </h3>
                         <FormDescription>
-                        Define your logo's color scheme. Selecting a mood will pre-fill colors.
+                        Define your logo's color scheme. Selecting a mood can pre-fill colors.
                         </FormDescription>
                     </div>
                     
@@ -459,17 +459,12 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             <FormLabel>Color Palette Mood (Optional)</FormLabel>
                             <Select 
                               onValueChange={(value) => {
-                                field.onChange(value); // Update the RHF field for colorPaletteMood
+                                field.onChange(value); 
                                 const selectedMoodData = colorPaletteMoodsData.find(m => m.name === value);
                                 if (selectedMoodData) {
                                   form.setValue("primaryColors", selectedMoodData.primary, { shouldValidate: true });
                                   form.setValue("secondaryColors", selectedMoodData.secondary, { shouldValidate: true });
                                   form.setValue("accentColors", selectedMoodData.accent, { shouldValidate: true });
-                                } else if (value === "") {
-                                  // Optionally clear colors if "Select a mood" is chosen
-                                  // form.setValue("primaryColors", "", { shouldValidate: true });
-                                  // form.setValue("secondaryColors", "", { shouldValidate: true });
-                                  // form.setValue("accentColors", "", { shouldValidate: true });
                                 }
                               }} 
                               value={field.value || ""} 
@@ -481,7 +476,6 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                                   </SelectTrigger>
                               </FormControl>
                               <SelectContent>
-                                  <SelectItem value="">Select a mood (optional)</SelectItem>
                                   {colorPaletteMoodsData.map(moodItem => (
                                   <SelectItem key={moodItem.name} value={moodItem.name}>{moodItem.name}</SelectItem>
                                   ))}
@@ -592,7 +586,6 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Any Style</SelectItem>
                               <SelectItem value="logomark">Logomark: Icon-only, symbolic</SelectItem>
                               <SelectItem value="wordmark">Wordmark: Text-only, stylized typography</SelectItem>
                               <SelectItem value="lettermark">Lettermark: Initials or monogram</SelectItem>
@@ -620,7 +613,6 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Any Composition</SelectItem>
                               <SelectItem value="horizontal">Horizontal: Wider than tall</SelectItem>
                               <SelectItem value="vertical">Vertical: Taller than wide</SelectItem>
                               <SelectItem value="circular">Circular: Elements arranged in a circle</SelectItem>
@@ -646,7 +638,6 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Any Placement</SelectItem>
                               <SelectItem value="above_text">Above Text</SelectItem>
                               <SelectItem value="left_of_text">Left of Text</SelectItem>
                               <SelectItem value="right_of_text">Right of Text</SelectItem>
@@ -672,7 +663,6 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               </SelectTrigger>
                             </FormControl>
                             <SelectContent>
-                              <SelectItem value="">Any Complexity</SelectItem>
                               <SelectItem value="simple">Simple: Clean lines, minimal detail</SelectItem>
                               <SelectItem value="detailed">Detailed: More intricate, elaborate</SelectItem>
                             </SelectContent>
@@ -1000,7 +990,3 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     </Card>
   );
 }
-
-    
-
-    
