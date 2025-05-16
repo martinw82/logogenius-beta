@@ -41,7 +41,9 @@ export const colorPaletteMoodsData = [
 
 export const colorPaletteMoods = colorPaletteMoodsData.map(item => item.name);
 
-const NONE_VALUE = "_NONE_"; // Special value for explicit "None" selection
+const NONE_VALUE = "_NONE_";
+export const CLEAR_MOOD_VALUE = "_CLEAR_MOOD_";
+
 
 export const logoFormSchema = z.object({
   businessName: z.string().min(1, "Business name is required.").max(100, "Business name too long."),
@@ -74,8 +76,11 @@ export const logoFormSchema = z.object({
   iconSpecifics: z.string().max(200, "Icon specifics description too long.").optional().describe('Describe any specific imagery, objects, or concepts for the icon.'),
   
   fontHeadings: z.string().max(100, "Heading font description too long.").optional(),
+  useHeadingsFontForLogo: z.boolean().optional().default(false),
   fontBody: z.string().max(100, "Body font description too long.").optional(),
+  useBodyFontForLogo: z.boolean().optional().default(false),
   fontOther: z.string().max(100, "Other font description too long.").optional(),
+  useOtherFontForLogo: z.boolean().optional().default(false),
 
   targetAudience: z.string().max(150, "Target audience description too long (max 150 chars).").optional(),
   inspirationReferences: z.string().max(200, "Inspiration references too long (max 200 chars).").optional(),
@@ -100,13 +105,17 @@ export const logoFormSchema = z.object({
 export type LogoFormData = z.infer<typeof logoFormSchema>;
 
 // This type combines direct form inputs with transformed inputs for AI
-export type ExtendedLogoGenerationInputs = Omit<GenerateLogoConceptsInput, 'userApiKey' | 'numberOfLogos' | 'preferredColorPalette' | 'keywords'> & {
+// It is used to store comprehensive details in LogoBatch.generationInput
+export type ExtendedLogoGenerationInputs = Omit<GenerateLogoConceptsInput, 'userApiKey' | 'numberOfLogos' | 'preferredColorPalette' | 'keywords' | 'fontStyle'> & {
   businessName: string;
   industry: string;
   keywords: string; // Combined from aesthetic, emotional, functional for GenerateLogoConceptsInput
   
   // This is the combined string of primary, secondary, accent colors sent to the AI for logo image generation.
   preferredColorPalette?: string; 
+
+  // This is the font style string sent to AI for logo image generation. Determined by user choices.
+  fontStyle?: string;
   
   numberOfLogos: number;
 
@@ -124,8 +133,11 @@ export type ExtendedLogoGenerationInputs = Omit<GenerateLogoConceptsInput, 'user
 
   // Typography inputs for brand guide
   fontHeadings?: string;
+  useHeadingsFontForLogo?: boolean;
   fontBody?: string;
+  useBodyFontForLogo?: boolean;
   fontOther?: string;
+  useOtherFontForLogo?: boolean;
 };
 
 
@@ -140,8 +152,11 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     accentColors, 
     colorPaletteMood, 
     fontHeadings,
+    useHeadingsFontForLogo,
     fontBody,
+    useBodyFontForLogo,
     fontOther,
+    useOtherFontForLogo,
     missionStatement,
     brandPillars,
     keyTagline,
@@ -153,6 +168,7 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     brandArchetype,
     usageContext,
     variationInstructions,
+    fontStyle: dedicatedLogoFontStyle, // Renamed to avoid conflict with determined fontStyle
     ...rest // a bit unsafe, ensure all specific fields are handled above
   } = formData;
 
@@ -200,16 +216,31 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     return value === '' || value === NONE_VALUE ? undefined : value as T;
   };
 
+  // Determine fontStyle for AI based on checkbox priorities
+  let finalFontStyleForAI: string | undefined = undefined;
+  if (useHeadingsFontForLogo && fontHeadings && fontHeadings.trim()) {
+    finalFontStyleForAI = fontHeadings.trim();
+  } else if (useBodyFontForLogo && fontBody && fontBody.trim()) {
+    finalFontStyleForAI = fontBody.trim();
+  } else if (useOtherFontForLogo && fontOther && fontOther.trim()) {
+    finalFontStyleForAI = fontOther.trim();
+  } else if (dedicatedLogoFontStyle && dedicatedLogoFontStyle.trim() && dedicatedLogoFontStyle !== '') {
+    finalFontStyleForAI = dedicatedLogoFontStyle.trim();
+  }
+
+
   const aiFlowInput: GenerateLogoConceptsInput = {
     ...rest, 
     keywords: combinedKeywords.trim() || undefined,
-    preferredColorPalette: combinedPaletteForAI.trim() || undefined, // This is the combined string for the AI
+    preferredColorPalette: combinedPaletteForAI.trim() || undefined, 
+    
+    fontStyle: finalFontStyleForAI, // Use the determined font style
     
     preferredLogoStyle: mapOptionalField(preferredLogoStyle as GenerateLogoConceptsInput['preferredLogoStyle'] | typeof NONE_VALUE | ''),
     composition: mapOptionalField(composition as GenerateLogoConceptsInput['composition'] | typeof NONE_VALUE | ''),
     iconPlacement: mapOptionalField(iconPlacement as GenerateLogoConceptsInput['iconPlacement'] | typeof NONE_VALUE | ''),
     iconComplexity: mapOptionalField(iconComplexity as GenerateLogoConceptsInput['iconComplexity'] | typeof NONE_VALUE | ''),
-    fontStyle: formData.fontStyle === '' ? undefined : formData.fontStyle,
+    // fontStyle: formData.fontStyle === '' ? undefined : formData.fontStyle, // This is now handled by finalFontStyleForAI
     iconSpecifics: formData.iconSpecifics === '' ? undefined : formData.iconSpecifics,
     targetAudience: formData.targetAudience === '' ? undefined : formData.targetAudience,
     inspirationReferences: formData.inspirationReferences === '' ? undefined : formData.inspirationReferences,
@@ -225,13 +256,13 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
   const extendedInputs: ExtendedLogoGenerationInputs = {
     businessName: aiFlowInput.businessName,
     industry: aiFlowInput.industry,
-    keywords: aiFlowInput.keywords!, // keywords will have a value or be undefined based on combinedKeywords
+    keywords: aiFlowInput.keywords!, 
     preferredColorPalette: aiFlowInput.preferredColorPalette, 
+    fontStyle: aiFlowInput.fontStyle, // This is the font style ultimately sent to AI
     
     preferredLogoStyle: mapOptionalField(preferredLogoStyle as GenerateLogoConceptsInput['preferredLogoStyle'] | typeof NONE_VALUE | ''),
     composition: mapOptionalField(composition as GenerateLogoConceptsInput['composition'] | typeof NONE_VALUE | ''),
     iconPlacement: mapOptionalField(iconPlacement as GenerateLogoConceptsInput['iconPlacement'] | typeof NONE_VALUE | ''),
-    fontStyle: formData.fontStyle === '' ? undefined : formData.fontStyle, 
     iconComplexity: mapOptionalField(iconComplexity as GenerateLogoConceptsInput['iconComplexity'] | typeof NONE_VALUE | ''),
     iconSpecifics: formData.iconSpecifics === '' ? undefined : formData.iconSpecifics,
     targetAudience: formData.targetAudience === '' ? undefined : formData.targetAudience,
@@ -252,9 +283,13 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     brandPillars: brandPillars === '' ? undefined : brandPillars,
     brandArchetype: mapOptionalField(brandArchetype as typeof brandArchetypes[number] | typeof NONE_VALUE | ''),
     keyTagline: keyTagline === '' ? undefined : keyTagline,
+
     fontHeadings: fontHeadings === '' ? undefined : fontHeadings,
+    useHeadingsFontForLogo: useHeadingsFontForLogo,
     fontBody: fontBody === '' ? undefined : fontBody,
+    useBodyFontForLogo: useBodyFontForLogo,
     fontOther: fontOther === '' ? undefined : fontOther,
+    useOtherFontForLogo: useOtherFontForLogo,
   };
 
   return extendedInputs;

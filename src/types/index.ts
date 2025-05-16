@@ -9,7 +9,7 @@ export interface Logo {
 
 // This type represents all the data captured by the form and stored in LogoBatch.
 // It's more comprehensive than what's sent *just* for logo image generation.
-export type ExtendedGenerateLogoConceptsInput = Omit<GenerateLogoConceptsInput, 'userApiKey' | 'keywords' | 'preferredColorPalette'> & {
+export type ExtendedGenerateLogoConceptsInput = Omit<GenerateLogoConceptsInput, 'userApiKey' | 'keywords' | 'preferredColorPalette' | 'fontStyle'> & {
   // Core fields also in GenerateLogoConceptsInput (but might be transformed, e.g. keywords)
   businessName: string;
   industry: string;
@@ -18,6 +18,9 @@ export type ExtendedGenerateLogoConceptsInput = Omit<GenerateLogoConceptsInput, 
   // This is the combined string sent to the AI for image generation.
   // It's also useful for display if the granular inputs aren't available.
   preferredColorPalette?: string; 
+
+  // This is the font style string sent to AI for logo image generation. Determined by user choices.
+  fontStyle?: string; 
   
   // Granular color inputs from the form, for more precise display in BrandGuide
   primaryColors?: string;
@@ -33,8 +36,11 @@ export type ExtendedGenerateLogoConceptsInput = Omit<GenerateLogoConceptsInput, 
   
   // Typography fields for brand guide
   fontHeadings?: string;
+  useHeadingsFontForLogo?: boolean;
   fontBody?: string;
+  useBodyFontForLogo?: boolean;
   fontOther?: string;
+  useOtherFontForLogo?: boolean;
 };
 
 

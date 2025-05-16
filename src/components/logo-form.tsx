@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { LogoFormData, ExtendedLogoGenerationInputs } from "./logo-form-types";
-import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData, colorPaletteMoods } from "./logo-form-types"; 
+import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData, colorPaletteMoods, CLEAR_MOOD_VALUE } from "./logo-form-types"; 
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
 
@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox"; // Added Checkbox
 import {
   Select,
   SelectContent,
@@ -53,7 +54,6 @@ import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronD
 import { BrandArchetypeQuiz } from "./brand-archetype-quiz";
 
 const NONE_VALUE = "_NONE_";
-const CLEAR_MOOD_VALUE = "_CLEAR_MOOD_";
 
 
 interface LogoFormProps {
@@ -83,12 +83,15 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       preferredLogoStyle: "",
       composition: "",
       iconPlacement: "",
-      fontStyle: "",
+      fontStyle: "", // Dedicated font style for logo
       iconComplexity: "",
       iconSpecifics: "",
       fontHeadings: "",
+      useHeadingsFontForLogo: false,
       fontBody: "",
+      useBodyFontForLogo: false,
       fontOther: "",
+      useOtherFontForLogo: false,
       targetAudience: "",
       inspirationReferences: "",
       usageContext: "",
@@ -524,11 +527,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             <Select 
                               onValueChange={(value) => {
                                 if (value === CLEAR_MOOD_VALUE) {
-                                  field.onChange(''); // Clear the mood
-                                  // Optionally, clear color fields or leave them as is
-                                  // form.setValue("primaryColors", "", { shouldValidate: true });
-                                  // form.setValue("secondaryColors", "", { shouldValidate: true });
-                                  // form.setValue("accentColors", "", { shouldValidate: true });
+                                  field.onChange(''); 
                                 } else {
                                   field.onChange(value); 
                                   const selectedMoodData = colorPaletteMoodsData.find(m => m.name === value);
@@ -759,6 +758,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         </FormControl>
                         <FormDescription>
                           Describe font attributes for the logo (e.g., geometric, handwritten) or 'No Text' for icon-only logos.
+                          This can be overridden if a Brand Font is selected for logo use in the "Brand Typography" section.
                         </FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -792,8 +792,10 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 </AccordionTrigger>
                 <AccordionContent className="pt-4 space-y-6">
                   <FormDescription>
-                    Define overall brand typography. These fields are for the brand guide output, not direct logo generation.
+                    Define overall brand typography. These fields are for the brand guide output.
+                    You can also choose to use one of these fonts for the logo generation itself.
                   </FormDescription>
+                  
                   <FormField
                     control={form.control}
                     name="fontHeadings"
@@ -810,6 +812,26 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                   />
                   <FormField
                     control={form.control}
+                    name="useHeadingsFontForLogo"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3 shadow-sm bg-muted/30">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm font-normal">
+                            Use Headings Font for Logo Style
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
                     name="fontBody"
                     render={({ field }) => (
                       <FormItem>
@@ -824,6 +846,26 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                   />
                   <FormField
                     control={form.control}
+                    name="useBodyFontForLogo"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3 shadow-sm bg-muted/30">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm font-normal">
+                            Use Body Font for Logo Style
+                          </FormLabel>
+                        </div>
+                      </FormItem>
+                    )}
+                  />
+
+                  <FormField
+                    control={form.control}
                     name="fontOther"
                     render={({ field }) => (
                       <FormItem>
@@ -833,6 +875,25 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         </FormControl>
                         <FormDescription>Specify any additional fonts for captions, accents, etc.</FormDescription>
                         <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="useOtherFontForLogo"
+                    render={({ field }) => (
+                      <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3 shadow-sm bg-muted/30">
+                        <FormControl>
+                          <Checkbox
+                            checked={field.value}
+                            onCheckedChange={field.onChange}
+                          />
+                        </FormControl>
+                        <div className="space-y-1 leading-none">
+                          <FormLabel className="text-sm font-normal">
+                            Use "Other" Font for Logo Style
+                          </FormLabel>
+                        </div>
                       </FormItem>
                     )}
                   />
