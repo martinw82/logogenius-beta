@@ -44,6 +44,14 @@ export const colorPaletteMoods = colorPaletteMoodsData.map(item => item.name);
 const NONE_VALUE = "_NONE_";
 export const CLEAR_MOOD_VALUE = "_CLEAR_MOOD_";
 
+export const commonFontList = [
+  "Arial", "Verdana", "Helvetica", "Tahoma", "Trebuchet MS", 
+  "Times New Roman", "Georgia", "Garamond", 
+  "Courier New", "Brush Script MT", 
+  "Inter", "Roboto", "Open Sans", "Lato", "Montserrat", "Oswald", "Raleway", "Poppins", "Noto Sans",
+  "Playfair Display", "Merriweather", "Source Sans Pro", "Ubuntu", "Lobster", "Pacifico"
+] as const;
+
 
 export const logoFormSchema = z.object({
   businessName: z.string().min(1, "Business name is required.").max(100, "Business name too long."),
@@ -52,7 +60,7 @@ export const logoFormSchema = z.object({
   emotionalKeywords: z.string().max(150, "Emotional keywords too long (max 150 chars).").optional(),
   functionalKeywords: z.string().max(150, "Functional keywords too long (max 150 chars).").optional(),
   
-  colorPaletteMood: z.enum(['', ...colorPaletteMoods]).default('').optional(),
+  colorPaletteMood: z.enum(['', ...colorPaletteMoods, typeof CLEAR_MOOD_VALUE]).default('').optional(),
   primaryColors: z.string().max(150, "Primary color description too long.").optional().describe("Specify the primary brand color (e.g., '#3F51B5', 'Deep Indigo')."),
   secondaryColors: z.string().max(150, "Secondary color description too long.").optional().describe("Specify the secondary brand color (e.g., '#EEEEEE', 'Light Grey')."),
   accentColors: z.string().max(150, "Accent color description too long.").optional().describe("Specify the accent brand color (e.g., '#009688', 'Teal')."),
@@ -75,11 +83,11 @@ export const logoFormSchema = z.object({
   iconComplexity: z.enum(['', 'simple', 'detailed', NONE_VALUE]).default('').optional().describe('Preferred icon complexity (e.g., simple, detailed).'),
   iconSpecifics: z.string().max(200, "Icon specifics description too long.").optional().describe('Describe any specific imagery, objects, or concepts for the icon.'),
   
-  fontHeadings: z.string().max(100, "Heading font description too long.").optional(),
+  fontHeadings: z.enum(['', ...commonFontList, NONE_VALUE]).default('').optional(),
   useHeadingsFontForLogo: z.boolean().optional().default(false),
-  fontBody: z.string().max(100, "Body font description too long.").optional(),
+  fontBody: z.enum(['', ...commonFontList, NONE_VALUE]).default('').optional(),
   useBodyFontForLogo: z.boolean().optional().default(false),
-  fontOther: z.string().max(100, "Other font description too long.").optional(),
+  fontOther: z.enum(['', ...commonFontList, NONE_VALUE]).default('').optional(),
   useOtherFontForLogo: z.boolean().optional().default(false),
 
   targetAudience: z.string().max(150, "Target audience description too long (max 150 chars).").optional(),
@@ -123,20 +131,20 @@ export type ExtendedLogoGenerationInputs = Omit<GenerateLogoConceptsInput, 'user
   primaryColors?: string;      // Direct form input
   secondaryColors?: string;    // Direct form input
   accentColors?: string;       // Direct form input
-  colorPaletteMood?: typeof colorPaletteMoods[number] | ''; // Direct form input, not '' if a mood is explicitly selected
+  colorPaletteMood?: typeof colorPaletteMoods[number] | '' | typeof CLEAR_MOOD_VALUE; 
 
   // Brand strategy inputs
   missionStatement?: string;
   brandPillars?: string;
-  brandArchetype?: typeof brandArchetypes[number] | '' | typeof NONE_VALUE; // Include NONE_VALUE
+  brandArchetype?: typeof brandArchetypes[number] | '' | typeof NONE_VALUE;
   keyTagline?: string;
 
   // Typography inputs for brand guide
-  fontHeadings?: string;
+  fontHeadings?: typeof commonFontList[number] | '' | typeof NONE_VALUE;
   useHeadingsFontForLogo?: boolean;
-  fontBody?: string;
+  fontBody?: typeof commonFontList[number] | '' | typeof NONE_VALUE;
   useBodyFontForLogo?: boolean;
-  fontOther?: string;
+  fontOther?: typeof commonFontList[number] | '' | typeof NONE_VALUE;
   useOtherFontForLogo?: boolean;
 };
 
@@ -160,7 +168,6 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     missionStatement,
     brandPillars,
     keyTagline,
-    // Extract fields that might have _NONE_ or '' and need to be mapped to undefined
     preferredLogoStyle,
     composition,
     iconPlacement,
@@ -168,8 +175,8 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     brandArchetype,
     usageContext,
     variationInstructions,
-    fontStyle: dedicatedLogoFontStyle, // Renamed to avoid conflict with determined fontStyle
-    ...rest // a bit unsafe, ensure all specific fields are handled above
+    fontStyle: dedicatedLogoFontStyle, 
+    ...rest 
   } = formData;
 
   let combinedKeywords = "";
@@ -193,7 +200,7 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
   if (accentColors && accentColors.trim()) {
     combinedPaletteForAI += `Accent Color(s): ${accentColors.trim()}. `;
   }
-  if (colorPaletteMood && colorPaletteMood.trim() && colorPaletteMood !== '') {
+  if (colorPaletteMood && colorPaletteMood.trim() && colorPaletteMood !== '' && colorPaletteMood !== CLEAR_MOOD_VALUE) {
     combinedPaletteForAI += `Overall Mood: ${colorPaletteMood.trim()}. `;
   }
 
@@ -216,13 +223,12 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     return value === '' || value === NONE_VALUE ? undefined : value as T;
   };
 
-  // Determine fontStyle for AI based on checkbox priorities
   let finalFontStyleForAI: string | undefined = undefined;
-  if (useHeadingsFontForLogo && fontHeadings && fontHeadings.trim()) {
+  if (useHeadingsFontForLogo && fontHeadings && fontHeadings.trim() && fontHeadings !== NONE_VALUE) {
     finalFontStyleForAI = fontHeadings.trim();
-  } else if (useBodyFontForLogo && fontBody && fontBody.trim()) {
+  } else if (useBodyFontForLogo && fontBody && fontBody.trim() && fontBody !== NONE_VALUE) {
     finalFontStyleForAI = fontBody.trim();
-  } else if (useOtherFontForLogo && fontOther && fontOther.trim()) {
+  } else if (useOtherFontForLogo && fontOther && fontOther.trim() && fontOther !== NONE_VALUE) {
     finalFontStyleForAI = fontOther.trim();
   } else if (dedicatedLogoFontStyle && dedicatedLogoFontStyle.trim() && dedicatedLogoFontStyle !== '') {
     finalFontStyleForAI = dedicatedLogoFontStyle.trim();
@@ -233,20 +239,16 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     ...rest, 
     keywords: combinedKeywords.trim() || undefined,
     preferredColorPalette: combinedPaletteForAI.trim() || undefined, 
-    
-    fontStyle: finalFontStyleForAI, // Use the determined font style
-    
+    fontStyle: finalFontStyleForAI, 
     preferredLogoStyle: mapOptionalField(preferredLogoStyle as GenerateLogoConceptsInput['preferredLogoStyle'] | typeof NONE_VALUE | ''),
     composition: mapOptionalField(composition as GenerateLogoConceptsInput['composition'] | typeof NONE_VALUE | ''),
     iconPlacement: mapOptionalField(iconPlacement as GenerateLogoConceptsInput['iconPlacement'] | typeof NONE_VALUE | ''),
     iconComplexity: mapOptionalField(iconComplexity as GenerateLogoConceptsInput['iconComplexity'] | typeof NONE_VALUE | ''),
-    // fontStyle: formData.fontStyle === '' ? undefined : formData.fontStyle, // This is now handled by finalFontStyleForAI
     iconSpecifics: formData.iconSpecifics === '' ? undefined : formData.iconSpecifics,
     targetAudience: formData.targetAudience === '' ? undefined : formData.targetAudience,
     inspirationReferences: formData.inspirationReferences === '' ? undefined : formData.inspirationReferences,
     competitorsToAvoid: formData.competitorsToAvoid === '' ? undefined : formData.competitorsToAvoid,
     negativeKeywords: formData.negativeKeywords === '' ? undefined : formData.negativeKeywords,
-    
     usageContext: formData.usageContext === '' ? undefined : formData.usageContext,
     variationInstructions: variationInstructions === '' ? undefined : variationInstructions,
     referenceImageDataUri,
@@ -258,8 +260,7 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     industry: aiFlowInput.industry,
     keywords: aiFlowInput.keywords!, 
     preferredColorPalette: aiFlowInput.preferredColorPalette, 
-    fontStyle: aiFlowInput.fontStyle, // This is the font style ultimately sent to AI
-    
+    fontStyle: aiFlowInput.fontStyle, 
     preferredLogoStyle: mapOptionalField(preferredLogoStyle as GenerateLogoConceptsInput['preferredLogoStyle'] | typeof NONE_VALUE | ''),
     composition: mapOptionalField(composition as GenerateLogoConceptsInput['composition'] | typeof NONE_VALUE | ''),
     iconPlacement: mapOptionalField(iconPlacement as GenerateLogoConceptsInput['iconPlacement'] | typeof NONE_VALUE | ''),
@@ -277,18 +278,18 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     primaryColors: primaryColors === '' ? undefined : primaryColors,
     secondaryColors: secondaryColors === '' ? undefined : secondaryColors,
     accentColors: accentColors === '' ? undefined : accentColors,
-    colorPaletteMood: colorPaletteMood === '' ? undefined : colorPaletteMood as typeof colorPaletteMoods[number],
+    colorPaletteMood: colorPaletteMood === '' || colorPaletteMood === CLEAR_MOOD_VALUE ? undefined : colorPaletteMood as typeof colorPaletteMoods[number],
 
     missionStatement: missionStatement === '' ? undefined : missionStatement,
     brandPillars: brandPillars === '' ? undefined : brandPillars,
     brandArchetype: mapOptionalField(brandArchetype as typeof brandArchetypes[number] | typeof NONE_VALUE | ''),
     keyTagline: keyTagline === '' ? undefined : keyTagline,
 
-    fontHeadings: fontHeadings === '' ? undefined : fontHeadings,
+    fontHeadings: mapOptionalField(fontHeadings as typeof commonFontList[number] | typeof NONE_VALUE | ''),
     useHeadingsFontForLogo: useHeadingsFontForLogo,
-    fontBody: fontBody === '' ? undefined : fontBody,
+    fontBody: mapOptionalField(fontBody as typeof commonFontList[number] | typeof NONE_VALUE | ''),
     useBodyFontForLogo: useBodyFontForLogo,
-    fontOther: fontOther === '' ? undefined : fontOther,
+    fontOther: mapOptionalField(fontOther as typeof commonFontList[number] | typeof NONE_VALUE | ''),
     useOtherFontForLogo: useOtherFontForLogo,
   };
 

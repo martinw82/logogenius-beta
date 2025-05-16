@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { LogoFormData, ExtendedLogoGenerationInputs } from "./logo-form-types";
-import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData, colorPaletteMoods, CLEAR_MOOD_VALUE } from "./logo-form-types"; 
+import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData, colorPaletteMoods, CLEAR_MOOD_VALUE, commonFontList } from "./logo-form-types"; 
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
 
@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox"; // Added Checkbox
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -83,7 +83,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       preferredLogoStyle: "",
       composition: "",
       iconPlacement: "",
-      fontStyle: "", // Dedicated font style for logo
+      fontStyle: "", 
       iconComplexity: "",
       iconSpecifics: "",
       fontHeadings: "",
@@ -802,9 +802,19 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Brand Headings Font (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Montserrat Bold, Playfair Display" {...field} />
-                        </FormControl>
+                         <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a font for headings" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value={NONE_VALUE}>No specific font</SelectItem>
+                              {commonFontList.map(font => (
+                                <SelectItem key={font} value={font}>{font}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         <FormDescription>Specify the font for main headings in brand materials.</FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -836,9 +846,19 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Brand Body Text Font (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Open Sans Regular, Lato" {...field} />
-                        </FormControl>
+                         <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select a font for body text" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value={NONE_VALUE}>No specific font</SelectItem>
+                              {commonFontList.map(font => (
+                                <SelectItem key={font} value={font}>{font}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         <FormDescription>Specify the font for paragraphs and general text.</FormDescription>
                         <FormMessage />
                       </FormItem>
@@ -870,9 +890,19 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel>Other Brand Fonts (Optional)</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., Fira Code for code snippets" {...field} />
-                        </FormControl>
+                         <Select onValueChange={field.onChange} value={field.value || ""}>
+                            <FormControl>
+                              <SelectTrigger>
+                                <SelectValue placeholder="Select another font" />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value={NONE_VALUE}>No specific font</SelectItem>
+                              {commonFontList.map(font => (
+                                <SelectItem key={font} value={font}>{font}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         <FormDescription>Specify any additional fonts for captions, accents, etc.</FormDescription>
                         <FormMessage />
                       </FormItem>
