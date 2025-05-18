@@ -50,7 +50,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette as PaletteIconLucide, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush, Type, Activity, HelpCircle } from "lucide-react";
+import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette as PaletteIconLucide, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush, Type, Activity, HelpCircle, GlobeLock } from "lucide-react";
 import { BrandArchetypeQuiz } from "./brand-archetype-quiz";
 
 
@@ -61,6 +61,15 @@ interface LogoFormProps {
 }
 
 const FORM_SETTINGS_KEY = "logoFormSettingsV3"; 
+
+const web3BlockchainFocusOptions = [
+  "Ethereum", "Solana", "Polygon", "Bitcoin L2s", "Cross-chain", "Blockchain Agnostic", "Other"
+] as const;
+
+const web3ProjectTypeOptions = [
+  "DeFi", "NFT Project", "DAO", "Infrastructure", "Metaverse", "Gaming", "SocialFi", "Other"
+] as const;
+
 
 export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) {
   const { toast } = useToast();
@@ -102,6 +111,13 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       brandPillars: "",
       brandArchetype: "",
       keyTagline: "",
+      // Web3 defaults
+      web3BlockchainFocus: "",
+      web3ProjectType: "",
+      web3EnsDomainIdeas: "",
+      web3TokenSymbolIdea: "",
+      web3CommunityValues: "",
+      web3NftAesthetic: "",
     },
   });
 
@@ -117,7 +133,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     form.setValue('brandArchetype', archetype as (typeof brandArchetypes)[number], { shouldValidate: true });
 
     let toastMessage = `Your "Brand Archetype" field has been updated to ${archetype}.`;
-    if (analysis) { // Ensure analysis is not empty before appending
+    if (analysis) { 
         toastMessage += ` ${analysis}`;
     }
 
@@ -519,7 +535,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         Logo Color Palette Input
                         </h3>
                     </div>
-                     <FormField
+                    <FormField
                         control={form.control}
                         name="colorPaletteMood"
                         render={({ field }) => (
@@ -527,11 +543,10 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             <FormLabel>Color Palette Mood (Optional)</FormLabel>
                             <Select 
                               onValueChange={(value) => {
-                                field.onChange(value); 
                                 if (value === CLEAR_MOOD_VALUE) {
-                                   // User selected "No specific mood"
-                                  field.onChange(''); // Set mood to empty
+                                  field.onChange(''); // Set mood to empty string for RHF
                                 } else {
+                                  field.onChange(value); 
                                   const selectedMoodData = colorPaletteMoodsData.find(m => m.name === value);
                                   if (selectedMoodData) {
                                     form.setValue("primaryColors", selectedMoodData.primary, { shouldValidate: true });
@@ -932,6 +947,127 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 </AccordionContent>
               </AccordionItem>
 
+              <AccordionItem value="web3-branding" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
+                <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline flex items-center gap-2">
+                  <GlobeLock className="w-5 h-5 text-primary/80" /> Web3 Branding (Optional)
+                </AccordionTrigger>
+                <AccordionContent className="pt-4 space-y-6">
+                  <FormField
+                    control={form.control}
+                    name="web3BlockchainFocus"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Primary Blockchain Focus</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select blockchain focus" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value={NONE_VALUE}>No specific focus</SelectItem>
+                            {web3BlockchainFocusOptions.map(option => (
+                              <SelectItem key={option} value={option}>{option}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="web3ProjectType"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Web3 Project Type</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value || ""}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select project type" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value={NONE_VALUE}>Not specified</SelectItem>
+                            {web3ProjectTypeOptions.map(option => (
+                              <SelectItem key={option} value={option}>{option}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="web3EnsDomainIdeas"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ENS/Domain Ideas</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="e.g., myproject.eth, coolbrand.xyz"
+                            className="resize-none"
+                            rows={2}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="web3TokenSymbolIdea"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Token Symbol Idea (if applicable)</FormLabel>
+                        <FormControl>
+                          <Input placeholder="e.g., LGT, MPRJ" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="web3CommunityValues"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Core Community Values</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="e.g., Transparency, Decentralization, Inclusivity"
+                            className="resize-none"
+                            rows={2}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="web3NftAesthetic"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Desired NFT Aesthetic (if applicable)</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            placeholder="e.g., Pixel art, generative abstract, 3D avatars, utilitarian"
+                            className="resize-none"
+                            rows={2}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </AccordionContent>
+              </AccordionItem>
+
               <AccordionItem value="advanced-details" className="border-b-0 rounded-md border p-4 shadow-sm data-[state=closed]:border-b data-[state=open]:border-b-0">
                 <AccordionTrigger className="py-2 text-lg font-medium hover:no-underline flex items-center gap-2">
                   <Feather className="w-5 h-5 text-primary/80" /> Advanced Logo Details & Context
@@ -1159,3 +1295,4 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     </Card>
   );
 }
+

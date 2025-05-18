@@ -52,6 +52,14 @@ export const commonFontList = [
   "Playfair Display", "Merriweather", "Source Sans Pro", "Ubuntu", "Lobster", "Pacifico"
 ] as const;
 
+const web3BlockchainFocusOptions = [
+  "Ethereum", "Solana", "Polygon", "Bitcoin L2s", "Cross-chain", "Blockchain Agnostic", "Other"
+] as const;
+
+const web3ProjectTypeOptions = [
+  "DeFi", "NFT Project", "DAO", "Infrastructure", "Metaverse", "Gaming", "SocialFi", "Other"
+] as const;
+
 
 export const logoFormSchema = z.object({
   businessName: z.string().min(1, "Business name is required.").max(100, "Business name too long."),
@@ -104,6 +112,14 @@ export const logoFormSchema = z.object({
   brandArchetype: z.enum(['', ...brandArchetypes, NONE_VALUE]).default('').optional(),
   keyTagline: z.string().max(150, "Key tagline too long (max 150 chars).").optional(),
 
+  // Web3 Specific Fields
+  web3BlockchainFocus: z.enum(['', ...web3BlockchainFocusOptions, NONE_VALUE]).default('').optional(),
+  web3ProjectType: z.enum(['', ...web3ProjectTypeOptions, NONE_VALUE]).default('').optional(),
+  web3EnsDomainIdeas: z.string().max(300, "ENS/Domain ideas too long.").optional(),
+  web3TokenSymbolIdea: z.string().max(10, "Token symbol idea too long (e.g., LGT).").optional(),
+  web3CommunityValues: z.string().max(300, "Community values description too long.").optional(),
+  web3NftAesthetic: z.string().max(200, "NFT aesthetic description too long.").optional(),
+
 }).refine(data => data.aestheticKeywords || data.emotionalKeywords || data.functionalKeywords, {
   message: "Please provide keywords for at least one category (Aesthetic, Emotional, or Functional).",
   path: ["aestheticKeywords"],
@@ -146,6 +162,14 @@ export type ExtendedLogoGenerationInputs = Omit<GenerateLogoConceptsInput, 'user
   useBodyFontForLogo?: boolean;
   fontOther?: (typeof commonFontList)[number] | '' | typeof NONE_VALUE;
   useOtherFontForLogo?: boolean;
+
+  // Web3 Specific Fields
+  web3BlockchainFocus?: (typeof web3BlockchainFocusOptions)[number] | '' | typeof NONE_VALUE;
+  web3ProjectType?: (typeof web3ProjectTypeOptions)[number] | '' | typeof NONE_VALUE;
+  web3EnsDomainIdeas?: string;
+  web3TokenSymbolIdea?: string;
+  web3CommunityValues?: string;
+  web3NftAesthetic?: string;
 };
 
 
@@ -175,7 +199,13 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     brandArchetype,
     usageContext,
     variationInstructions,
-    fontStyle: dedicatedLogoFontStyle, 
+    fontStyle: dedicatedLogoFontStyle,
+    web3BlockchainFocus,
+    web3ProjectType,
+    web3EnsDomainIdeas,
+    web3TokenSymbolIdea,
+    web3CommunityValues,
+    web3NftAesthetic,
     ...rest 
   } = formData;
 
@@ -291,6 +321,14 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     useBodyFontForLogo: useBodyFontForLogo,
     fontOther: mapOptionalField(fontOther as (typeof commonFontList)[number] | typeof NONE_VALUE | ''),
     useOtherFontForLogo: useOtherFontForLogo,
+
+    // Web3 Specific Fields
+    web3BlockchainFocus: mapOptionalField(web3BlockchainFocus as (typeof web3BlockchainFocusOptions)[number] | typeof NONE_VALUE | ''),
+    web3ProjectType: mapOptionalField(web3ProjectType as (typeof web3ProjectTypeOptions)[number] | typeof NONE_VALUE | ''),
+    web3EnsDomainIdeas: web3EnsDomainIdeas === '' ? undefined : web3EnsDomainIdeas,
+    web3TokenSymbolIdea: web3TokenSymbolIdea === '' ? undefined : web3TokenSymbolIdea,
+    web3CommunityValues: web3CommunityValues === '' ? undefined : web3CommunityValues,
+    web3NftAesthetic: web3NftAesthetic === '' ? undefined : web3NftAesthetic,
   };
 
   return extendedInputs;

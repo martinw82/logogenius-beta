@@ -1,6 +1,6 @@
 
 import type { GenerateLogoConceptsInput } from '@/ai/flows/generate-logo-concepts';
-import type { brandArchetypes, colorPaletteMoods } from '@/components/logo-form-types';
+import type { brandArchetypes, colorPaletteMoods, commonFontList, NONE_VALUE } from '@/components/logo-form-types'; // Added commonFontList & NONE_VALUE
 
 export interface Logo {
   id: string;
@@ -31,16 +31,24 @@ export type ExtendedGenerateLogoConceptsInput = Omit<GenerateLogoConceptsInput, 
   // Fields for brand guide text generation and display
   missionStatement?: string;
   brandPillars?: string;
-  brandArchetype?: typeof brandArchetypes[number] | '';
+  brandArchetype?: typeof brandArchetypes[number] | '' | typeof NONE_VALUE;
   keyTagline?: string;
   
   // Typography fields for brand guide
-  fontHeadings?: string;
+  fontHeadings?: (typeof commonFontList)[number] | '' | typeof NONE_VALUE;
   useHeadingsFontForLogo?: boolean;
-  fontBody?: string;
+  fontBody?: (typeof commonFontList)[number] | '' | typeof NONE_VALUE;
   useBodyFontForLogo?: boolean;
-  fontOther?: string;
+  fontOther?: (typeof commonFontList)[number] | '' | typeof NONE_VALUE;
   useOtherFontForLogo?: boolean;
+
+  // Web3 Specific Fields
+  web3BlockchainFocus?: string;
+  web3ProjectType?: string;
+  web3EnsDomainIdeas?: string;
+  web3TokenSymbolIdea?: string;
+  web3CommunityValues?: string;
+  web3NftAesthetic?: string;
 };
 
 

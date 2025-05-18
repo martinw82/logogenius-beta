@@ -8,7 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import type { Logo } from "@/types";
 import type { ExtendedGenerateLogoConceptsInput } from "@/types"; 
 import type { GenerateBrandGuideTextOutput } from "@/ai/flows/generate-brand-guide-text";
-import { Loader2, Type, Palette as PaletteIcon, Droplet } from "lucide-react"; // Renamed Palette to PaletteIcon to avoid conflict
+import { Loader2, Type, Palette as PaletteIcon, Droplet, GlobeLock } from "lucide-react"; // Renamed Palette to PaletteIcon to avoid conflict
 
 interface BrandGuideDisplayProps {
   selectedLogo: Logo;
@@ -17,14 +17,22 @@ interface BrandGuideDisplayProps {
   isLoadingNarrative: boolean;
 }
 
+const DetailItem = ({ label, value }: { label: string; value?: string }) => {
+  if (!value) return null;
+  return (
+    <div>
+      <span className="font-semibold">{label}:</span> {value}
+    </div>
+  );
+};
+
 const ColorDisplaySwatch = ({ colorValue }: { colorValue?: string }) => {
   if (!colorValue || colorValue.trim() === "") return null;
   
-  // Basic check for hex or common color names. More robust parsing might be needed for all CSS color names.
   const isValidColor = /^#([0-9A-Fa-f]{3,4}|[0-9A-Fa-f]{6}|[0-9A-Fa-f]{8})$/.test(colorValue) || /^[a-zA-Z]+$/.test(colorValue);
 
   return (
-    <div className="flex items-center gap-2"> {/* Removed mb-1 for better control when wrapped */}
+    <div className="flex items-center gap-2"> 
       {isValidColor && (
         <div 
           className="w-4 h-4 rounded border shrink-0" 
@@ -67,9 +75,10 @@ export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, 
       </CardHeader>
       <CardContent className="p-6 md:p-10">
         <Tabs defaultValue="snapshot" className="w-full">
-          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-2 mb-6">
+          <TabsList className="grid w-full grid-cols-1 sm:grid-cols-3 mb-6">
             <TabsTrigger value="snapshot">Logo & Visual Inputs</TabsTrigger>
             <TabsTrigger value="narrative">Brand Narrative</TabsTrigger>
+            <TabsTrigger value="web3">Web3 Presence</TabsTrigger>
           </TabsList>
 
           <TabsContent value="snapshot">
@@ -177,23 +186,23 @@ export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, 
               <section>
                   <h2 className="text-2xl font-semibold mb-4 border-b pb-2">Additional Logo Input Details</h2>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm">
-                      {brandDetails.industry && <div><span className="font-semibold">Industry:</span> {brandDetails.industry}</div>}
-                      {brandDetails.keywords && <div><span className="font-semibold">Keywords:</span> {brandDetails.keywords}</div>}
-                      {brandDetails.preferredLogoStyle && <div><span className="font-semibold">Preferred Logo Style:</span> {brandDetails.preferredLogoStyle}</div>}
-                      {brandDetails.composition && <div><span className="font-semibold">Composition:</span> {brandDetails.composition}</div>}
-                      {brandDetails.iconPlacement && <div><span className="font-semibold">Icon Placement:</span> {brandDetails.iconPlacement}</div>}
-                      {brandDetails.iconComplexity && <div><span className="font-semibold">Icon Complexity:</span> {brandDetails.iconComplexity}</div>}
-                      {brandDetails.iconSpecifics && <div><span className="font-semibold">Icon Specifics:</span> {brandDetails.iconSpecifics}</div>}
-                      {brandDetails.targetAudience && <div><span className="font-semibold">Target Audience:</span> {brandDetails.targetAudience}</div>}
-                      {brandDetails.inspirationReferences && <div><span className="font-semibold">Inspiration:</span> {brandDetails.inspirationReferences}</div>}
-                      {brandDetails.usageContext && <div><span className="font-semibold">Usage Context:</span> {brandDetails.usageContext}</div>}
-                      {brandDetails.negativeKeywords && <div><span className="font-semibold">To Avoid:</span> {brandDetails.negativeKeywords}</div>}
-                      {brandDetails.competitorsToAvoid && <div><span className="font-semibold">Differentiate From:</span> {brandDetails.competitorsToAvoid}</div>}
+                      <DetailItem label="Industry" value={brandDetails.industry} />
+                      <DetailItem label="Keywords" value={brandDetails.keywords} />
+                      <DetailItem label="Preferred Logo Style" value={brandDetails.preferredLogoStyle} />
+                      <DetailItem label="Composition" value={brandDetails.composition} />
+                      <DetailItem label="Icon Placement" value={brandDetails.iconPlacement} />
+                      <DetailItem label="Icon Complexity" value={brandDetails.iconComplexity} />
+                      <DetailItem label="Icon Specifics" value={brandDetails.iconSpecifics} />
+                      <DetailItem label="Target Audience" value={brandDetails.targetAudience} />
+                      <DetailItem label="Inspiration" value={brandDetails.inspirationReferences} />
+                      <DetailItem label="Usage Context" value={brandDetails.usageContext} />
+                      <DetailItem label="To Avoid" value={brandDetails.negativeKeywords} />
+                      <DetailItem label="Differentiate From" value={brandDetails.competitorsToAvoid} />
                       {brandDetails.referenceImageDataUri && <div><span className="font-semibold">Reference Image:</span> Provided</div>}
                   </div>
                    {Object.values(brandDetails).every(val => val === undefined || val === '' || (Array.isArray(val) && val.length === 0)) &&
-                     !brandDetails.referenceImageDataUri && // explicitly check as it's not in Object.values
-                     !brandDetails.businessName && // check common fields
+                     !brandDetails.referenceImageDataUri && 
+                     !brandDetails.businessName && 
                      !brandDetails.industry &&
                      !brandDetails.keywords &&
                      <p className="text-xs text-muted-foreground italic mt-2">No additional logo input details were provided.</p>
@@ -230,10 +239,10 @@ export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, 
                   <section>
                     <h2 className="text-2xl font-semibold mb-3 border-b pb-2">Core Strategic Inputs</h2>
                     <div className="space-y-3 text-sm">
-                        {brandDetails.missionStatement && <p><span className="font-semibold">Mission Statement:</span> {brandDetails.missionStatement}</p>}
-                        {brandDetails.brandPillars && <p><span className="font-semibold">Brand Pillars:</span> {brandDetails.brandPillars}</p>}
-                        {brandDetails.brandArchetype && <p><span className="font-semibold">Brand Archetype:</span> {brandDetails.brandArchetype}</p>}
-                        {brandDetails.keyTagline && <p><span className="font-semibold">Key Tagline:</span> {brandDetails.keyTagline}</p>}
+                        <DetailItem label="Mission Statement" value={brandDetails.missionStatement} />
+                        <DetailItem label="Brand Pillars" value={brandDetails.brandPillars} />
+                        <DetailItem label="Brand Archetype" value={brandDetails.brandArchetype} />
+                        <DetailItem label="Key Tagline" value={brandDetails.keyTagline} />
                         {(!brandDetails.missionStatement && !brandDetails.brandPillars && !brandDetails.brandArchetype && !brandDetails.keyTagline) && <p className="text-muted-foreground italic">No additional strategic inputs were provided for narrative generation.</p>}
                     </div>
                   </section>
@@ -243,6 +252,32 @@ export function BrandGuideDisplay({ selectedLogo, brandDetails, brandNarrative, 
                   Brand narrative will appear here once generated. Select a logo from the gallery first.
                 </p>
               )}
+            </div>
+          </TabsContent>
+          <TabsContent value="web3">
+            <div className="space-y-8">
+              <section>
+                <h2 className="text-2xl font-semibold mb-3 border-b pb-2 flex items-center gap-2">
+                  <GlobeLock className="w-6 h-6 text-primary/80" /> Web3 Presence Considerations
+                </h2>
+                <div className="space-y-4 text-sm p-4 bg-muted/50 rounded-md">
+                  <DetailItem label="Primary Blockchain Focus" value={brandDetails.web3BlockchainFocus} />
+                  <DetailItem label="Web3 Project Type" value={brandDetails.web3ProjectType} />
+                  <DetailItem label="ENS/Domain Ideas" value={brandDetails.web3EnsDomainIdeas} />
+                  <DetailItem label="Token Symbol Idea" value={brandDetails.web3TokenSymbolIdea} />
+                  <DetailItem label="Core Community Values" value={brandDetails.web3CommunityValues} />
+                  <DetailItem label="Desired NFT Aesthetic" value={brandDetails.web3NftAesthetic} />
+                  
+                  {(!brandDetails.web3BlockchainFocus &&
+                    !brandDetails.web3ProjectType &&
+                    !brandDetails.web3EnsDomainIdeas &&
+                    !brandDetails.web3TokenSymbolIdea &&
+                    !brandDetails.web3CommunityValues &&
+                    !brandDetails.web3NftAesthetic) && (
+                      <p className="text-xs text-muted-foreground italic">No Web3 specific considerations were provided.</p>
+                  )}
+                </div>
+              </section>
             </div>
           </TabsContent>
         </Tabs>
