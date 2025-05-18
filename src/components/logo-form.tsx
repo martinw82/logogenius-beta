@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { LogoFormData, ExtendedLogoGenerationInputs } from "./logo-form-types";
-import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData, colorPaletteMoods, CLEAR_MOOD_VALUE, commonFontList } from "./logo-form-types"; 
+import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData, colorPaletteMoods, CLEAR_MOOD_VALUE, commonFontList, NONE_VALUE } from "./logo-form-types"; 
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
 
@@ -52,8 +52,6 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette as PaletteIconLucide, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush, Type, Activity, HelpCircle } from "lucide-react";
 import { BrandArchetypeQuiz } from "./brand-archetype-quiz";
-
-const NONE_VALUE = "_NONE_";
 
 
 interface LogoFormProps {
@@ -116,9 +114,13 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
   };
 
   const handleQuizComplete = (archetype: string, analysis: string, selectedMoodName?: string) => {
-    form.setValue('brandArchetype', archetype as typeof brandArchetypes[number], { shouldValidate: true });
+    form.setValue('brandArchetype', archetype as (typeof brandArchetypes)[number], { shouldValidate: true });
 
-    let toastMessage = `Your "Brand Archetype" field has been updated to ${archetype}. ${analysis}`;
+    let toastMessage = `Your "Brand Archetype" field has been updated to ${archetype}.`;
+    if (analysis) { // Ensure analysis is not empty before appending
+        toastMessage += ` ${analysis}`;
+    }
+
 
     if (selectedMoodName) {
       const moodData = colorPaletteMoodsData.find(m => m.name === selectedMoodName);
@@ -407,7 +409,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             </DialogTrigger>
                             <DialogContent className="sm:max-w-lg md:max-w-xl lg:max-w-2xl max-h-[90vh] overflow-y-auto">
                                 <DialogHeader>
-                                  <DialogTitle>Brand Archetype Quiz</DialogTitle>
+                                  <DialogTitle>Brand Archetype Discovery Quiz</DialogTitle>
                                   <DialogDescription>
                                     Answer the questions to discover your brand's archetype. This will help define its personality and voice.
                                   </DialogDescription>
@@ -517,8 +519,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                         Logo Color Palette Input
                         </h3>
                     </div>
-                    
-                    <FormField
+                     <FormField
                         control={form.control}
                         name="colorPaletteMood"
                         render={({ field }) => (
@@ -526,10 +527,11 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             <FormLabel>Color Palette Mood (Optional)</FormLabel>
                             <Select 
                               onValueChange={(value) => {
+                                field.onChange(value); 
                                 if (value === CLEAR_MOOD_VALUE) {
-                                  field.onChange(''); 
+                                   // User selected "No specific mood"
+                                  field.onChange(''); // Set mood to empty
                                 } else {
-                                  field.onChange(value); 
                                   const selectedMoodData = colorPaletteMoodsData.find(m => m.name === value);
                                   if (selectedMoodData) {
                                     form.setValue("primaryColors", selectedMoodData.primary, { shouldValidate: true });
@@ -1157,4 +1159,3 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     </Card>
   );
 }
-

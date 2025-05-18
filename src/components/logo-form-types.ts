@@ -41,7 +41,7 @@ export const colorPaletteMoodsData = [
 
 export const colorPaletteMoods = colorPaletteMoodsData.map(item => item.name);
 
-const NONE_VALUE = "_NONE_";
+export const NONE_VALUE = "_NONE_";
 export const CLEAR_MOOD_VALUE = "_CLEAR_MOOD_";
 
 export const commonFontList = [
@@ -131,20 +131,20 @@ export type ExtendedLogoGenerationInputs = Omit<GenerateLogoConceptsInput, 'user
   primaryColors?: string;      // Direct form input
   secondaryColors?: string;    // Direct form input
   accentColors?: string;       // Direct form input
-  colorPaletteMood?: typeof colorPaletteMoods[number] | '' | typeof CLEAR_MOOD_VALUE; 
+  colorPaletteMood?: (typeof colorPaletteMoods)[number] | '' | typeof CLEAR_MOOD_VALUE; 
 
   // Brand strategy inputs
   missionStatement?: string;
   brandPillars?: string;
-  brandArchetype?: typeof brandArchetypes[number] | '' | typeof NONE_VALUE;
+  brandArchetype?: (typeof brandArchetypes)[number] | '' | typeof NONE_VALUE;
   keyTagline?: string;
 
   // Typography inputs for brand guide
-  fontHeadings?: typeof commonFontList[number] | '' | typeof NONE_VALUE;
+  fontHeadings?: (typeof commonFontList)[number] | '' | typeof NONE_VALUE;
   useHeadingsFontForLogo?: boolean;
-  fontBody?: typeof commonFontList[number] | '' | typeof NONE_VALUE;
+  fontBody?: (typeof commonFontList)[number] | '' | typeof NONE_VALUE;
   useBodyFontForLogo?: boolean;
-  fontOther?: typeof commonFontList[number] | '' | typeof NONE_VALUE;
+  fontOther?: (typeof commonFontList)[number] | '' | typeof NONE_VALUE;
   useOtherFontForLogo?: boolean;
 };
 
@@ -219,7 +219,7 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     }
   }
   
-  const mapOptionalField = <T extends string>(value: T | typeof NONE_VALUE | ''): T | undefined => {
+  const mapOptionalField = <T extends string>(value: T | typeof NONE_VALUE | '' | undefined): T | undefined => {
     return value === '' || value === NONE_VALUE ? undefined : value as T;
   };
 
@@ -278,18 +278,18 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     primaryColors: primaryColors === '' ? undefined : primaryColors,
     secondaryColors: secondaryColors === '' ? undefined : secondaryColors,
     accentColors: accentColors === '' ? undefined : accentColors,
-    colorPaletteMood: colorPaletteMood === '' || colorPaletteMood === CLEAR_MOOD_VALUE ? undefined : colorPaletteMood as typeof colorPaletteMoods[number],
+    colorPaletteMood: colorPaletteMood === '' || colorPaletteMood === CLEAR_MOOD_VALUE ? undefined : colorPaletteMood as (typeof colorPaletteMoods)[number],
 
     missionStatement: missionStatement === '' ? undefined : missionStatement,
     brandPillars: brandPillars === '' ? undefined : brandPillars,
-    brandArchetype: mapOptionalField(brandArchetype as typeof brandArchetypes[number] | typeof NONE_VALUE | ''),
+    brandArchetype: mapOptionalField(brandArchetype as (typeof brandArchetypes)[number] | typeof NONE_VALUE | ''),
     keyTagline: keyTagline === '' ? undefined : keyTagline,
 
-    fontHeadings: mapOptionalField(fontHeadings as typeof commonFontList[number] | typeof NONE_VALUE | ''),
+    fontHeadings: mapOptionalField(fontHeadings as (typeof commonFontList)[number] | typeof NONE_VALUE | ''),
     useHeadingsFontForLogo: useHeadingsFontForLogo,
-    fontBody: mapOptionalField(fontBody as typeof commonFontList[number] | typeof NONE_VALUE | ''),
+    fontBody: mapOptionalField(fontBody as (typeof commonFontList)[number] | typeof NONE_VALUE | ''),
     useBodyFontForLogo: useBodyFontForLogo,
-    fontOther: mapOptionalField(fontOther as typeof commonFontList[number] | typeof NONE_VALUE | ''),
+    fontOther: mapOptionalField(fontOther as (typeof commonFontList)[number] | typeof NONE_VALUE | ''),
     useOtherFontForLogo: useOtherFontForLogo,
   };
 

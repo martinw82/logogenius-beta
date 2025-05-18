@@ -17,14 +17,14 @@ const archetypeAffinities: Record<string, string[]> = {
   "Innocent": ["Jester", "Caregiver", "Everyman"],
   "Everyman": ["Innocent", "Caregiver", "Lover"],
   "Hero": ["Ruler", "Magician", "Explorer"],
-  "Rebel": ["Explorer", "Creator", "Jester"], // Changed from Outlaw
-  "Explorer": ["Rebel", "Sage", "Hero"],     // Changed from Outlaw
-  "Creator": ["Magician", "Rebel", "Sage"],  // Changed from Outlaw
+  "Rebel": ["Explorer", "Creator", "Jester"],
+  "Explorer": ["Rebel", "Sage", "Hero"],    
+  "Creator": ["Magician", "Rebel", "Sage"], 
   "Ruler": ["Hero", "Sage", "Caregiver"],
   "Magician": ["Creator", "Hero", "Lover"],
   "Lover": ["Caregiver", "Jester", "Magician"],
   "Caregiver": ["Innocent", "Lover", "Ruler"],
-  "Jester": ["Innocent", "Rebel", "Lover"], // Changed from Outlaw
+  "Jester": ["Innocent", "Rebel", "Lover"], 
   "Sage": ["Explorer", "Creator", "Ruler"]
 };
 
@@ -33,7 +33,7 @@ const archetypeMoodSuggestions: Record<string, string[]> = {
     "The Innocent": ["Clean & Pure", "Friendly & Accessible"],
     "The Everyman": ["Friendly & Accessible", "Welcoming & Inviting"],
     "The Hero": ["Bold & Powerful", "Trustworthy & Stable"],
-    "The Rebel": ["Bold & Disruptive", "Gritty & Authentic"], // Changed from The Outlaw
+    "The Rebel": ["Bold & Disruptive", "Gritty & Authentic"],
     "The Explorer": ["Exciting & Adventurous", "Energetic & Vibrant"],
     "The Creator": ["Innovative & Modern", "Playful & Whimsical"],
     "The Ruler": ["Sophisticated & Elegant", "Secure & Reliable"],
@@ -52,7 +52,7 @@ const questions = [
       { key: 'a', text: "To help people feel safe and secure.", archetype: "Innocent" },
       { key: 'b', text: "To help people connect with each other and feel like they belong.", archetype: "Everyman" },
       { key: 'c', text: "To help people overcome challenges and succeed.", archetype: "Hero" },
-      { key: 'd', text: "To challenge the usual way of doing things and offer something new or rebellious.", archetype: "Rebel" }, // Changed from Outlaw
+      { key: 'd', text: "To challenge the usual way of doing things and offer something new or rebellious.", archetype: "Rebel" },
       { key: 'e', text: "To help people explore new possibilities and feel a sense of freedom.", archetype: "Explorer" },
       { key: 'f', text: "To create new and valuable things or ideas.", archetype: "Creator" },
       { key: 'g', text: "To be in charge and create order and stability.", archetype: "Ruler" },
@@ -69,7 +69,7 @@ const questions = [
       { key: 'a', text: "Safe and trusting.", archetype: "Innocent" },
       { key: 'b', text: "Included and connected.", archetype: "Everyman" },
       { key: 'c', text: "Inspired and capable.", archetype: "Hero" },
-      { key: 'd', text: "Excited and liberated.", archetype: "Rebel" }, // Changed from Outlaw
+      { key: 'd', text: "Excited and liberated.", archetype: "Rebel" },
       { key: 'e', text: "Adventurous and independent.", archetype: "Explorer" },
       { key: 'f', text: "Inspired and imaginative.", archetype: "Creator" },
       { key: 'g', text: "Confident and secure.", archetype: "Ruler" },
@@ -86,7 +86,7 @@ const questions = [
       { key: 'a', text: "By being reliable and straightforward.", archetype: "Innocent" },
       { key: 'b', text: "By being friendly and accessible.", archetype: "Everyman" },
       { key: 'c', text: "By being strong and determined.", archetype: "Hero" },
-      { key: 'd', text: "By breaking the rules or doing things differently.", archetype: "Rebel" }, // Changed from Outlaw
+      { key: 'd', text: "By breaking the rules or doing things differently.", archetype: "Rebel" },
       { key: 'e', text: "By exploring new solutions and pushing boundaries.", archetype: "Explorer" },
       { key: 'f', text: "By inventing or building something new.", archetype: "Creator" },
       { key: 'g', text: "By taking control and implementing a clear plan.", archetype: "Ruler" },
@@ -103,7 +103,7 @@ const questions = [
       { key: 'a', text: "Our honesty and goodness.", archetype: "Innocent" },
       { key: 'b', text: "Our ability to connect with everyone.", archetype: "Everyman" },
       { key: 'c', text: "Our strength and impact.", archetype: "Hero" },
-      { key: 'd', text: "Our courage to be different.", archetype: "Rebel" }, // Changed from Outlaw
+      { key: 'd', text: "Our courage to be different.", archetype: "Rebel" },
       { key: 'e', text: "Our spirit of discovery and independence.", archetype: "Explorer" },
       { key: 'f', text: "Our original ideas and creations.", archetype: "Creator" },
       { key: 'g', text: "Our leadership and success.", archetype: "Ruler" },
@@ -120,7 +120,7 @@ const questions = [
       { key: 'a', text: "Optimistic and simple.", archetype: "Innocent" },
       { key: 'b', text: "Friendly and down-to-earth.", archetype: "Everyman" },
       { key: 'c', text: "Brave and strong.", archetype: "Hero" },
-      { key: 'd', text: "Rebellious and bold.", archetype: "Rebel" }, // Changed from Outlaw
+      { key: 'd', text: "Rebellious and bold.", archetype: "Rebel" },
       { key: 'e', text: "Adventurous and independent.", archetype: "Explorer" },
       { key: 'f', text: "Imaginative and inventive.", archetype: "Creator" },
       { key: 'g', text: "Confident and in control.", archetype: "Ruler" },
@@ -137,7 +137,7 @@ const archetypeDescriptions: Record<string, string> = {
   "Innocent": "Your brand is seen as simple, good, and trustworthy. You bring a sense of ease and happiness.",
   "Everyman": "Your brand is relatable, friendly, and approachable. You make people feel included and understood.",
   "Hero": "Your brand is courageous and inspiring. You help people achieve great things and overcome obstacles.",
-  "Rebel": "Your brand is bold and challenges the norm. You appeal to those who want to break free or do things differently.", // Changed from Outlaw
+  "Rebel": "Your brand is bold and challenges the norm. You appeal to those who want to break free or do things differently.",
   "Explorer": "Your brand is adventurous and independent. You encourage discovery and new experiences.",
   "Creator": "Your brand is imaginative and innovative. You empower people to create and express themselves.",
   "Ruler": "Your brand is powerful and in control. You offer a sense of security and stability.",
@@ -152,7 +152,7 @@ const archetypeColors: Record<string, string> = {
   "Innocent": "#FFFACD", // LemonChiffon
   "Everyman": "#90EE90", // LightGreen
   "Hero": "#FFD700",     // Gold
-  "Rebel": "#DC143C",    // Crimson (Changed from Outlaw)
+  "Rebel": "#DC143C",    // Crimson
   "Explorer": "#1E90FF", // DodgerBlue
   "Creator": "#FF8C00",  // DarkOrange
   "Ruler": "#800080",   // Purple
@@ -296,6 +296,7 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
   };
 
   const getContrastColor = (hexcolor: string): string => {
+    if (!hexcolor) return '#000000'; // Default to black if color is undefined
     if (hexcolor.startsWith('#')) {
         hexcolor = hexcolor.slice(1);
     }
@@ -403,7 +404,6 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
 
   const handleConfirmArchetype = (selectedMoodName?: string) => {
     const dominant = getDominantArchetype();
-    // Ensure the archetype name is prefixed with "The " for consistency with the form's enum
     const prefixedArchetype = dominant ? "The " + dominant : ""; 
     if (prefixedArchetype && archetypeDescriptions[dominant!]) {
       onQuizComplete(prefixedArchetype, archetypeDescriptions[dominant!], selectedMoodName);
@@ -414,7 +414,8 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
   if (!open) return null;
 
   const progressPercentage = ((currentQuestion + 1) / questions.length) * 100;
-  const dominantArchetypeFullName = getDominantArchetype() ? "The " + getDominantArchetype() : null;
+  const dominantArchetype = getDominantArchetype();
+  const dominantArchetypeFullName = dominantArchetype ? "The " + dominantArchetype : null;
   const suggestedMoods = dominantArchetypeFullName ? archetypeMoodSuggestions[dominantArchetypeFullName] || [] : [];
 
 
@@ -455,15 +456,14 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
               Previous
             </Button>
             
-            {currentQuestion < questions.length - 1 && (
+            {currentQuestion < questions.length - 1 ? (
                <Button
                 onClick={goToNextQuestion}
                 disabled={answers[currentQuestion] === undefined}
               >
                 Next
               </Button>
-            )}
-            {currentQuestion === questions.length - 1 && (
+            ) : (
               <Button
                 onClick={calculateResults}
                 disabled={!canCalculateResults}
@@ -480,31 +480,31 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
         <div className="space-y-6">
           <h2 className="text-2xl font-bold mb-4 text-center">Your Brand Archetype Results</h2>
           
-          {getDominantArchetype() && (
+          {dominantArchetype && (
             <div 
               className="mb-6 p-4 rounded-lg shadow"
-              style={{ backgroundColor: archetypeColors[getDominantArchetype()!] || '#e0e0e0' }}
+              style={{ backgroundColor: archetypeColors[dominantArchetype] || '#e0e0e0' }}
             >
-              <h3 className="text-xl font-bold mb-2 text-center" style={{color: getContrastColor(archetypeColors[getDominantArchetype()!] || '#e0e0e0')}}>
-                Your dominant archetype is: The {getDominantArchetype()}
+              <h3 className="text-xl font-bold mb-2 text-center" style={{color: getContrastColor(archetypeColors[dominantArchetype] || '#e0e0e0')}}>
+                Your dominant archetype is: The {dominantArchetype}
               </h3>
-              <p className="text-md text-center" style={{color: getContrastColor(archetypeColors[getDominantArchetype()!] || '#e0e0e0')}}>
-                {archetypeDescriptions[getDominantArchetype()!]}
+              <p className="text-md text-center" style={{color: getContrastColor(archetypeColors[dominantArchetype] || '#e0e0e0')}}>
+                {archetypeDescriptions[dominantArchetype]}
               </p>
               
               {getSecondaryArchetype() && (
                 <div className="mt-4">
-                  <h4 className="text-lg font-semibold mb-2" style={{color: getContrastColor(archetypeColors[getDominantArchetype()!] || '#e0e0e0')}}>Archetype Blend</h4>
+                  <h4 className="text-lg font-semibold mb-2" style={{color: getContrastColor(archetypeColors[dominantArchetype] || '#e0e0e0')}}>Archetype Blend</h4>
                   <div className="bg-white bg-opacity-90 p-3 rounded-md">
                     <p className="mb-2 text-sm">
-                      <span className="font-bold">Primary:</span> The {getDominantArchetype()} ({results[getDominantArchetype()!]}/{questions.length})
+                      <span className="font-bold">Primary:</span> The {dominantArchetype} ({results[dominantArchetype!]}/{questions.length})
                     </p>
                     <p className="mb-2 text-sm">
-                      <span className="font-bold">Secondary:</span> The {getSecondaryArchetype()} ({results[getSecondaryArchetype()!]}/{questions.length})
+                      <span className="font-bold">Secondary:</span> The {getSecondaryArchetype()!} ({results[getSecondaryArchetype()!]}/{questions.length})
                     </p>
                     {getTertiaryArchetype() && (
                       <p className="text-sm">
-                        <span className="font-bold">Tertiary:</span> The {getTertiaryArchetype()} ({results[getTertiaryArchetype()!]}/{questions.length})
+                        <span className="font-bold">Tertiary:</span> The {getTertiaryArchetype()!} ({results[getTertiaryArchetype()!]}/{questions.length})
                       </p>
                     )}
                     
@@ -576,39 +576,39 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
                   ></canvas>
                 </div>
                 <div className="flex flex-wrap justify-center gap-1 mb-3">
-                  {Object.keys(archetypeDescriptions).map(archetype => (
+                  {Object.keys(archetypeDescriptions).map(archetypeKey => (
                     <Button
-                      key={archetype}
+                      key={archetypeKey}
                       variant="outline"
                       size="sm"
-                      onClick={() => setSelectedArchetypeForMap(archetype)}
+                      onClick={() => setSelectedArchetypeForMap(archetypeKey)}
                       className="text-xs h-7 px-2"
                       style={{ 
-                        backgroundColor: archetype === selectedArchetypeForMap ? 
-                          archetypeColors[archetype] : 
+                        backgroundColor: archetypeKey === selectedArchetypeForMap ? 
+                          archetypeColors[archetypeKey] : 
                           'transparent',
-                        borderColor: archetypeColors[archetype],
-                        color: archetype === selectedArchetypeForMap ? getContrastColor(archetypeColors[archetype]) : archetypeColors[archetype]
+                        borderColor: archetypeColors[archetypeKey],
+                        color: archetypeKey === selectedArchetypeForMap ? getContrastColor(archetypeColors[archetypeKey]) : archetypeColors[archetypeKey]
                       }}
                     >
-                      {archetype}
+                      {archetypeKey}
                     </Button>
                   ))}
                 </div>
               </div>
             )}
             
-            {getDominantArchetype() && (
+            {dominantArchetype && (
               <div>
-                <h4 className="font-semibold text-md mb-1">Complementary Archetypes for The {getDominantArchetype()}:</h4>
+                <h4 className="font-semibold text-md mb-1">Complementary Archetypes for The {dominantArchetype}:</h4>
                 <div className="flex flex-wrap gap-1 mb-4">
-                  {getComplementaryArchetypes().map(archetype => (
+                  {getComplementaryArchetypes().map(compArchetype => (
                     <div 
-                      key={archetype}
+                      key={compArchetype}
                       className="px-2 py-0.5 rounded-full text-xs font-medium"
-                      style={{ backgroundColor: archetypeColors[archetype], color: getContrastColor(archetypeColors[archetype]) }}
+                      style={{ backgroundColor: archetypeColors[compArchetype], color: getContrastColor(archetypeColors[compArchetype]) }}
                     >
-                      The {archetype}
+                      The {compArchetype}
                     </div>
                   ))}
                 </div>
@@ -616,7 +616,7 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
                 <div className="mb-4">
                   <h4 className="font-semibold text-md mb-1">How to Apply Your Archetype Blend:</h4>
                   <ol className="list-decimal pl-5 space-y-1 text-xs">
-                    <li><strong>Core Identity:</strong> Lead with your {"The " + getDominantArchetype()!} qualities.</li>
+                    <li><strong>Core Identity:</strong> Lead with your {"The " + dominantArchetype} qualities.</li>
                     <li><strong>Supporting Elements:</strong> Incorporate aspects of your {"The " + (getSecondaryArchetype() || "secondary")} archetype.</li>
                     <li><strong>Brand Expression:</strong> Use this blend in messaging, visuals, and interactions.</li>
                     <li><strong>Consistency:</strong> Ensure all brand touchpoints reflect this blend.</li>
@@ -636,10 +636,9 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
             </div>
           </div>
 
-           {/* Moved Suggested Moods section here, before the DialogFooter */}
            {suggestedMoods.length > 0 && (
             <div className="mb-6 p-4 bg-muted/50 rounded-lg">
-              <h3 className="text-lg font-semibold mb-3 text-center">Suggested Color Palette Moods for "The {getDominantArchetype()}"</h3>
+              <h3 className="text-lg font-semibold mb-3 text-center">Suggested Color Palette Moods for "The {dominantArchetype}"</h3>
               <div className="flex flex-wrap justify-center gap-2">
                 {suggestedMoods.map((moodName) => (
                   <Button
@@ -661,7 +660,7 @@ export function BrandArchetypeQuiz({ open, onOpenChange, onQuizComplete }: Brand
             <Button variant="outline" onClick={handleRestartQuiz}>
               Take Quiz Again
             </Button>
-            <Button onClick={() => handleConfirmArchetype()} disabled={!getDominantArchetype()}>
+            <Button onClick={() => handleConfirmArchetype()} disabled={!dominantArchetype}>
               Use This Archetype & Close
             </Button>
              <DialogClose asChild>
