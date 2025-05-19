@@ -9,6 +9,8 @@
  */
 
 import {ai} from '@/ai/genkit';
+import { genkit } from 'genkit'; // Import genkit
+import { googleAI } from '@genkit-ai/googleai'; // Import googleAI
 import {z} from 'genkit';
 
 const GenerateBrandGuideTextInputSchema = z.object({
@@ -22,7 +24,7 @@ const GenerateBrandGuideTextInputSchema = z.object({
   brandPillars: z.string().optional().describe('Core brand pillars or values (e.g., "Innovation, Customer-centricity").'),
   brandArchetype: z.string().optional().describe('The brand\'s archetype (e.g., "The Hero", "The Sage", "The Creator").'),
   keyTagline: z.string().optional().describe('The brand\'s key tagline.'),
-  userApiKey: z.string().optional().describe('Optional user-provided Google AI API key.'),
+  userApiKey: z.string().optional().describe('User-provided Google AI API key. THIS IS REQUIRED FOR THE FLOW TO WORK.'),
 });
 
 export type GenerateBrandGuideTextInput = z.infer<typeof GenerateBrandGuideTextInputSchema>;
@@ -40,7 +42,6 @@ export async function generateBrandGuideText(
   return generateBrandGuideTextFlow(input);
 }
 
-// Store the Handlebars template string
 const BRAND_GUIDE_TEXT_PROMPT_TEMPLATE = `You are an expert brand strategist. Based on the following information, generate concise and professional text for a brand guide.
 
 Business Name: {{businessName}}
@@ -81,26 +82,33 @@ Generate the following sections:
 Return ONLY the generated text for these sections in the specified JSON output format.
 `;
 
-// This is the prompt object defined with the global `ai` instance.
-// It's used when NO userApiKey is provided.
-const globallyDefinedBrandGuidePrompt = ai.definePrompt({
-  name: 'generateBrandGuideTextPrompt',
-  // The input schema for this prompt object does not include userApiKey or selectedLogoUrl,
-  // as they are not part of the Handlebars template itself.
+// This prompt object is for schema definition and type inference.
+// Not directly used for execution if userApiKey is always required.
+const globallyDefinedBrandGuidePromptForSchema = ai.definePrompt({
+  name: 'generateBrandGuideTextPromptDefinition', // Renamed
   input: {schema: GenerateBrandGuideTextInputSchema.omit({ userApiKey: true, selectedLogoUrl: true })},
   output: {schema: GenerateBrandGuideTextOutputSchema},
   prompt: BRAND_GUIDE_TEXT_PROMPT_TEMPLATE,
+  model: 'googleai/gemini-2.0-flash', // Specify model for schema association
 });
 
 const generateBrandGuideTextFlow = ai.defineFlow(
   {
     name: 'generateBrandGuideTextFlow',
-    inputSchema: GenerateBrandGuideTextInputSchema, // Flow input can contain userApiKey etc.
+    inputSchema: GenerateBrandGuideTextInputSchema,
     outputSchema: GenerateBrandGuideTextOutputSchema,
   },
   async (flowInput: GenerateBrandGuideTextInput) => {
-    // Prepare the data that will be passed into the Handlebars template
-    // This should match the schema defined in `globallyDefinedBrandGuidePrompt.input.schema`
+    if (!flowInput.userApiKey) {
+      throw new Error("A Google AI API key is required to generate brand guide text. Please add your key in the 'Use Your Own API Key' section.");
+    }
+
+    // Use ai.withConfig for a temporary, one-off configuration with the user's key.
+    // This is cleaner if the base `ai` object from `genkit.ts` is already minimally set up.
+    const userSpecificAi = ai.withConfig({
+        plugins: [ai.registry.plugin('googleai')!({apiKey: flowInput.userApiKey})],
+      });
+
     const templateData: Omit<GenerateBrandGuideTextInput, 'userApiKey' | 'selectedLogoUrl'> = {
       businessName: flowInput.businessName,
       industry: flowInput.industry,
@@ -113,33 +121,16 @@ const generateBrandGuideTextFlow = ai.defineFlow(
       keyTagline: flowInput.keyTagline,
     };
 
-    if (flowInput.userApiKey) {
-      // Use a temporary AI instance configured with the user's API key
-      const userSpecificAi = ai.withConfig({
-          plugins: [ai.registry.plugin('googleai')!({apiKey: flowInput.userApiKey})],
-        });
+    const { output } = await userSpecificAi.generate({
+        prompt: BRAND_GUIDE_TEXT_PROMPT_TEMPLATE, 
+        input: templateData,                      
+        model: 'googleai/gemini-2.0-flash',      
+        output: { schema: GenerateBrandGuideTextOutputSchema }, 
+    });
 
-      const { output } = await userSpecificAi.generate({
-          prompt: BRAND_GUIDE_TEXT_PROMPT_TEMPLATE, // Pass the raw template string
-          input: templateData,                       // Pass the data for Handlebars
-          model: 'googleai/gemini-2.0-flash',      // Specify the model
-          output: { schema: GenerateBrandGuideTextOutputSchema }, // Specify the expected output schema
-          // config: { safetySettings: [...] } // Add safety settings if needed
-      });
-
-      if (!output) {
-        throw new Error("Brand guide text generation failed to produce output (with user API key).");
-      }
-      return output;
-    } else {
-      // No user API key, so use the globally defined prompt object.
-      // This prompt object was defined with the global `ai` instance and its default API key.
-      const { output } = await globallyDefinedBrandGuidePrompt(templateData);
-
-      if (!output) {
-        throw new Error("Brand guide text generation failed to produce output (default API key).");
-      }
-      return output;
+    if (!output) {
+      throw new Error("Brand guide text generation failed to produce output.");
     }
+    return output;
   }
 );

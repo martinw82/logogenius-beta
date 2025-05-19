@@ -38,7 +38,7 @@ const RefineLogoGenerationInputSchema = z.object({
     ])
     .describe('User feedback on the previous logo generation.'),
   previousPrompt: z.string().describe('The prompt used to generate the previous logo.'),
-  userApiKey: z.string().optional().describe('Optional user-provided Google AI API key.'),
+  userApiKey: z.string().optional().describe('User-provided Google AI API key. THIS IS REQUIRED FOR THE FLOW TO WORK.'),
   referenceImageDataUri: z.string().optional().describe("Optional reference image as a data URI that was used in the previous generation. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
 });
 export type RefineLogoGenerationInput = z.infer<typeof RefineLogoGenerationInputSchema>;
@@ -87,11 +87,14 @@ const REFINE_PROMPT_HANDLEBARS_TEMPLATE = `You are an AI logo generation expert.
   Return ONLY the refined text prompt.
   `;
 
-const globallyDefinedPrompt = ai.definePrompt({
-  name: 'refineLogoGenerationPrompt',
-  input: {schema: RefineLogoGenerationInputSchema.omit({ userApiKey: true })},
+// Note: globallyDefinedPrompt is not used for execution if userApiKey is always required.
+// It can still be useful for schema definition if this flow were to be called from other Genkit tools.
+const globallyDefinedPromptForSchema = ai.definePrompt({
+  name: 'refineLogoGenerationPromptDefinition', // Renamed for clarity
+  input: {schema: RefineLogoGenerationInputSchema.omit({ userApiKey: true })}, // userApiKey not part of template
   output: {schema: RefineLogoGenerationOutputSchema},
   prompt: REFINE_PROMPT_HANDLEBARS_TEMPLATE,
+  model: 'googleai/gemini-2.0-flash', // Specify model for schema association
 });
 
 const refineLogoGenerationFlow = ai.defineFlow(
@@ -101,27 +104,29 @@ const refineLogoGenerationFlow = ai.defineFlow(
     outputSchema: RefineLogoGenerationOutputSchema,
   },
   async (flowInput: RefineLogoGenerationInput) => {
-    let currentAi = ai;
-    const promptData = { ...flowInput };
-    if (promptData.userApiKey) {
-        delete (promptData as any).userApiKey;
+    if (!flowInput.userApiKey) {
+      throw new Error("A Google AI API key is required to refine logos. Please add your key in the 'Use Your Own API Key' section.");
     }
 
-    if (flowInput.userApiKey) {
-      currentAi = genkit({
-        plugins: [googleAI({ apiKey: flowInput.userApiKey })],
-      });
+    const currentAi = genkit({
+      plugins: [googleAI({ apiKey: flowInput.userApiKey })],
+    });
+    
+    // Prepare data for the Handlebars template, excluding userApiKey
+    const promptData: Omit<RefineLogoGenerationInput, 'userApiKey'> = { ...flowInput };
+    delete (promptData as any).userApiKey;
 
-      const { output } = await currentAi.generate({
-        model: 'googleai/gemini-2.0-flash',
-        prompt: REFINE_PROMPT_HANDLEBARS_TEMPLATE,
-        input: promptData,
-        output: { schema: RefineLogoGenerationOutputSchema },
-      });
-      return output as RefineLogoGenerationOutput;
-    } else {
-      const {output} = await globallyDefinedPrompt(promptData);
-      return output!;
+
+    const { output } = await currentAi.generate({
+      model: 'googleai/gemini-2.0-flash', // Specify the model for generation
+      prompt: REFINE_PROMPT_HANDLEBARS_TEMPLATE,
+      input: promptData, // Pass data for Handlebars template
+      output: { schema: RefineLogoGenerationOutputSchema },
+    });
+    
+    if (!output) {
+        throw new Error("Logo refinement failed to produce output.");
     }
+    return output;
   }
 );

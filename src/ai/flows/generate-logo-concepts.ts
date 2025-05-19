@@ -53,7 +53,7 @@ const GenerateLogoConceptsInputSchema = z.object({
   competitorsToAvoid: z.string().optional().describe('Optional list of competitor brands to differentiate from.'),
   variationInstructions: z.string().optional().describe('Optional instructions on how the generated variations should differ (e.g., "emphasize different fonts for each").'),
   numberOfLogos: z.number().default(4).describe('Number of logos to generate'),
-  userApiKey: z.string().optional().describe('Optional user-provided Google AI API key.'),
+  userApiKey: z.string().optional().describe('User-provided Google AI API key. THIS IS REQUIRED FOR THE FLOW TO WORK.'),
   referenceImageDataUri: z.string().optional().describe("Optional reference image as a data URI that must include a MIME type and use Base64 encoding. Expected format: 'data:<mimetype>;base64,<encoded_data>'."),
 });
 
@@ -71,14 +71,19 @@ export async function generateLogoConcepts(
   return generateLogoConceptsFlow(input);
 }
 
+// This prompt object is primarily for schema definition and type inference.
+// The actual prompt text construction happens dynamically within the flow.
 const generateLogoConceptsPromptObject = ai.definePrompt({
-  name: 'generateLogoConceptsPrompt',
+  name: 'generateLogoConceptsPromptDefinition', // Renamed for clarity
   input: {
-    schema: GenerateLogoConceptsInputSchema.omit({ userApiKey: true }),
+    schema: GenerateLogoConceptsInputSchema.omit({ userApiKey: true }), // userApiKey not used in template
   },
   output: {
     schema: GenerateLogoConceptsOutputSchema,
   },
+  // This prompt template is NOT directly used for image generation in the flow.
+  // It's more of a conceptual guide or for other potential uses.
+  // The actual image prompt is constructed in `baseImagePromptText`.
   prompt: `Generate logo concepts for a business named "{{businessName}}" in the "{{industry}}" industry.
 
 The brand identity can be described using the following keywords: {{keywords}}.
@@ -86,61 +91,47 @@ The brand identity can be described using the following keywords: {{keywords}}.
 {{#if preferredColorPalette}}
 The preferred color palette is: {{preferredColorPalette}}.
 {{/if}}
-
 {{#if preferredLogoStyle}}
 The preferred logo style is: {{preferredLogoStyle}}.
 {{/if}}
-
 {{#if composition}}
 The preferred overall composition is: {{composition}}.
 {{/if}}
-
 {{#if iconPlacement}}
 The preferred icon placement is: {{iconPlacement}}.
 {{/if}}
-
 {{#if fontStyle}}
 The preferred font style is: {{fontStyle}}.
 {{/if}}
-
 {{#if iconComplexity}}
 The preferred icon complexity is: {{iconComplexity}}.
 {{/if}}
-
 {{#if iconSpecifics}}
 Specific details for the icon: {{iconSpecifics}}.
 {{/if}}
-
 {{#if targetAudience}}
 The target audience is: {{targetAudience}}.
 {{/if}}
-
 {{#if referenceImageDataUri}}
 A reference image (not shown in this text prompt but used in generation) has been provided to influence the design.
 {{/if}}
-
 {{#if inspirationReferences}}
 Inspiration references: {{inspirationReferences}}.
 {{/if}}
-
 {{#if usageContext}}
 The primary usage context is: {{usageContext}}.
 {{/if}}
-
 {{#if negativeKeywords}}
 Please avoid the following: {{negativeKeywords}}.
 {{/if}}
-
 {{#if competitorsToAvoid}}
 Differentiate from these competitors: {{competitorsToAvoid}}.
 {{/if}}
-
 {{#if variationInstructions}}
 Instructions for variations: {{variationInstructions}}.
 {{/if}}
 
 Generate the logo with a transparent background.
-
 Please generate {{numberOfLogos}} logo variations.
 Output array of URLs for generated images in the format { "logoUrls": ["url1", "url2", "url3", "url4"] }.
 `,
@@ -153,12 +144,13 @@ const generateLogoConceptsFlow = ai.defineFlow(
     outputSchema: GenerateLogoConceptsOutputSchema,
   },
   async (flowInput: GenerateLogoConceptsInput) => {
-    let currentAi = ai;
-    if (flowInput.userApiKey) {
-      currentAi = genkit({
-        plugins: [googleAI({ apiKey: flowInput.userApiKey })],
-      });
+    if (!flowInput.userApiKey) {
+      throw new Error("A Google AI API key is required to generate logos. Please add your key in the 'Use Your Own API Key' section.");
     }
+
+    const currentAi = genkit({
+      plugins: [googleAI({ apiKey: flowInput.userApiKey })],
+    });
 
     const logoUrls: string[] = [];
     let baseImagePromptText = `Logo concept for a business named "${flowInput.businessName}" in the "${flowInput.industry}" industry. Brand identity keywords: ${flowInput.keywords}.`;
@@ -223,10 +215,10 @@ const generateLogoConceptsFlow = ai.defineFlow(
 
       try {
         const genResponse = await currentAi.generate({
-          model: 'googleai/gemini-2.0-flash-exp',
+          model: 'googleai/gemini-2.0-flash-exp', // Must use this model for image generation
           prompt: finalPromptPayload,
           config: {
-            responseModalities: ['TEXT', 'IMAGE'],
+            responseModalities: ['TEXT', 'IMAGE'], // Must request both TEXT and IMAGE
           },
         });
 
@@ -234,9 +226,11 @@ const generateLogoConceptsFlow = ai.defineFlow(
           logoUrls.push(genResponse.media.url);
         } else {
           console.warn(`[generateLogoConceptsFlow] Image generation did not return a valid media URL for one concept. Prompt: "${JSON.stringify(finalPromptPayload)}"`);
+          // Optionally, push a placeholder or skip, depending on desired behavior
         }
       } catch (e) {
         console.error(`[generateLogoConceptsFlow] Error during image generation for prompt "${JSON.stringify(finalPromptPayload)}":`, e);
+        // Optionally, rethrow or handle to inform user of partial success/failure
       }
     }
     return {logoUrls: logoUrls};

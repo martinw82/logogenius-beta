@@ -28,7 +28,7 @@ export default function HomePage() {
   const [loadingFeedbackFor, setLoadingFeedbackFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expectedLogoCount, setExpectedLogoCount] = useState<number>(4);
-  const [userApiKey, setUserApiKey] = useState<string | null>(null);
+  const [userApiKey, setUserApiKey] = useState<string | null>(null); // For re-rendering ApiKeyInput if needed
   const [selectedLogoForBrandSheet, setSelectedLogoForBrandSheet] = useState<Logo | null>(null);
   const [brandGuideText, setBrandGuideText] = useState<GenerateBrandGuideTextOutput | null>(null);
   const [isGeneratingBrandText, setIsGeneratingBrandText] = useState(false);
@@ -79,10 +79,18 @@ export default function HomePage() {
     setExpectedLogoCount(aiInput.numberOfLogos || 4);
 
     const currentApiKey = getApiKey();
-    const finalInput: GenerateLogoConceptsInput = { ...aiInput };
-    if (currentApiKey) {
-      finalInput.userApiKey = currentApiKey;
+    if (!currentApiKey) {
+      setError("A Google AI API key is required. Please add your key in the 'Use Your Own API Key' section below.");
+      toast({
+        title: "API Key Required",
+        description: "Please add your Google AI API key to generate logos.",
+        variant: "destructive",
+      });
+      setIsLoading(false);
+      return;
     }
+
+    const finalInput: GenerateLogoConceptsInput = { ...aiInput, userApiKey: currentApiKey };
 
     try {
       const result = await generateLogoConcepts(finalInput);
@@ -129,6 +137,7 @@ export default function HomePage() {
             web3TokenSymbolIdea: aiInput.web3TokenSymbolIdea,
             web3CommunityValues: aiInput.web3CommunityValues,
             web3NftAesthetic: aiInput.web3NftAesthetic,
+            userApiKey: currentApiKey, // Storing userApiKey for potential re-use if needed, though flows re-require it
           },
           basePrompt: constructBasePrompt(aiInput),
         };
@@ -168,8 +177,19 @@ export default function HomePage() {
     setLoadingFeedbackFor(logoId);
     setError(null);
 
-    const { generationInput, basePrompt } = logoBatch;
     const currentApiKey = getApiKey();
+    if (!currentApiKey) {
+      setError("A Google AI API key is required for feedback. Please add your key in the 'Use Your Own API Key' section below.");
+      toast({
+        title: "API Key Required",
+        description: "Please add your Google AI API key to submit feedback.",
+        variant: "destructive",
+      });
+      setLoadingFeedbackFor(null);
+      return;
+    }
+
+    const { generationInput, basePrompt } = logoBatch;
 
     const refineInput: RefineLogoGenerationInput = {
       businessName: generationInput.businessName,
@@ -191,11 +211,8 @@ export default function HomePage() {
       referenceImageDataUri: generationInput.referenceImageDataUri,
       feedback: feedbackType,
       previousPrompt: basePrompt,
+      userApiKey: currentApiKey,
     };
-
-    if (currentApiKey) {
-      refineInput.userApiKey = currentApiKey;
-    }
 
     try {
       const refinedResult = await refineLogoGeneration(refineInput);
@@ -232,8 +249,19 @@ export default function HomePage() {
       setIsGeneratingBrandText(false);
       return;
     }
-    const { generationInput } = logoBatch;
+
     const currentApiKey = getApiKey();
+    if (!currentApiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please add your Google AI API key to generate brand narrative.",
+        variant: "destructive",
+      });
+      setIsGeneratingBrandText(false);
+      return;
+    }
+
+    const { generationInput } = logoBatch;
 
     const brandTextGenInput: GenerateBrandGuideTextInput = {
       businessName: generationInput.businessName,
@@ -246,11 +274,8 @@ export default function HomePage() {
       brandPillars: generationInput.brandPillars,
       brandArchetype: generationInput.brandArchetype,
       keyTagline: generationInput.keyTagline,
+      userApiKey: currentApiKey,
     };
-
-    if (currentApiKey) {
-      brandTextGenInput.userApiKey = currentApiKey;
-    }
 
     try {
       const result = await generateBrandGuideText(brandTextGenInput);
@@ -280,7 +305,6 @@ export default function HomePage() {
     <div className="min-h-screen flex flex-col">
       <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
         <PageHeader
-          title="LogoGenius"
           description="Let AI craft the perfect logo for your brand. Describe your vision, and watch concepts come to life."
           imageUrl="/logogenius-logo.png"
           imageAlt="LogoGenius App Logo"
@@ -300,9 +324,9 @@ export default function HomePage() {
             <p>
               Simply describe your brand and vision in the form below, and our AI will generate unique logo concepts and foundational brand narratives to kickstart your project.
             </p>
-            <p>
-              <Zap className="w-4 h-4 inline-block mr-1 text-blue-500" /> 
-              For uninterrupted or extended use, you can add your own Google AI API key in the "Use Your Own API Key" section at the bottom of this page. This will utilize your personal quota.
+            <p className="font-semibold text-destructive">
+              <Zap className="w-4 h-4 inline-block mr-1 text-destructive" /> 
+              IMPORTANT: You MUST provide your own Google AI API key in the "Use Your Own API Key" section at the bottom of this page for AI features to work.
             </p>
           </CardContent>
         </Card>
@@ -345,3 +369,4 @@ export default function HomePage() {
     </div>
   );
 }
+
