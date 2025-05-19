@@ -9,8 +9,8 @@
  */
 
 import {ai} from '@/ai/genkit';
-import { genkit } from 'genkit'; // Import genkit
-import { googleAI } from '@genkit-ai/googleai'; // Import googleAI
+import { genkit } from 'genkit';
+import { googleAI } from '@genkit-ai/googleai';
 import {z} from 'genkit';
 
 const GenerateBrandGuideTextInputSchema = z.object({
@@ -83,13 +83,12 @@ Return ONLY the generated text for these sections in the specified JSON output f
 `;
 
 // This prompt object is for schema definition and type inference.
-// Not directly used for execution if userApiKey is always required.
 const globallyDefinedBrandGuidePromptForSchema = ai.definePrompt({
-  name: 'generateBrandGuideTextPromptDefinition', // Renamed
+  name: 'generateBrandGuideTextPromptDefinition',
   input: {schema: GenerateBrandGuideTextInputSchema.omit({ userApiKey: true, selectedLogoUrl: true })},
   output: {schema: GenerateBrandGuideTextOutputSchema},
   prompt: BRAND_GUIDE_TEXT_PROMPT_TEMPLATE,
-  model: 'googleai/gemini-2.0-flash', // Specify model for schema association
+  model: 'googleai/gemini-2.0-flash',
 });
 
 const generateBrandGuideTextFlow = ai.defineFlow(
@@ -103,11 +102,10 @@ const generateBrandGuideTextFlow = ai.defineFlow(
       throw new Error("A Google AI API key is required to generate brand guide text. Please add your key in the 'Use Your Own API Key' section.");
     }
 
-    // Use ai.withConfig for a temporary, one-off configuration with the user's key.
-    // This is cleaner if the base `ai` object from `genkit.ts` is already minimally set up.
-    const userSpecificAi = ai.withConfig({
-        plugins: [ai.registry.plugin('googleai')!({apiKey: flowInput.userApiKey})],
-      });
+    // Create a new Genkit instance configured with the user's API key
+    const currentAi = genkit({
+      plugins: [googleAI({ apiKey: flowInput.userApiKey })],
+    });
 
     const templateData: Omit<GenerateBrandGuideTextInput, 'userApiKey' | 'selectedLogoUrl'> = {
       businessName: flowInput.businessName,
@@ -121,7 +119,7 @@ const generateBrandGuideTextFlow = ai.defineFlow(
       keyTagline: flowInput.keyTagline,
     };
 
-    const { output } = await userSpecificAi.generate({
+    const { output } = await currentAi.generate({
         prompt: BRAND_GUIDE_TEXT_PROMPT_TEMPLATE, 
         input: templateData,                      
         model: 'googleai/gemini-2.0-flash',      
