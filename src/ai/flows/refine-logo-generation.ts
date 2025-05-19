@@ -87,14 +87,14 @@ const REFINE_PROMPT_HANDLEBARS_TEMPLATE = `You are an AI logo generation expert.
   Return ONLY the refined text prompt.
   `;
 
-// Note: globallyDefinedPrompt is not used for execution if userApiKey is always required.
-// It can still be useful for schema definition if this flow were to be called from other Genkit tools.
+// Note: globallyDefinedPromptForSchema is primarily for schema definition and type inference.
+// The model is not specified here to avoid issues with global AI instance on Vercel.
 const globallyDefinedPromptForSchema = ai.definePrompt({
-  name: 'refineLogoGenerationPromptDefinition', // Renamed for clarity
-  input: {schema: RefineLogoGenerationInputSchema.omit({ userApiKey: true })}, // userApiKey not part of template
+  name: 'refineLogoGenerationPromptDefinition',
+  input: {schema: RefineLogoGenerationInputSchema.omit({ userApiKey: true })},
   output: {schema: RefineLogoGenerationOutputSchema},
   prompt: REFINE_PROMPT_HANDLEBARS_TEMPLATE,
-  model: 'googleai/gemini-2.0-flash', // Specify model for schema association
+  // model: 'googleai/gemini-2.0-flash', // Removed to avoid Vercel issue with global keyless AI
 });
 
 const refineLogoGenerationFlow = ai.defineFlow(

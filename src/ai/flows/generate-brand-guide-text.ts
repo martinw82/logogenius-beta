@@ -83,12 +83,13 @@ Return ONLY the generated text for these sections in the specified JSON output f
 `;
 
 // This prompt object is for schema definition and type inference.
+// The model is not specified here to avoid issues with global AI instance on Vercel.
 const globallyDefinedBrandGuidePromptForSchema = ai.definePrompt({
   name: 'generateBrandGuideTextPromptDefinition',
   input: {schema: GenerateBrandGuideTextInputSchema.omit({ userApiKey: true, selectedLogoUrl: true })},
   output: {schema: GenerateBrandGuideTextOutputSchema},
   prompt: BRAND_GUIDE_TEXT_PROMPT_TEMPLATE,
-  model: 'googleai/gemini-2.0-flash',
+  // model: 'googleai/gemini-2.0-flash', // Removed to avoid Vercel issue with global keyless AI
 });
 
 const generateBrandGuideTextFlow = ai.defineFlow(
