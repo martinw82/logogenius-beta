@@ -5,7 +5,7 @@ import { useState, useEffect, useRef } from "react";
 import { LogoForm } from "@/components/logo-form";
 import { LogoGallery } from "@/components/logo-gallery";
 import { PageHeader } from "@/components/page-header";
-import { BrandGuideDisplay } from "@/components/brand-guide-display"; // Changed from BrandSheet
+import { BrandGuideDisplay } from "@/components/brand-guide-display";
 import type { Logo, LogoBatch } from "@/types";
 import type { GenerateLogoConceptsInput } from "@/ai/flows/generate-logo-concepts";
 import { generateLogoConcepts } from "@/ai/flows/generate-logo-concepts";
@@ -14,8 +14,10 @@ import { refineLogoGeneration } from "@/ai/flows/refine-logo-generation";
 import { useToast } from "@/hooks/use-toast";
 import { constructBasePrompt, uuidv4 } from "@/lib/utils";
 import { ApiKeyInput } from "@/components/api-key-input";
-import type { GenerateBrandGuideTextOutput, GenerateBrandGuideTextInput } from "@/ai/flows/generate-brand-guide-text"; // Import new types
-import { generateBrandGuideText } from "@/ai/flows/generate-brand-guide-text"; // Import new flow
+import type { GenerateBrandGuideTextOutput, GenerateBrandGuideTextInput } from "@/ai/flows/generate-brand-guide-text";
+import { generateBrandGuideText } from "@/ai/flows/generate-brand-guide-text";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Info, Zap } from "lucide-react";
 
 const API_KEY_STORAGE_KEY = "userGoogleApiKey";
 
@@ -88,15 +90,25 @@ export default function HomePage() {
         const newLogoBatch: LogoBatch = {
           id: uuidv4(),
           logos: result.logoUrls.map(url => ({ id: uuidv4(), url })),
-          generationInput: { // Store all inputs, including new ones for brand guide
+          generationInput: { 
             businessName: aiInput.businessName,
             industry: aiInput.industry,
             keywords: aiInput.keywords,
             preferredColorPalette: aiInput.preferredColorPalette,
+            primaryColors: aiInput.primaryColors,
+            secondaryColors: aiInput.secondaryColors,
+            accentColors: aiInput.accentColors,
+            colorPaletteMood: aiInput.colorPaletteMood,
             preferredLogoStyle: aiInput.preferredLogoStyle,
             composition: aiInput.composition,
             iconPlacement: aiInput.iconPlacement,
             fontStyle: aiInput.fontStyle,
+            fontHeadings: aiInput.fontHeadings,
+            useHeadingsFontForLogo: aiInput.useHeadingsFontForLogo,
+            fontBody: aiInput.fontBody,
+            useBodyFontForLogo: aiInput.useBodyFontForLogo,
+            fontOther: aiInput.fontOther,
+            useOtherFontForLogo: aiInput.useOtherFontForLogo,
             iconComplexity: aiInput.iconComplexity,
             iconSpecifics: aiInput.iconSpecifics,
             targetAudience: aiInput.targetAudience,
@@ -107,11 +119,16 @@ export default function HomePage() {
             variationInstructions: aiInput.variationInstructions,
             numberOfLogos: aiInput.numberOfLogos,
             referenceImageDataUri: aiInput.referenceImageDataUri,
-            // new fields
             missionStatement: aiInput.missionStatement,
             brandPillars: aiInput.brandPillars,
             brandArchetype: aiInput.brandArchetype,
             keyTagline: aiInput.keyTagline,
+            web3BlockchainFocus: aiInput.web3BlockchainFocus,
+            web3ProjectType: aiInput.web3ProjectType,
+            web3EnsDomainIdeas: aiInput.web3EnsDomainIdeas,
+            web3TokenSymbolIdea: aiInput.web3TokenSymbolIdea,
+            web3CommunityValues: aiInput.web3CommunityValues,
+            web3NftAesthetic: aiInput.web3NftAesthetic,
           },
           basePrompt: constructBasePrompt(aiInput),
         };
@@ -208,7 +225,7 @@ export default function HomePage() {
 
   const handleSelectLogoForDisplay = async (logo: Logo) => {
     setSelectedLogoForBrandSheet(logo);
-    setBrandGuideText(null); // Clear previous text
+    setBrandGuideText(null); 
     setIsGeneratingBrandText(true);
 
     if (!logoBatch) {
@@ -268,6 +285,27 @@ export default function HomePage() {
           imageUrl="/logogenius-logo.png"
           imageAlt="LogoGenius App Logo"
         />
+
+        <Card className="mb-8 bg-primary/5 border-primary/20 shadow-sm">
+          <CardHeader>
+            <CardTitle className="flex items-center text-lg font-semibold text-primary">
+              <Info className="w-5 h-5 mr-2" />
+              Welcome to LogoGenius!
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="text-sm text-foreground/80 space-y-2">
+            <p>
+              <span className="font-semibold text-amber-600 dark:text-amber-400">BETA NOTICE:</span> LogoGenius is currently in beta. We're actively developing new features and refining existing ones. Your feedback is invaluable!
+            </p>
+            <p>
+              Simply describe your brand and vision in the form below, and our AI will generate unique logo concepts and foundational brand narratives to kickstart your project.
+            </p>
+            <p>
+              <Zap className="w-4 h-4 inline-block mr-1 text-blue-500" /> 
+              For uninterrupted or extended use, you can add your own Google AI API key in the "Use Your Own API Key" section at the bottom of this page. This will utilize your personal quota.
+            </p>
+          </CardContent>
+        </Card>
 
         <LogoForm onSubmit={handleGenerateLogos} isLoading={isLoading} />
 
