@@ -4,7 +4,7 @@
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import type { LogoFormData, ExtendedLogoGenerationInputs } from "./logo-form-types";
-import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData, colorPaletteMoods, CLEAR_MOOD_VALUE, commonFontList, NONE_VALUE } from "./logo-form-types"; 
+import { logoFormSchema, mapFormDataToAiInput, brandArchetypes, colorPaletteMoodsData, CLEAR_MOOD_VALUE, commonFontList, NONE_VALUE } from "./logo-form-types"; 
 import { useToast } from "@/hooks/use-toast";
 import React from "react";
 
@@ -50,8 +50,10 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette as PaletteIconLucide, Feather, MessageSquare, ShieldAlert, SlidersHorizontal, BrainCircuit, Paintbrush, Type, Activity, HelpCircle, GlobeLock } from "lucide-react";
+import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronDown, Settings, BookOpen, Palette as PaletteIconLucide, Feather, MessageSquare, SlidersHorizontal, BrainCircuit, Paintbrush, Type, GlobeLock, SparklesIcon, HelpCircle } from "lucide-react";
 import { BrandArchetypeQuiz } from "./brand-archetype-quiz";
+import type { SuggestFormDetailsOutput } from "@/ai/flows/suggest-form-details";
+import { suggestFormDetails } from "@/ai/flows/suggest-form-details";
 
 
 interface LogoFormProps {
@@ -74,6 +76,7 @@ const web3ProjectTypeOptions = [
 export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) {
   const { toast } = useToast();
   const [isQuizDialogOpen, setIsQuizDialogOpen] = React.useState(false);
+  const [isAiFilling, setIsAiFilling] = React.useState(false);
 
   const form = useForm<LogoFormData>({
     resolver: zodResolver(logoFormSchema),
@@ -130,22 +133,21 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
   };
 
   const handleQuizComplete = (archetype: string, analysis: string, selectedMoodName?: string) => {
-    form.setValue('brandArchetype', archetype as (typeof brandArchetypes)[number], { shouldValidate: true });
+    form.setValue('brandArchetype', archetype as any, { shouldValidate: true });
 
     let toastMessage = `Your "Brand Archetype" field has been updated to ${archetype}.`;
     if (analysis) { 
         toastMessage += ` ${analysis}`;
     }
 
-
     if (selectedMoodName) {
       const moodData = colorPaletteMoodsData.find(m => m.name === selectedMoodName);
       if (moodData) {
-        form.setValue('colorPaletteMood', moodData.name as (typeof colorPaletteMoods)[number], { shouldValidate: true });
+        form.setValue('colorPaletteMood', moodData.name as any, { shouldValidate: true });
         form.setValue("primaryColors", moodData.primary, { shouldValidate: true });
         form.setValue("secondaryColors", moodData.secondary, { shouldValidate: true });
         form.setValue("accentColors", moodData.accent, { shouldValidate: true });
-        toastMessage += ` The color palette mood has been set to "${selectedMoodName}" and colors have been pre-filled.`;
+        toastMessage += ` The color palette mood "${selectedMoodName}" and its colors have been applied.`;
       }
     }
 
@@ -289,6 +291,109 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
     reader.readAsText(file);
   };
 
+  const handleAiFillForm = async () => {
+    const businessName = form.getValues("businessName");
+    const industry = form.getValues("industry");
+
+    if (!businessName || !industry) {
+      toast({
+        title: "Missing Information",
+        description: "Please fill in Business Name and Industry before using AI Fill.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const userApiKey = typeof window !== 'undefined' ? localStorage.getItem("userGoogleApiKey") : undefined;
+    if (!userApiKey) {
+      toast({
+        title: "API Key Required",
+        description: "Please add your Google AI API key in the 'Use Your Own API Key' section to use AI Fill.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAiFilling(true);
+    try {
+      const suggestions: SuggestFormDetailsOutput | undefined = await suggestFormDetails({
+        businessName,
+        industry,
+        userApiKey,
+      });
+
+      if (!suggestions) {
+        console.error("AI suggestions returned undefined without throwing an error.");
+        toast({
+          title: "AI Fill Failed",
+          description: "Received no suggestions from the AI. Please try again.",
+          variant: "destructive",
+        });
+        setIsAiFilling(false);
+        return;
+      }
+      
+      if (suggestions.aestheticKeywords) form.setValue('aestheticKeywords', suggestions.aestheticKeywords);
+      if (suggestions.emotionalKeywords) form.setValue('emotionalKeywords', suggestions.emotionalKeywords);
+      if (suggestions.functionalKeywords) form.setValue('functionalKeywords', suggestions.functionalKeywords);
+      if (suggestions.primaryColors) form.setValue('primaryColors', suggestions.primaryColors);
+      if (suggestions.secondaryColors) form.setValue('secondaryColors', suggestions.secondaryColors);
+      if (suggestions.accentColors) form.setValue('accentColors', suggestions.accentColors);
+      if (suggestions.fontStyle) form.setValue('fontStyle', suggestions.fontStyle);
+      if (suggestions.targetAudience) form.setValue('targetAudience', suggestions.targetAudience);
+      if (suggestions.keyTagline) form.setValue('keyTagline', suggestions.keyTagline);
+      if (suggestions.missionStatement) form.setValue('missionStatement', suggestions.missionStatement);
+      if (suggestions.brandPillars) form.setValue('brandPillars', suggestions.brandPillars);
+
+      if (suggestions.preferredLogoStyle) {
+        const validStyles = logoFormSchema.shape.preferredLogoStyle._def.innerType._def.values;
+        if (validStyles.includes(suggestions.preferredLogoStyle)) {
+          form.setValue('preferredLogoStyle', suggestions.preferredLogoStyle as any);
+        } else {
+          console.warn(`AI suggested invalid logo style: ${suggestions.preferredLogoStyle}. User can select from dropdown using AI description as guide.`);
+        }
+      }
+
+      if (suggestions.brandArchetype) {
+        let archetypeToSet = suggestions.brandArchetype;
+        const directMatch = brandArchetypes.find(ba => ba === suggestions.brandArchetype);
+        if (!directMatch) {
+            const prefixedMatch = brandArchetypes.find(ba => ba.toLowerCase() === `the ${suggestions.brandArchetype?.toLowerCase()}`);
+            if (prefixedMatch) archetypeToSet = prefixedMatch;
+        }
+        
+        if (brandArchetypes.includes(archetypeToSet as any)) {
+          form.setValue('brandArchetype', archetypeToSet as any);
+        } else {
+          console.warn(`AI suggested invalid brand archetype: ${suggestions.brandArchetype}. User can select from dropdown using AI description as guide.`);
+        }
+      }
+      
+      toast({
+        title: "AI Suggestions Applied!",
+        description: (
+          <div>
+            <p>The form has been updated with AI suggestions. Please review and adjust as needed.</p>
+            {suggestions.colorPaletteMoodDescription && <p className="mt-2 text-xs italic">AI Color Mood Idea: "{suggestions.colorPaletteMoodDescription}"</p>}
+            {suggestions.preferredLogoStyle && !logoFormSchema.shape.preferredLogoStyle._def.innerType._def.values.includes(suggestions.preferredLogoStyle) && <p className="mt-1 text-xs text-amber-600">AI suggested logo style "{suggestions.preferredLogoStyle}" - please select a similar option from the dropdown.</p>}
+            {suggestions.brandArchetype && !brandArchetypes.includes(suggestions.brandArchetype as any) && !brandArchetypes.includes(`The ${suggestions.brandArchetype}` as any) && <p className="mt-1 text-xs text-amber-600">AI suggested brand archetype "{suggestions.brandArchetype}" - please select a similar option from the dropdown.</p>}
+          </div>
+        ),
+        duration: 7000,
+      });
+
+    } catch (error) {
+      console.error("Error during AI form fill:", error);
+      toast({
+        title: "AI Fill Failed",
+        description: error instanceof Error ? error.message : "An unknown error occurred.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAiFilling(false);
+    }
+  };
+
 
   return (
     <Card className="w-full max-w-2xl mx-auto shadow-xl">
@@ -334,6 +439,25 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                       </FormItem>
                     )}
                   />
+                   <div className="pt-2">
+                    <Button 
+                      type="button" 
+                      onClick={handleAiFillForm} 
+                      disabled={isAiFilling || !form.watch("businessName") || !form.watch("industry")}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      {isAiFilling ? (
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      ) : (
+                        <SparklesIcon className="w-4 h-4 mr-2" />
+                      )}
+                      AI Fill Remaining Fields (Beta)
+                    </Button>
+                    <FormDescription className="text-center mt-2 text-xs">
+                        Requires Business Name, Industry, and your API key to be set.
+                    </FormDescription>
+                  </div>
                   <FormField
                     control={form.control}
                     name="targetAudience"
@@ -423,7 +547,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                                 Take Quiz
                               </Button>
                             </DialogTrigger>
-                            <DialogContent className="sm:max-w-lg md:max-w-xl lg:max-w-2xl max-h-[90vh] overflow-y-auto">
+                            <DialogContent className="sm:max-w-lg md:max-w-xl lg:max-w-2xl">
                                 <DialogHeader>
                                   <DialogTitle>Brand Archetype Discovery Quiz</DialogTitle>
                                   <DialogDescription>
@@ -531,11 +655,11 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                 <AccordionContent className="pt-4 space-y-6">
                     <div className="space-y-2 mb-4">
                         <h3 className="text-sm font-medium flex items-center gap-1.5">
-                        <Paintbrush className="w-4 h-4 text-muted-foreground" />
-                        Logo Color Palette Input
+                          <Paintbrush className="w-4 h-4 text-muted-foreground" />
+                          Logo Color Palette Input
                         </h3>
                     </div>
-                    <FormField
+                     <FormField
                         control={form.control}
                         name="colorPaletteMood"
                         render={({ field }) => (
@@ -544,7 +668,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                             <Select 
                               onValueChange={(value) => {
                                 if (value === CLEAR_MOOD_VALUE) {
-                                  field.onChange(''); // Set mood to empty string for RHF
+                                  field.onChange(''); 
                                 } else {
                                   field.onChange(value); 
                                   const selectedMoodData = colorPaletteMoodsData.find(m => m.name === value);
@@ -569,7 +693,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                                   ))}
                               </SelectContent>
                             </Select>
-                            <FormDescription>Describes the overall feeling of the brand's color scheme. Selecting a mood pre-fills colors below. Select "No specific mood" to clear.</FormDescription>
+                            <FormDescription>Describes the overall feeling of the brand's color scheme. Selecting a mood pre-fills colors below.</FormDescription>
                             <FormMessage />
                         </FormItem>
                         )}
@@ -598,7 +722,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                                 />
                             </FormControl>
                             </div>
-                            <FormDescription>Specify the main color for your logo.</FormDescription>
+                            <FormDescription>Specify the main color for your logo. (e.g., name or hex)</FormDescription>
                             <FormMessage />
                         </FormItem>
                         )}
@@ -679,7 +803,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                               <SelectItem value="wordmark">Wordmark: Text-only, stylized typography</SelectItem>
                               <SelectItem value="lettermark">Lettermark: Initials or monogram</SelectItem>
                               <SelectItem value="combination">Combination Mark: Icon + Text, integrated</SelectItem>
-                              <SelectItem value="emblem">Emblem: Text inside a symbol/badge, traditional</SelectItem>
+                              <SelectItem value="emblem">Emblem: Badge-like, detailed</SelectItem>
                               <SelectItem value="abstract">Abstract Mark: Unique, conceptual shape</SelectItem>
                               <SelectItem value="mascot">Mascot: Illustrated character</SelectItem>
                               <SelectItem value="minimalist">Minimalist: Simple forms, clean lines</SelectItem>
@@ -1279,11 +1403,11 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
             </div>
 
 
-            <Button type="submit" className="w-full !mt-8" disabled={isLoading}>
+            <Button type="submit" className="w-full !mt-8" disabled={isLoading || isAiFilling}>
               {isLoading ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating...
+                  Generating Logos...
                 </>
               ) : (
                 "Generate Logos & Brand Narrative"
@@ -1296,3 +1420,4 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
   );
 }
 
+    
