@@ -12,7 +12,7 @@ import {ai} from '@/ai/genkit';
 import { genkit } from 'genkit';
 import { googleAI } from '@genkit-ai/googleai';
 import {z} from 'genkit';
-import { brandArchetypes, colorPaletteMoodsData, logoFormSchema, NONE_VALUE } from '@/components/logo-form-types';
+import { brandArchetypes, colorPaletteMoodsData, NONE_VALUE } from '@/components/logo-form-types'; // Removed logoFormSchema import for this flow
 
 const SuggestFormDetailsInputSchema = z.object({
   businessName: z.string().describe('The name of the business.'),
@@ -57,8 +57,14 @@ const suggestFormDetailsFlow = ai.defineFlow(
       throw new Error("A Google AI API key is required to suggest form details. Please add your key in the 'Use Your Own API Key' section.");
     }
 
-    // Prepare enum lists for the prompt - moved inside the flow
-    const availableLogoStyles = logoFormSchema.shape.preferredLogoStyle._def.innerType._def.innerType._def.values.filter((v: string) => v && v !== NONE_VALUE && v !== '').join(', ');
+    // Statically define available logo styles for the prompt
+    const staticLogoStyles = [
+      'logomark', 'wordmark', 'lettermark', 'combination', 
+      'emblem', 'abstract', 'mascot', 'minimalist'
+    ];
+    const availableLogoStyles = staticLogoStyles.join(', ');
+    
+    // Filter imported brandArchetypes (this should be safe as brandArchetypes is a simple array)
     const availableBrandArchetypes = brandArchetypes.filter((v: string) => v && v !== NONE_VALUE && v !== '').join(', ');
 
     const SUGGEST_FORM_PROMPT_TEMPLATE = `
@@ -118,4 +124,3 @@ Return ONLY the suggestions in the specified JSON output format. Ensure values f
     return output;
   }
 );
-
