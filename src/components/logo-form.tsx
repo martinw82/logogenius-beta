@@ -323,10 +323,10 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       });
 
       if (!suggestions) {
-        console.error("AI suggestions returned undefined without throwing an error.");
+        console.error("AI suggestions returned undefined or null without throwing an error.");
         toast({
           title: "AI Fill Failed",
-          description: "Received no suggestions from the AI. Please try again.",
+          description: "Received no suggestions from the AI. Please try again or check your API key.",
           variant: "destructive",
         });
         setIsAiFilling(false);
@@ -346,7 +346,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       if (suggestions.brandPillars) form.setValue('brandPillars', suggestions.brandPillars);
 
       if (suggestions.preferredLogoStyle) {
-        const validStyles = logoFormSchema.shape.preferredLogoStyle._def.innerType._def.values;
+        const validStyles = logoFormSchema.shape.preferredLogoStyle._def.innerType._def.innerType._def.values;
         if (validStyles.includes(suggestions.preferredLogoStyle)) {
           form.setValue('preferredLogoStyle', suggestions.preferredLogoStyle as any);
         } else {
@@ -356,6 +356,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
 
       if (suggestions.brandArchetype) {
         let archetypeToSet = suggestions.brandArchetype;
+        // Attempt to match "The Archetype" or "Archetype"
         const directMatch = brandArchetypes.find(ba => ba === suggestions.brandArchetype);
         if (!directMatch) {
             const prefixedMatch = brandArchetypes.find(ba => ba.toLowerCase() === `the ${suggestions.brandArchetype?.toLowerCase()}`);
@@ -375,7 +376,7 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
           <div>
             <p>The form has been updated with AI suggestions. Please review and adjust as needed.</p>
             {suggestions.colorPaletteMoodDescription && <p className="mt-2 text-xs italic">AI Color Mood Idea: "{suggestions.colorPaletteMoodDescription}"</p>}
-            {suggestions.preferredLogoStyle && !logoFormSchema.shape.preferredLogoStyle._def.innerType._def.values.includes(suggestions.preferredLogoStyle) && <p className="mt-1 text-xs text-amber-600">AI suggested logo style "{suggestions.preferredLogoStyle}" - please select a similar option from the dropdown.</p>}
+            {suggestions.preferredLogoStyle && !logoFormSchema.shape.preferredLogoStyle._def.innerType._def.innerType._def.values.includes(suggestions.preferredLogoStyle) && <p className="mt-1 text-xs text-amber-600">AI suggested logo style "{suggestions.preferredLogoStyle}" - please select a similar option from the dropdown.</p>}
             {suggestions.brandArchetype && !brandArchetypes.includes(suggestions.brandArchetype as any) && !brandArchetypes.includes(`The ${suggestions.brandArchetype}` as any) && <p className="mt-1 text-xs text-amber-600">AI suggested brand archetype "{suggestions.brandArchetype}" - please select a similar option from the dropdown.</p>}
           </div>
         ),

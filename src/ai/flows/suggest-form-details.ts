@@ -30,10 +30,10 @@ const SuggestFormDetailsOutputSchema = z.object({
   secondaryColors: z.string().optional().describe("Suggest 1-2 secondary colors. E.g., Light Grey, #D3D3D3"),
   accentColors: z.string().optional().describe("Suggest 1 accent color. E.g., Bright Yellow, #FFFF00"),
   colorPaletteMoodDescription: z.string().optional().describe("Describe an overall mood for the suggested colors. E.g., 'A vibrant and energetic feel' or 'Calm and trustworthy'. This helps user pick from mood dropdown."),
-  preferredLogoStyle: z.string().optional().describe(`Suggest one style from a list of common logo styles (e.g., logomark, wordmark, minimalist, emblem).`), // Description updated to be generic
+  preferredLogoStyle: z.string().optional().describe(`Suggest one style from a list of common logo styles (e.g., logomark, wordmark, minimalist, emblem).`), 
   fontStyle: z.string().optional().describe("Suggest a font style for the logo. E.g., Clean sans-serif, Modern script, Geometric"),
   targetAudience: z.string().optional().describe("Suggest a brief target audience description."),
-  brandArchetype: z.string().optional().describe(`Suggest one archetype from a list of common brand archetypes (e.g., The Hero, The Sage, The Innocent).`), // Description updated to be generic
+  brandArchetype: z.string().optional().describe(`Suggest one archetype from a list of common brand archetypes (e.g., The Hero, The Sage, The Innocent).`), 
   keyTagline: z.string().optional().describe("Suggest a concise and catchy tagline."),
   missionStatement: z.string().optional().describe("Suggest a brief mission statement (1-2 sentences)."),
   brandPillars: z.string().optional().describe("Suggest 3-5 comma-separated brand pillars. E.g., Innovation, Trust, Community"),
@@ -106,6 +106,8 @@ Return ONLY the suggestions in the specified JSON output format. Ensure values f
         safetySettings: [ 
             { category: 'HARM_CATEGORY_HARASSMENT', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
             { category: 'HARM_CATEGORY_HATE_SPEECH', threshold: 'BLOCK_MEDIUM_AND_ABOVE' },
+            { category: 'HARM_CATEGORY_DANGEROUS_CONTENT', threshold: 'BLOCK_ONLY_HIGH' },
+            { category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT', threshold: 'BLOCK_ONLY_HIGH' },
         ]
       }
     });
