@@ -151,7 +151,12 @@ export default function LandingPage() {
             >
               <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5">
                 <div className="flex items-center justify-center h-full text-muted-foreground">
-                  <p className="font-medium">LogoGenius App Screenshot</p>
+                  <p className="font-medium">   <Image
+              src="/logogenius-screenshot.png"
+              alt="LogoGenius Screenshot"
+              layout="fill"
+              objectFit="contain"
+            /></p>
                 </div>
               </div>
             </motion.div>
