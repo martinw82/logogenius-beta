@@ -1,372 +1,299 @@
-
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { LogoForm } from "@/components/logo-form";
-import { LogoGallery } from "@/components/logo-gallery";
-import { PageHeader } from "@/components/page-header";
-import { BrandGuideDisplay } from "@/components/brand-guide-display";
-import type { Logo, LogoBatch } from "@/types";
-import type { GenerateLogoConceptsInput } from "@/ai/flows/generate-logo-concepts";
-import { generateLogoConcepts } from "@/ai/flows/generate-logo-concepts";
-import type { RefineLogoGenerationInput } from "@/ai/flows/refine-logo-generation";
-import { refineLogoGeneration } from "@/ai/flows/refine-logo-generation";
-import { useToast } from "@/hooks/use-toast";
-import { constructBasePrompt, uuidv4 } from "@/lib/utils";
-import { ApiKeyInput } from "@/components/api-key-input";
-import type { GenerateBrandGuideTextOutput, GenerateBrandGuideTextInput } from "@/ai/flows/generate-brand-guide-text";
-import { generateBrandGuideText } from "@/ai/flows/generate-brand-guide-text";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Info, Zap } from "lucide-react";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Laptop, Palette, Sparkles, Zap, Users, BrainCircuit, MousePointer, PenTool, Hexagon } from "lucide-react";
 
-const API_KEY_STORAGE_KEY = "userGoogleApiKey";
-
-
-export default function HomePage() {
-  const [logoBatch, setLogoBatch] = useState<LogoBatch | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
-  const [loadingFeedbackFor, setLoadingFeedbackFor] = useState<string | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [expectedLogoCount, setExpectedLogoCount] = useState<number>(4);
-  const [userApiKey, setUserApiKey] = useState<string | null>(null); // For re-rendering ApiKeyInput if needed
-  const [selectedLogoForBrandSheet, setSelectedLogoForBrandSheet] = useState<Logo | null>(null);
-  const [brandGuideText, setBrandGuideText] = useState<GenerateBrandGuideTextOutput | null>(null);
-  const [isGeneratingBrandText, setIsGeneratingBrandText] = useState(false);
-
-  const brandSheetRef = useRef<HTMLDivElement>(null);
-
-
-  useEffect(() => {
-    const storedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
-    if (storedApiKey) {
-      setUserApiKey(storedApiKey);
-    }
-
-    const handleStorageChange = (event: StorageEvent) => {
-      if (event.key === API_KEY_STORAGE_KEY) {
-        setUserApiKey(event.newValue);
-      }
-    };
-    window.addEventListener('storage', handleStorageChange);
-    return () => {
-      window.removeEventListener('storage', handleStorageChange);
-    };
-  }, []);
-
-
-  const { toast } = useToast();
-
-  const getApiKey = (): string | undefined => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem(API_KEY_STORAGE_KEY) || undefined;
-    }
-    return undefined;
-  };
-
-  const handleGenerateLogos = async (
-    aiInput: GenerateLogoConceptsInput & {
-      missionStatement?: string;
-      brandPillars?: string;
-      brandArchetype?: string;
-      keyTagline?: string;
-    }
-  ) => {
-    setIsLoading(true);
-    setError(null);
-    setLogoBatch(null);
-    setSelectedLogoForBrandSheet(null);
-    setBrandGuideText(null);
-    setExpectedLogoCount(aiInput.numberOfLogos || 4);
-
-    const currentApiKey = getApiKey();
-    if (!currentApiKey) {
-      setError("A Google AI API key is required. Please add your key in the 'Use Your Own API Key' section below.");
-      toast({
-        title: "API Key Required",
-        description: "Please add your Google AI API key to generate logos.",
-        variant: "destructive",
-      });
-      setIsLoading(false);
-      return;
-    }
-
-    const finalInput: GenerateLogoConceptsInput = { ...aiInput, userApiKey: currentApiKey };
-
-    try {
-      const result = await generateLogoConcepts(finalInput);
-      if (result.logoUrls && result.logoUrls.length > 0) {
-        const newLogoBatch: LogoBatch = {
-          id: uuidv4(),
-          logos: result.logoUrls.map(url => ({ id: uuidv4(), url })),
-          generationInput: { 
-            businessName: aiInput.businessName,
-            industry: aiInput.industry,
-            keywords: aiInput.keywords,
-            preferredColorPalette: aiInput.preferredColorPalette,
-            primaryColors: aiInput.primaryColors,
-            secondaryColors: aiInput.secondaryColors,
-            accentColors: aiInput.accentColors,
-            colorPaletteMood: aiInput.colorPaletteMood,
-            preferredLogoStyle: aiInput.preferredLogoStyle,
-            composition: aiInput.composition,
-            iconPlacement: aiInput.iconPlacement,
-            fontStyle: aiInput.fontStyle,
-            fontHeadings: aiInput.fontHeadings,
-            useHeadingsFontForLogo: aiInput.useHeadingsFontForLogo,
-            fontBody: aiInput.fontBody,
-            useBodyFontForLogo: aiInput.useBodyFontForLogo,
-            fontOther: aiInput.fontOther,
-            useOtherFontForLogo: aiInput.useOtherFontForLogo,
-            iconComplexity: aiInput.iconComplexity,
-            iconSpecifics: aiInput.iconSpecifics,
-            targetAudience: aiInput.targetAudience,
-            inspirationReferences: aiInput.inspirationReferences,
-            usageContext: aiInput.usageContext,
-            negativeKeywords: aiInput.negativeKeywords,
-            competitorsToAvoid: aiInput.competitorsToAvoid,
-            variationInstructions: aiInput.variationInstructions,
-            numberOfLogos: aiInput.numberOfLogos,
-            referenceImageDataUri: aiInput.referenceImageDataUri,
-            missionStatement: aiInput.missionStatement,
-            brandPillars: aiInput.brandPillars,
-            brandArchetype: aiInput.brandArchetype,
-            keyTagline: aiInput.keyTagline,
-            web3BlockchainFocus: aiInput.web3BlockchainFocus,
-            web3ProjectType: aiInput.web3ProjectType,
-            web3EnsDomainIdeas: aiInput.web3EnsDomainIdeas,
-            web3TokenSymbolIdea: aiInput.web3TokenSymbolIdea,
-            web3CommunityValues: aiInput.web3CommunityValues,
-            web3NftAesthetic: aiInput.web3NftAesthetic,
-            userApiKey: currentApiKey, // Storing userApiKey for potential re-use if needed, though flows re-require it
-          },
-          basePrompt: constructBasePrompt(aiInput),
-        };
-        setLogoBatch(newLogoBatch);
-        toast({
-          title: "Logos Generated!",
-          description: `${result.logoUrls.length} new logo concepts are ready. Select one to view brand details.`,
-        });
-      } else {
-        setError("No logos were generated. Please try adjusting your input or API key.");
-        toast({
-          title: "Generation Issue",
-          description: "No logos were generated. Try different keywords, settings, or check your API key.",
-          variant: "destructive",
-        });
-      }
-    } catch (e) {
-      console.error("Error generating logos:", e);
-      const errorMessage = e instanceof Error ? e.message : "An unknown error occurred.";
-      setError(`Failed to generate logos: ${errorMessage}`);
-      toast({
-        title: "Generation Failed",
-        description: `An error occurred: ${errorMessage}`,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleFeedback = async (
-    logoId: string,
-    feedbackType: "thumbs_up" | "thumbs_down"
-  ) => {
-    if (!logoBatch) return;
-
-    setLoadingFeedbackFor(logoId);
-    setError(null);
-
-    const currentApiKey = getApiKey();
-    if (!currentApiKey) {
-      setError("A Google AI API key is required for feedback. Please add your key in the 'Use Your Own API Key' section below.");
-      toast({
-        title: "API Key Required",
-        description: "Please add your Google AI API key to submit feedback.",
-        variant: "destructive",
-      });
-      setLoadingFeedbackFor(null);
-      return;
-    }
-
-    const { generationInput, basePrompt } = logoBatch;
-
-    const refineInput: RefineLogoGenerationInput = {
-      businessName: generationInput.businessName,
-      industry: generationInput.industry,
-      keywords: generationInput.keywords,
-      colorPalette: generationInput.preferredColorPalette,
-      logoStyle: generationInput.preferredLogoStyle,
-      composition: generationInput.composition,
-      iconPlacement: generationInput.iconPlacement,
-      fontStyle: generationInput.fontStyle,
-      iconComplexity: generationInput.iconComplexity,
-      iconSpecifics: generationInput.iconSpecifics,
-      targetAudience: generationInput.targetAudience,
-      inspirationReferences: generationInput.inspirationReferences,
-      usageContext: generationInput.usageContext,
-      negativeKeywords: generationInput.negativeKeywords,
-      competitorsToAvoid: generationInput.competitorsToAvoid,
-      variationInstructions: generationInput.variationInstructions,
-      referenceImageDataUri: generationInput.referenceImageDataUri,
-      feedback: feedbackType,
-      previousPrompt: basePrompt,
-      userApiKey: currentApiKey,
-    };
-
-    try {
-      const refinedResult = await refineLogoGeneration(refineInput);
-      toast({
-        title: "Feedback Received!",
-        description: (
-          <div className="flex flex-col gap-1">
-            <p>Thanks! We'll use this to improve future suggestions.</p>
-            <p className="text-xs mt-1">Refined prompt idea: "${refinedResult.prompt.substring(0, 100)}..."</p>
-          </div>
-        ),
-        duration: 7000,
-      });
-    } catch (e) {
-      console.error("Error refining prompt:", e);
-      const errorMessage = e instanceof Error ? e.message : "An unknown error occurred.";
-      setError(`Failed to process feedback: ${errorMessage}`);
-      toast({
-        title: "Feedback Error",
-        description: `Could not process feedback: ${errorMessage}`,
-        variant: "destructive",
-      });
-    } finally {
-      setLoadingFeedbackFor(null);
-    }
-  };
-
-  const handleSelectLogoForDisplay = async (logo: Logo) => {
-    setSelectedLogoForBrandSheet(logo);
-    setBrandGuideText(null); 
-    setIsGeneratingBrandText(true);
-
-    if (!logoBatch) {
-      setIsGeneratingBrandText(false);
-      return;
-    }
-
-    const currentApiKey = getApiKey();
-    if (!currentApiKey) {
-      toast({
-        title: "API Key Required",
-        description: "Please add your Google AI API key to generate brand narrative.",
-        variant: "destructive",
-      });
-      setIsGeneratingBrandText(false);
-      return;
-    }
-
-    const { generationInput } = logoBatch;
-
-    const brandTextGenInput: GenerateBrandGuideTextInput = {
-      businessName: generationInput.businessName,
-      industry: generationInput.industry,
-      keywords: generationInput.keywords,
-      selectedLogoUrl: logo.url,
-      preferredColorPalette: generationInput.preferredColorPalette,
-      fontStyle: generationInput.fontStyle,
-      missionStatement: generationInput.missionStatement,
-      brandPillars: generationInput.brandPillars,
-      brandArchetype: generationInput.brandArchetype,
-      keyTagline: generationInput.keyTagline,
-      userApiKey: currentApiKey,
-    };
-
-    try {
-      const result = await generateBrandGuideText(brandTextGenInput);
-      setBrandGuideText(result);
-      toast({
-        title: "Brand Narrative Generated",
-        description: "Additional brand details are ready.",
-      });
-    } catch (e) {
-      console.error("Error generating brand guide text:", e);
-      const errorMessage = e instanceof Error ? e.message : "An unknown error occurred.";
-      toast({
-        title: "Brand Narrative Error",
-        description: `Could not generate brand narrative: ${errorMessage}`,
-        variant: "destructive",
-      });
-    } finally {
-      setIsGeneratingBrandText(false);
-    }
-
-    setTimeout(() => {
-      brandSheetRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 100);
-  };
-
+export default function LandingPage() {
   return (
-    <div className="min-h-screen flex flex-col">
-      <main className="flex-grow container mx-auto px-4 sm:px-6 lg:px-8 py-8 md:py-12">
-        <PageHeader
-          description="Let AI craft the perfect logo for your brand. Describe your vision, and watch concepts come to life."
-          imageUrl="/logogenius-logo.png"
-          imageAlt="LogoGenius App Logo"
-        />
-
-        <Card className="mb-8 bg-primary/5 border-primary/20 shadow-sm">
-          <CardHeader>
-            <CardTitle className="flex items-center text-lg font-semibold text-primary">
-              <Info className="w-5 h-5 mr-2" />
-              Welcome to LogoGenius!
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="text-sm text-foreground/80 space-y-2">
-            <p>
-              <span className="font-semibold text-amber-600 dark:text-amber-400">BETA NOTICE:</span> LogoGenius is currently in beta. We're actively developing new features and refining existing ones. Your feedback is invaluable!
-            </p>
-            <p>
-              Simply describe your brand and vision in the form below, and our AI will generate unique logo concepts and foundational brand narratives to kickstart your project.
-            </p>
-            <p className="font-semibold text-destructive">
-              <Zap className="w-4 h-4 inline-block mr-1 text-destructive" /> 
-              IMPORTANT: You MUST provide your own Google AI API key in the "Use Your Own API Key" section at the bottom of this page for AI features to work.
-            </p>
-          </CardContent>
-        </Card>
-
-        <LogoForm onSubmit={handleGenerateLogos} isLoading={isLoading} />
-
-        {error && (
-          <div className="mt-6 text-center text-destructive p-4 bg-destructive/10 rounded-md">
-            {error}
-          </div>
-        )}
-
-        <LogoGallery
-          logoBatch={logoBatch}
-          onFeedback={(logoId, feedbackType) => handleFeedback(logoId, feedbackType)}
-          onSelectLogoForBrandSheet={handleSelectLogoForDisplay}
-          loadingFeedbackFor={loadingFeedbackFor}
-          isLoading={isLoading}
-          expectedLogoCount={expectedLogoCount}
-        />
-
-        {selectedLogoForBrandSheet && logoBatch && (
-          <div ref={brandSheetRef} className="mt-12">
-            <BrandGuideDisplay
-              selectedLogo={selectedLogoForBrandSheet}
-              brandDetails={logoBatch.generationInput}
-              brandNarrative={brandGuideText}
-              isLoadingNarrative={isGeneratingBrandText}
+    <div className="flex flex-col min-h-screen">
+      {/* Hero Section */}
+      <header className="container mx-auto px-4 pt-6 md:pt-12 pb-6 flex justify-between items-center">
+        <div className="flex items-center gap-2">
+          <div className="relative w-10 h-10">
+            <Image
+              src="/logogenius-logo.png"
+              alt="LogoGenius Logo"
+              layout="fill"
+              objectFit="contain"
             />
           </div>
-        )}
-
-        <div className="mt-12">
-           <ApiKeyInput />
+          <span className="text-xl font-bold text-primary">LogoGenius</span>
         </div>
+        <nav className="hidden md:block">
+          <ul className="flex items-center gap-6">
+            <li>
+              <Link href="/create" className="text-muted-foreground hover:text-foreground transition-colors">
+                Create Logo
+              </Link>
+            </li>
+            <li>
+              <a href="#features" className="text-muted-foreground hover:text-foreground transition-colors">
+                Features
+              </a>
+            </li>
+            <li>
+              <a href="#how-it-works" className="text-muted-foreground hover:text-foreground transition-colors">
+                How It Works
+              </a>
+            </li>
+          </ul>
+        </nav>
+        <Link href="/create" passHref>
+          <Button size="sm" className="md:hidden">Get Started</Button>
+        </Link>
+      </header>
+
+      <main>
+        {/* Hero Section */}
+        <section className="py-12 md:py-24 bg-gradient-to-b from-background to-muted/50">
+          <div className="container mx-auto px-4 flex flex-col items-center text-center">
+            <div className="relative w-32 h-32 mb-6">
+              <Image
+                src="/logogenius-logo.png"
+                alt="LogoGenius App Logo"
+                layout="fill"
+                objectFit="contain"
+              />
+            </div>
+            <h1 className="text-4xl md:text-6xl font-bold tracking-tight mb-4">
+              Transform Your <span className="text-primary">Brand Identity</span> with AI
+            </h1>
+            <p className="text-xl text-muted-foreground max-w-2xl mb-8">
+              Generate stunning logo concepts tailored to your brand's unique vision with our AI-powered design platform.
+            </p>
+            <div className="flex gap-4">
+              <Link href="/create" passHref>
+                <Button size="lg" className="gap-2">
+                  <Zap className="w-4 h-4" />
+                  Create Your Logo
+                </Button>
+              </Link>
+              <a href="#how-it-works">
+                <Button size="lg" variant="outline" className="gap-2">
+                  See How It Works
+                </Button>
+              </a>
+            </div>
+            <div className="mt-16 relative w-full max-w-4xl aspect-video bg-card rounded-lg shadow-xl overflow-hidden border">
+              <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5 animate-pulse">
+                <div className="flex items-center justify-center h-full text-muted-foreground">
+                  <p className="font-medium">LogoGenius App Screenshot</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Features Section */}
+        <section id="features" className="py-16 md:py-24">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-12">
+              Powerful Features for Perfect Logos
+            </h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              <Card className="border-primary/10 hover:shadow-md transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="bg-primary/10 p-3 rounded-full mb-4">
+                      <Sparkles className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">AI-Powered Generation</h3>
+                    <p className="text-muted-foreground">
+                      Leverages cutting-edge AI to transform your brand vision into multiple logo concepts.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/10 hover:shadow-md transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="bg-primary/10 p-3 rounded-full mb-4">
+                      <Palette className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">Customizable Styles</h3>
+                    <p className="text-muted-foreground">
+                      Control every aspect from color palettes to typography with our intuitive interface.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border-primary/10 hover:shadow-md transition-shadow">
+                <CardContent className="pt-6">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="bg-primary/10 p-3 rounded-full mb-4">
+                      <BrainCircuit className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-bold mb-2">Intelligent Refinement</h3>
+                    <p className="text-muted-foreground">
+                      AI learns from your feedback to improve logo concepts with each iteration.
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+          </div>
+        </section>
+
+        {/* How It Works Section */}
+        <section id="how-it-works" className="py-16 md:py-24 bg-muted/50">
+          <div className="container mx-auto px-4">
+            <h2 className="text-3xl md:text-4xl font-bold text-center mb-4">
+              How It Works
+            </h2>
+            <p className="text-center text-muted-foreground mb-12 max-w-2xl mx-auto">
+              Create professional logo designs in minutes with our simple four-step process
+            </p>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+              <div className="flex flex-col items-center text-center">
+                <div className="bg-primary/10 p-4 rounded-full mb-4 relative">
+                  <PenTool className="h-8 w-8 text-primary" />
+                  <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">1</div>
+                </div>
+                <h3 className="text-lg font-bold mb-2">Define Your Brand</h3>
+                <p className="text-muted-foreground">
+                  Enter your business details and describe your vision for the perfect logo.
+                </p>
+              </div>
+              
+              <div className="flex flex-col items-center text-center">
+                <div className="bg-primary/10 p-4 rounded-full mb-4 relative">
+                  <Sparkles className="h-8 w-8 text-primary" />
+                  <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">2</div>
+                </div>
+                <h3 className="text-lg font-bold mb-2">AI Generation</h3>
+                <p className="text-muted-foreground">
+                  Our AI creates multiple logo concepts based on your requirements.
+                </p>
+              </div>
+              
+              <div className="flex flex-col items-center text-center">
+                <div className="bg-primary/10 p-4 rounded-full mb-4 relative">
+                  <MousePointer className="h-8 w-8 text-primary" />
+                  <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">3</div>
+                </div>
+                <h3 className="text-lg font-bold mb-2">Select & Refine</h3>
+                <p className="text-muted-foreground">
+                  Choose your favorite design and provide feedback for refinements.
+                </p>
+              </div>
+              
+              <div className="flex flex-col items-center text-center">
+                <div className="bg-primary/10 p-4 rounded-full mb-4 relative">
+                  <Laptop className="h-8 w-8 text-primary" />
+                  <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">4</div>
+                </div>
+                <h3 className="text-lg font-bold mb-2">Complete Brand Package</h3>
+                <p className="text-muted-foreground">
+                  Download your logo and receive a complete brand identity guide.
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Special Features Section */}
+        <section className="py-16 md:py-24">
+          <div className="container mx-auto px-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-12 items-center">
+              <div>
+                <h2 className="text-3xl font-bold mb-6">Beyond Just Logos</h2>
+                <div className="space-y-6">
+                  <div className="flex items-start gap-4">
+                    <div className="bg-primary/10 p-2 rounded-full shrink-0 mt-1">
+                      <Users className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">Complete Brand Identity</h3>
+                      <p className="text-muted-foreground">
+                        Get a comprehensive brand archetype analysis, color palette recommendations, 
+                        and brand voice guidelines alongside your logo.
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <div className="flex items-start gap-4">
+                    <div className="bg-primary/10 p-2 rounded-full shrink-0 mt-1">
+                      <Hexagon className="h-5 w-5 text-primary" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-semibold mb-2">Web3 Ready</h3>
+                      <p className="text-muted-foreground">
+                        Special options for blockchain projects, including token symbol ideas, 
+                        ENS domain suggestions, and NFT-ready aesthetics.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="bg-muted rounded-xl p-6 border border-border/50">
+                <div className="mb-6">
+                  <p className="text-sm text-muted-foreground mb-1">Testimonial</p>
+                  <div className="flex items-start gap-2">
+                    <div className="bg-primary/20 rounded-full w-12 h-12 flex items-center justify-center text-primary font-bold">JD</div>
+                    <div>
+                      <p className="font-medium">John Doe</p>
+                      <p className="text-sm text-muted-foreground">Founder, TechStartup</p>
+                    </div>
+                  </div>
+                </div>
+                <p className="italic">
+                  "LogoGenius saved us thousands in design costs. Within minutes, we had a professional logo
+                  that perfectly captured our brand identity. The additional brand guidelines were invaluable."
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* CTA Section */}
+        <section className="py-16 bg-primary text-primary-foreground">
+          <div className="container mx-auto px-4 text-center">
+            <h2 className="text-3xl md:text-4xl font-bold mb-6">
+              Ready to Create Your Perfect Logo?
+            </h2>
+            <p className="text-xl opacity-90 mb-8 max-w-2xl mx-auto">
+              Join thousands of businesses who have transformed their brand identity with LogoGenius.
+            </p>
+            <Link href="/create" passHref>
+              <Button size="lg" variant="secondary" className="gap-2 text-primary">
+                <Zap className="w-4 h-4" />
+                Get Started Now
+              </Button>
+            </Link>
+          </div>
+        </section>
       </main>
-      <footer className="py-6 text-center text-sm text-muted-foreground border-t">
-        © {new Date().getFullYear()} LogoGenius. All rights reserved.
+
+      <footer className="border-t py-8">
+        <div className="container mx-auto px-4">
+          <div className="flex flex-col md:flex-row justify-between items-center">
+            <div className="flex items-center gap-2 mb-4 md:mb-0">
+              <div className="relative w-8 h-8">
+                <Image
+                  src="/logogenius-logo.png"
+                  alt="LogoGenius Logo"
+                  layout="fill"
+                  objectFit="contain"
+                />
+              </div>
+              <span className="text-lg font-semibold text-primary">LogoGenius</span>
+            </div>
+            <div className="text-center md:text-right">
+              <p className="text-sm text-muted-foreground">
+                © {new Date().getFullYear()} LogoGenius. All rights reserved.
+              </p>
+              <p className="text-xs text-muted-foreground mt-1">
+                AI-powered logo generation for modern brands
+              </p>
+            </div>
+          </div>
+        </div>
       </footer>
     </div>
   );
 }
-
