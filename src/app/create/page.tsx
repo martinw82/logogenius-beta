@@ -319,6 +319,10 @@ export default function CreatePage() {
           />
         </div>
 
+        <div className="mb-8">
+           <ApiKeyInput />
+        </div>
+
         <Card className="mb-8 bg-primary/5 border-primary/20 shadow-sm">
           <CardHeader>
             <CardTitle className="flex items-center text-lg font-semibold text-primary">
@@ -335,7 +339,7 @@ export default function CreatePage() {
             </p>
             <p className="font-semibold text-destructive">
               <Zap className="w-4 h-4 inline-block mr-1 text-destructive" /> 
-              IMPORTANT: You MUST provide your own Google AI API key in the "Use Your Own API Key" section at the bottom of this page for AI features to work.
+              IMPORTANT: You MUST provide your own Google AI API key in the "Use Your Own API Key" section at the top of this page for AI features to work.
             </p>
           </CardContent>
         </Card>
@@ -367,13 +371,9 @@ export default function CreatePage() {
             />
           </div>
         )}
-
-        <div className="mt-12">
-           <ApiKeyInput />
-        </div>
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">
-        © {new Date().getFullYear()} LogoGenius. All rights reserved.
+        © {new Date().getFullYear()} LogoGenius. All rights reserved. | Pretty-fied by bolt.new
       </footer>
     </div>
   );

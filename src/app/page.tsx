@@ -476,7 +476,7 @@ export default function LandingPage() {
                 © {new Date().getFullYear()} LogoGenius. All rights reserved.
               </p>
               <p className="text-xs text-muted-foreground mt-1">
-                AI-powered logo generation for modern brands
+                AI-powered logo generation for modern brands | Pretty-fied by bolt.new
               </p>
             </div>
           </div>
