@@ -21,7 +21,7 @@ const showcaseLogos = [
     id: 2,
     businessName: "Buidl Framework",
     industry: "Startup Business Guidance WEB3",
-    imageUrl: "/buidl_logo_1.png",
+    imageUrl: "/buidl_logo_1.png.png",
   },
   {
     id: 3, 
