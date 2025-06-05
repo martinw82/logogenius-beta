@@ -98,7 +98,7 @@ export default function LandingPage() {
               initial="hidden"
               animate="visible"
               variants={fadeIn}
-              className="relative w-42 h-42 mb-6 animate-float"
+              className="relative w-32 h-32 mb-6 animate-float"
             >
               <Image
                 src="/logogenius-logo.png"
