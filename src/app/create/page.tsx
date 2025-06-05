@@ -38,6 +38,7 @@ export default function CreatePage() {
   const [mounted, setMounted] = useState(false);
 
   const brandSheetRef = useRef<HTMLDivElement>(null);
+  const { toast } = useToast(); // Moved useToast() before any conditional returns
 
   useEffect(() => {
     setMounted(true);
@@ -61,8 +62,6 @@ export default function CreatePage() {
   if (!mounted) {
     return null;
   }
-
-  const { toast } = useToast();
 
   const getApiKey = (): string | undefined => {
     if (typeof window !== 'undefined') {
