@@ -296,7 +296,7 @@ export default function LandingPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
               <div className="flex flex-col items-center text-center how-it-works-card">
                 <div className="bg-primary/10 p-4 rounded-full mb-4 relative">
-                  <PenTool className="h-8 w-8 text-primary" />
+                  <PenTool className="w-8 h-8 text-primary" />
                   <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">1</div>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Define Your Brand</h3>
@@ -307,7 +307,7 @@ export default function LandingPage() {
               
               <div className="flex flex-col items-center text-center how-it-works-card">
                 <div className="bg-primary/10 p-4 rounded-full mb-4 relative">
-                  <Sparkles className="h-8 w-8 text-primary" />
+                  <Sparkles className="w-8 h-8 text-primary" />
                   <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">2</div>
                 </div>
                 <h3 className="text-lg font-bold mb-2">AI Generation</h3>
@@ -318,7 +318,7 @@ export default function LandingPage() {
               
               <div className="flex flex-col items-center text-center how-it-works-card">
                 <div className="bg-primary/10 p-4 rounded-full mb-4 relative">
-                  <MousePointer className="h-8 w-8 text-primary" />
+                  <MousePointer className="w-8 h-8 text-primary" />
                   <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">3</div>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Select & Refine</h3>
@@ -329,7 +329,7 @@ export default function LandingPage() {
               
               <div className="flex flex-col items-center text-center how-it-works-card">
                 <div className="bg-primary/10 p-4 rounded-full mb-4 relative">
-                  <Laptop className="h-8 w-8 text-primary" />
+                  <Laptop className="w-8 h-8 text-primary" />
                   <div className="absolute -top-2 -right-2 bg-primary text-primary-foreground w-6 h-6 rounded-full flex items-center justify-center text-sm font-bold">4</div>
                 </div>
                 <h3 className="text-lg font-bold mb-2">Complete Brand Package</h3>
@@ -353,7 +353,7 @@ export default function LandingPage() {
         {/* Testimonials Section */}
         <section className="py-16 md:py-24 bg-gradient-to-b from-muted/30 to-background">
           <div className="container mx-auto px-4">
-            <div className="text-center mb-8">
+            <div className="text-center mb-10">
               <span className="inline-block px-3 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary mb-3">Testimonials</span>
               <h2 className="text-3xl md:text-4xl font-bold mb-4">
                 What Our Customers Say
