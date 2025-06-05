@@ -35,10 +35,12 @@ export default function CreatePage() {
   const [selectedLogoForBrandSheet, setSelectedLogoForBrandSheet] = useState<Logo | null>(null);
   const [brandGuideText, setBrandGuideText] = useState<GenerateBrandGuideTextOutput | null>(null);
   const [isGeneratingBrandText, setIsGeneratingBrandText] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   const brandSheetRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    setMounted(true);
     const storedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
     if (storedApiKey) {
       setUserApiKey(storedApiKey);
@@ -54,6 +56,11 @@ export default function CreatePage() {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
+
+  // If not mounted yet, return null to avoid any SSR issues with localStorage
+  if (!mounted) {
+    return null;
+  }
 
   const { toast } = useToast();
 

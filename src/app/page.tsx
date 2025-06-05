@@ -3,7 +3,7 @@
 // Force dynamic rendering to avoid the prerendering issue
 export const dynamic = 'force-dynamic';
 
-import { Suspense, useEffect } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,11 @@ import { ScrollToTopButton } from "@/components/ui/scroll-button";
 import { motion } from "framer-motion";
 
 export default function LandingPage() {
+  const [mounted, setMounted] = useState(false);
+  
   // Intersection Observer setup for animation triggers
   useEffect(() => {
+    setMounted(true);
     const observer = new IntersectionObserver((entries) => {
       entries.forEach(entry => {
         if (entry.isIntersecting) {
@@ -35,6 +38,11 @@ export default function LandingPage() {
 
     return () => observer.disconnect();
   }, []);
+
+  // If not mounted yet, return null to avoid any SSR issues
+  if (!mounted) {
+    return null;
+  }
 
   const fadeIn = {
     hidden: { opacity: 0, y: 20 },
