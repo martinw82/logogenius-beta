@@ -33,9 +33,6 @@ const nextConfig: NextConfig = {
       // Add other potential hostnames if your AI service uses them
     ],
   },
-  devIndicators: {
-    buildActivity: false,
-  },
 };
 
 export default nextConfig;

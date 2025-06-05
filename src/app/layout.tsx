@@ -21,6 +21,7 @@ export const metadata: Metadata = {
   description: 'Generate stunning logo concepts with AI. Create professional brand identities in minutes.',
   keywords: 'AI logo, logo generator, brand identity, artificial intelligence, logo design, brand guide',
   authors: [{ name: 'LogoGenius Team' }],
+  metadataBase: new URL('http://localhost:3000'),
   openGraph: {
     title: 'LogoGenius - AI Powered Logo Creation',
     description: 'Generate stunning logo concepts with AI.',

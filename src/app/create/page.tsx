@@ -1,5 +1,8 @@
 "use client";
 
+// Force dynamic rendering to avoid the prerendering issue
+export const dynamic = 'force-dynamic';
+
 import { useState, useEffect, useRef, Suspense } from "react";
 import { LogoForm } from "@/components/logo-form";
 import { LogoGallery } from "@/components/logo-gallery";
