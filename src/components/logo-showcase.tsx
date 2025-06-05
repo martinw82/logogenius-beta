@@ -15,7 +15,7 @@ const showcaseLogos = [
     id: 1,
     businessName: "Brand Buidler",
     industry: "Buisiness branding",
-    imageUrl: "/public/brandbuidler_logo_1.png",
+    imageUrl: "/brandbuidler_logo_1.png",
   },
   {
     id: 2,
