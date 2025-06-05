@@ -13,9 +13,9 @@ interface LogoShowcaseProps {
 const showcaseLogos = [
   {
     id: 1,
-    businessName: "EcoHarvest",
-    industry: "Sustainable Agriculture",
-    imageUrl: "https://placehold.co/300x300/3F51B5/FFFFFF?text=EH",
+    businessName: "Brand Buidler",
+    industry: "Buisiness branding",
+    imageUrl: "public/brandbuidler_logo_1.png",
   },
   {
     id: 2,
