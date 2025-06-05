@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
@@ -12,7 +13,6 @@ import {
 import { TestimonialCarousel } from "@/components/testimonial-carousel";
 import { LogoShowcase } from "@/components/logo-showcase";
 import { ScrollToTopButton } from "@/components/ui/scroll-button";
-import { useEffect } from "react";
 import { motion } from "framer-motion";
 
 export default function LandingPage() {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, Suspense } from "react";
 import { LogoForm } from "@/components/logo-form";
 import { LogoGallery } from "@/components/logo-gallery";
 import { PageHeader } from "@/components/page-header";
@@ -22,20 +22,18 @@ import Link from "next/link";
 
 const API_KEY_STORAGE_KEY = "userGoogleApiKey";
 
-
 export default function CreatePage() {
   const [logoBatch, setLogoBatch] = useState<LogoBatch | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [loadingFeedbackFor, setLoadingFeedbackFor] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [expectedLogoCount, setExpectedLogoCount] = useState<number>(4);
-  const [userApiKey, setUserApiKey] = useState<string | null>(null); // For re-rendering ApiKeyInput if needed
+  const [userApiKey, setUserApiKey] = useState<string | null>(null);
   const [selectedLogoForBrandSheet, setSelectedLogoForBrandSheet] = useState<Logo | null>(null);
   const [brandGuideText, setBrandGuideText] = useState<GenerateBrandGuideTextOutput | null>(null);
   const [isGeneratingBrandText, setIsGeneratingBrandText] = useState(false);
 
   const brandSheetRef = useRef<HTMLDivElement>(null);
-
 
   useEffect(() => {
     const storedApiKey = localStorage.getItem(API_KEY_STORAGE_KEY);
@@ -53,7 +51,6 @@ export default function CreatePage() {
       window.removeEventListener('storage', handleStorageChange);
     };
   }, []);
-
 
   const { toast } = useToast();
 
