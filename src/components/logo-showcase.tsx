@@ -19,33 +19,33 @@ const showcaseLogos = [
   },
   {
     id: 2,
-    businessName: "TechNova",
-    industry: "Software Development",
-    imageUrl: "https://placehold.co/300x300/009688/FFFFFF?text=TN",
+    businessName: "Buidl Framework",
+    industry: "Startup Business Guidance WEB3",
+    imageUrl: "/buidl_logo_1.png",
   },
   {
     id: 3, 
-    businessName: "ArtisanBlend",
-    industry: "Craft Coffee",
-    imageUrl: "https://placehold.co/300x300/795548/FFFFFF?text=AB",
+    businessName: "Gut Feeling",
+    industry: "gut Health tracker",
+    imageUrl: "/gut_feeling_c655c8c1.png",
   },
   {
     id: 4,
-    businessName: "PeakFitness",
-    industry: "Health & Wellness",
-    imageUrl: "https://placehold.co/300x300/FF5722/FFFFFF?text=PF",
+    businessName: "LogoGenius",
+    industry: "Branding and Design",
+    imageUrl: "logogeni_us_70fb47ae.png",
   },
   {
     id: 5,
-    businessName: "LuxeStay",
-    industry: "Hospitality",
-    imageUrl: "https://placehold.co/300x300/9C27B0/FFFFFF?text=LS",
+    businessName: "LogoGenius",
+    industry: "graphics, logo, design, branding",
+    imageUrl: "/logogeni_us_ded8b761.png",
   },
   {
     id: 6,
-    businessName: "UrbanGreen",
-    industry: "Landscape Design",
-    imageUrl: "https://placehold.co/300x300/4CAF50/FFFFFF?text=UG",
+    businessName: "tokengatr",
+    industry: "Web 3/Blockchain",
+    imageUrl: "/tokengatr_66f7c027.png",
   }
 ];
 
