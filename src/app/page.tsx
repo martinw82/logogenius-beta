@@ -47,7 +47,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <header className="container mx-auto px-4 pt-6 md:pt-12 pb-6 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <div className="relative w-15 h-15 animate-float">
+          <div className="relative w-12 h-12 animate-float">
             <Image
               src="/logogenius-logo.png"
               alt="LogoGenius Logo"
