@@ -33,7 +33,7 @@ const showcaseLogos = [
     id: 4,
     businessName: "LogoGenius",
     industry: "Branding and Design",
-    imageUrl: "logogeni_us_70fb47ae.png",
+    imageUrl: "/logogeni_us_70fb47ae.png",
   },
   {
     id: 5,
