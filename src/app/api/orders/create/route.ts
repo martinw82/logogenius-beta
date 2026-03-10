@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
-import { uuidv4 } from "@/lib/utils";
+import { uuidv4 } from "@/utils";
 
 export async function POST(request: NextRequest) {
   try {
