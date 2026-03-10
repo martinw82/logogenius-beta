@@ -14,7 +14,7 @@ import { generateLogoConcepts } from "@/ai/flows/generate-logo-concepts";
 import type { RefineLogoGenerationInput } from "@/ai/flows/refine-logo-generation";
 import { refineLogoGeneration } from "@/ai/flows/refine-logo-generation";
 import { useToast } from "@/hooks/use-toast";
-import { constructBasePrompt, uuidv4 } from "@/lib/utils";
+import { constructBasePrompt, uuidv4 } from "@/utils";
 import { ApiKeyInput } from "@/components/api-key-input";
 import type { GenerateBrandGuideTextOutput, GenerateBrandGuideTextInput } from "@/ai/flows/generate-brand-guide-text";
 import { generateBrandGuideText } from "@/ai/flows/generate-brand-guide-text";
