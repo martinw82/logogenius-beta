@@ -1,5 +1,12 @@
 # **App Name**: LogoGenius
 
+## Project Status
+
+- **Sprint 1 (Foundation):** ✅ COMPLETED - Database, admin auth, tier forms, landing page
+- **Sprint 2 (Brand Guide Generation):** ✅ COMPLETED - Genkit flow, Web3 support, logo/mockup generation
+- **Current:** 🔧 Fixing build error (Prisma loading at build time)
+- **Next:** Sprint 3 - PDF/ZIP generation and admin dashboard
+
 ## Core Features:
 
 - Logo Concept Generation: Generates multiple logo concepts based on text descriptions using text-to-image diffusion models.
