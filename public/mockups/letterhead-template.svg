@@ -1,0 +1,44 @@
+<svg viewBox="0 0 800 1100" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <!-- Background -->
+  <rect width="800" height="1100" fill="#ffffff" stroke="#cccccc" stroke-width="1"/>
+
+  <!-- Header section with logo area -->
+  <rect width="800" height="200" fill="#f9f9f9" stroke="#e0e0e0" stroke-width="1"/>
+
+  <!-- Company name and contact info area -->
+  <text x="120" y="80" font-family="Arial, sans-serif" font-size="32" font-weight="bold" fill="#333333">
+    Company Name
+  </text>
+
+  <!-- Logo placeholder container -->
+  <g id="logo-container">
+    <!-- This will be replaced with actual logo SVG -->
+    <rect x="50" y="150" width="100" height="100" fill="#f0f0f0" stroke="#999999" stroke-width="1" stroke-dasharray="5,5"/>
+    <text x="100" y="205" font-family="Arial, sans-serif" font-size="12" fill="#999999" text-anchor="middle">
+      Logo Here
+    </text>
+  </g>
+
+  <!-- Contact information -->
+  <text x="120" y="140" font-family="Arial, sans-serif" font-size="12" fill="#666666">
+    123 Business Street | City, State 12345
+  </text>
+  <text x="120" y="160" font-family="Arial, sans-serif" font-size="12" fill="#666666">
+    contact@company.com | (123) 456-7890 | www.company.com
+  </text>
+
+  <!-- Divider line -->
+  <line x1="50" y1="220" x2="750" y2="220" stroke="#cccccc" stroke-width="2"/>
+
+  <!-- Content area -->
+  <text x="50" y="280" font-family="Arial, sans-serif" font-size="16" fill="#333333">
+    Content Area
+  </text>
+  <line x1="50" y1="300" x2="750" y2="300" stroke="#e0e0e0" stroke-width="1"/>
+
+  <!-- Footer -->
+  <line x1="50" y1="1050" x2="750" y2="1050" stroke="#cccccc" stroke-width="1"/>
+  <text x="50" y="1080" font-family="Arial, sans-serif" font-size="10" fill="#999999">
+    www.company.com | Privacy Policy | Terms of Service
+  </text>
+</svg>
