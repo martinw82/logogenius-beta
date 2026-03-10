@@ -9,6 +9,8 @@ import {
   type Tier3FormData,
 } from "@/lib/schemas/order-forms";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }

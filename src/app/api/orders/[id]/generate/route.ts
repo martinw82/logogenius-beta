@@ -4,6 +4,8 @@ import { generateLogoConcepts } from "@/ai/flows/generate-logo-concepts";
 import { generateLogoMockups } from "@/ai/flows/generate-logo-mockups";
 import { generateComprehensiveBrandGuide } from "@/ai/flows/generate-comprehensive-brand-guide";
 
+export const dynamic = 'force-dynamic';
+
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
