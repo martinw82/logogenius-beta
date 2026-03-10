@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { revokeJWT, getTokenFromRequest } from "@/lib/auth";
 
-export const dynamic = 'force-dynamic';
-
-export async function POST(request: NextRequest) {
+export const handler = async (request: NextRequest) => {
   try {
+    const { revokeJWT, getTokenFromRequest } = await import("@/lib/auth");
+
     const token = getTokenFromRequest(request);
 
     if (token) {
@@ -34,4 +33,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+export const POST = handler;

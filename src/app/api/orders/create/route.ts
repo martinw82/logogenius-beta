@@ -1,11 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { uuidv4 } from "@/utils";
 
-export const dynamic = 'force-dynamic';
-
-export async function POST(request: NextRequest) {
+export const handler = async (request: NextRequest) => {
   try {
+    const { prisma } = await import("@/lib/db");
+    const { uuidv4 } = await import("@/utils");
+
     const body = await request.json();
     const { tier } = body;
 
@@ -47,4 +46,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+export const POST = handler;
