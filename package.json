@@ -52,7 +52,7 @@
     "jsonwebtoken": "^9.0.3",
     "lucide-react": "^0.475.0",
     "mysql2": "^3.19.1",
-    "next": "15.2.3",
+    "next": "15.2.8",
     "patch-package": "^8.0.0",
     "prisma": "^7.4.2",
     "react": "^18.3.1",
