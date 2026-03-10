@@ -13,14 +13,16 @@ interface LogoCardProps {
   isFeedbackLoading: boolean;
   businessName?: string;
   onSelectForBrandSheet?: (logo: Logo) => void;
+  onViewMockups?: (logo: Logo) => void;
 }
 
-export function LogoCard({ 
-  logo, 
-  onFeedback, 
-  isFeedbackLoading, 
+export function LogoCard({
+  logo,
+  onFeedback,
+  isFeedbackLoading,
   businessName,
-  onSelectForBrandSheet 
+  onSelectForBrandSheet,
+  onViewMockups
 }: LogoCardProps) {
   const handleDownload = () => {
     const link = document.createElement('a');
@@ -46,7 +48,7 @@ export function LogoCard({
         />
       </CardContent>
       <CardFooter className="p-3 bg-muted/50">
-        <div className="flex justify-between items-center w-full gap-1">
+        <div className="flex justify-between items-center w-full gap-1 flex-wrap">
           <Button
             variant="outline"
             size="icon"
@@ -57,6 +59,20 @@ export function LogoCard({
           >
             <Download className="w-4 h-4" />
           </Button>
+
+          {onViewMockups && (
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={() => onViewMockups(logo)}
+              disabled={isFeedbackLoading}
+              aria-label="View mockups"
+              title="View on letterhead, t-shirt, and business card"
+              className="hover:bg-amber-100 hover:border-amber-400 hover:text-amber-600 flex-shrink-0"
+            >
+              <Eye className="w-4 h-4" />
+            </Button>
+          )}
 
           {onSelectForBrandSheet && (
             <Button
@@ -70,7 +86,7 @@ export function LogoCard({
               <Eye className="w-4 h-4" />
             </Button>
           )}
-          
+
           <div className="flex gap-1 ml-auto">
             <Button
               variant="outline"

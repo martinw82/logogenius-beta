@@ -1,0 +1,57 @@
+<svg viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+  <!-- Business card (standard 3.5" x 2" proportions) -->
+  <rect x="50" y="50" width="700" height="300" fill="#ffffff" stroke="#333333" stroke-width="2" rx="3"/>
+
+  <!-- Background accent (subtle) -->
+  <rect x="50" y="50" width="200" height="300" fill="#f9f9f9" stroke="none" rx="3"/>
+
+  <!-- Logo container (left side) -->
+  <g id="logo-container">
+    <!-- Placeholder for logo -->
+    <rect x="75" y="80" width="150" height="150" fill="#f0f0f0" stroke="#cccccc" stroke-width="2" stroke-dasharray="4,4" rx="3"/>
+    <text x="150" y="160" font-family="Arial, sans-serif" font-size="13" fill="#999999" text-anchor="middle" font-weight="bold">
+      Logo
+    </text>
+  </g>
+
+  <!-- Company name -->
+  <text x="270" y="95" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#333333">
+    Company Name
+  </text>
+
+  <!-- Job title -->
+  <text x="270" y="125" font-family="Arial, sans-serif" font-size="13" fill="#666666" font-style="italic">
+    Job Title / Position
+  </text>
+
+  <!-- Divider -->
+  <line x1="270" y1="135" x2="750" y2="135" stroke="#e0e0e0" stroke-width="1"/>
+
+  <!-- Contact information (front side) -->
+  <text x="270" y="165" font-family="Arial, sans-serif" font-size="11" fill="#555555">
+    Name: John Doe
+  </text>
+  <text x="270" y="185" font-family="Arial, sans-serif" font-size="11" fill="#555555">
+    Email: john@company.com
+  </text>
+  <text x="270" y="205" font-family="Arial, sans-serif" font-size="11" fill="#555555">
+    Phone: (123) 456-7890
+  </text>
+
+  <!-- Website -->
+  <text x="270" y="235" font-family="Arial, sans-serif" font-size="11" fill="#0066cc">
+    www.company.com
+  </text>
+
+  <!-- Address -->
+  <text x="270" y="255" font-family="Arial, sans-serif" font-size="10" fill="#777777">
+    123 Business Street
+  </text>
+  <text x="270" y="270" font-family="Arial, sans-serif" font-size="10" fill="#777777">
+    City, State 12345
+  </text>
+
+  <!-- Card edge indicators (for print) -->
+  <line x1="50" y1="55" x2="65" y2="55" stroke="#cccccc" stroke-width="1"/>
+  <line x1="50" y1="55" x2="50" y2="70" stroke="#cccccc" stroke-width="1"/>
+</svg>

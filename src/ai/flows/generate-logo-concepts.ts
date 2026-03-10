@@ -196,14 +196,38 @@ const generateLogoConceptsFlow = ai.defineFlow(
     baseImagePromptText += " Generate the logo with a transparent background.";
 
 
+    // Define 4 distinct design directions for maximum variety
+    const designDirections = [
+      {
+        name: "Modern Minimalist",
+        description: "Clean, simple, contemporary design with minimal elements. Focus on geometric shapes and negative space. Use limited color palette. Ultra-modern aesthetic."
+      },
+      {
+        name: "Geometric/Abstract",
+        description: "Abstract geometric forms and shapes. Creative composition using triangles, circles, and lines. Modern but more complex than minimalist. Optical interest through shape interplay."
+      },
+      {
+        name: "Illustrative/Artistic",
+        description: "Hand-drawn or artistic style with more detail. Unique illustration approach. Personality-driven design. Custom artwork feel rather than geometric construction."
+      },
+      {
+        name: "Wordmark/Typography",
+        description: "Text-based or wordmark design where typography is the hero. Strong, distinctive letterforms. Logo relies on unique font/letter styling rather than icon. Text is the primary element."
+      }
+    ];
+
     for (let i = 0; i < flowInput.numberOfLogos; i++) {
       let currentImagePromptText = baseImagePromptText;
+
+      // Add specific design direction for this variant
+      const direction = designDirections[i % designDirections.length];
+      currentImagePromptText += ` DESIGN DIRECTION ${i + 1} (${direction.name}): ${direction.description}`;
+
       if (flowInput.variationInstructions) {
-        currentImagePromptText += ` Variation instructions: ${flowInput.variationInstructions}`;
+        currentImagePromptText += ` Additional variation instructions: ${flowInput.variationInstructions}`;
       }
-      if (i > 0) {
-        currentImagePromptText += ` (variation ${i + 1} of ${flowInput.numberOfLogos})`;
-      }
+
+      currentImagePromptText += ` Generate concept ${i + 1} of ${flowInput.numberOfLogos} in the ${direction.name} style. This variant should be visually distinct from the others, representing a unique design approach.`;
 
       let finalPromptPayload: any = currentImagePromptText;
       if (flowInput.referenceImageDataUri) {
