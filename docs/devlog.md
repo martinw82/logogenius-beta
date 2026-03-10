@@ -188,16 +188,69 @@
 
 ---
 
-## Current Status: Sprint 2 COMPLETE, Deployment Issue IDENTIFIED
+## Current Status: Sprint 2 COMPLETE, Deployment Issue UNDER INVESTIGATION
 
 **Project State:**
 - Sprint 1: ✅ Foundation complete and tested
 - Sprint 2: ✅ Brand guide AI generation complete and tested locally
-- Deployment: ❌ Vercel build fails (Prisma client issue)
+- Deployment: ❌ Vercel build fails (Prisma client configuration issue)
 - Ready for Sprint 3: ⏳ After deployment fix
 
-**Next Immediate Action:**
-Fix Vercel deployment by adding `export const dynamic = 'force-dynamic'` to 6 API routes, then deploy and start Sprint 3.
+### Deployment Issue - Deep Dive
+
+**Error:** `Cannot find module '.prisma/client/default'` during Next.js page collection
+
+**Root Cause:**
+- Prisma v7.4.2 generates only TypeScript source files (not compiled JS)
+- `@prisma/client` expects JavaScript-compiled client in `.prisma/client/`
+- TypeScript files alone don't satisfy the module requirements
+- When Next.js analyzes routes during build, it tries to load modules
+- This triggers Prisma import → fails with MODULE_NOT_FOUND
+
+**Attempted Fixes (None Successful Yet):**
+1. Added `export const dynamic = 'force-dynamic'` to 6 API routes
+   - Told Next.js not to pre-render routes
+   - Didn't prevent module loading during analysis
+2. Made Prisma imports lazy in `/src/lib/db.ts`
+   - Used require() at runtime instead of import at module level
+   - Still failed when getPrisma() was called during page collection
+3. Made Prisma imports lazy in `/src/lib/auth.ts`
+   - Routes still transitively import auth
+   - Module loading still triggered during build
+   - Build failed before any function code ran
+
+**Why Simple Fixes Don't Work:**
+- `export const dynamic = 'force-dynamic'` doesn't prevent route module loading
+- Next.js still analyzes routes to understand available endpoints
+- During analysis, imports execute, triggering Prisma loading
+- By the time a function runs, it's too late - module already failed to load
+
+**Why Local Build Works (Sometimes):**
+- Created workaround file: `node_modules/.prisma/client/default.js`
+- This file doesn't exist on Vercel (fresh install)
+- Workaround not in git (correctly, it's in node_modules)
+
+### Solutions to Implement
+
+**Best Option: Fix Prisma Client Generation**
+- Investigate why Prisma generates only .ts files (not .js)
+- Check if schema output path is correct
+- Consider reverting to Prisma default output path
+- Ensure `@prisma/client/default.js` can find the generated client
+
+**Alternative Options:**
+1. **Use dynamic() wrapper:** Defer route loading until request time
+2. **Pre-build Prisma:** Add manual build step to compile TypeScript → JavaScript
+3. **Skip route analysis:** Configure Next.js to skip dynamic routes during build
+
+### Next Steps
+
+Session 2026-03-10 (Current):
+- [ ] Review Prisma configuration and schema
+- [ ] Test solution to fix client generation
+- [ ] Verify build passes locally
+- [ ] Deploy to Vercel
+- [ ] Start Sprint 3 once deployment works
 
 ---
 
