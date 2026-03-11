@@ -16,25 +16,29 @@ function getPrisma() {
 }
 
 export async function generateJWT(adminId: string): Promise<string> {
-  if (!JWT_SECRET) {
+  if (!JWT_SECRET || JWT_SECRET === "") {
     throw new Error("JWT_SECRET is not configured");
   }
 
-  const prisma = getPrisma();
   const token = jwt.sign({ adminId }, JWT_SECRET, {
     expiresIn: JWT_EXPIRATION,
   });
 
   // Store session in database for tracking/revocation
-  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-
-  await prisma.adminSession.create({
-    data: {
-      adminId,
-      token,
-      expiresAt,
-    },
-  });
+  try {
+    const prisma = getPrisma();
+    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    await prisma.adminSession.create({
+      data: {
+        adminId,
+        token,
+        expiresAt,
+      },
+    });
+  } catch (dbError) {
+    // Log but don't fail - token is still valid
+    console.error("Failed to store session in database:", dbError);
+  }
 
   return token;
 }
