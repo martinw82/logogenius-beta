@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { LayoutDashboard, Plus, LogOut } from 'lucide-react';
@@ -15,86 +15,44 @@ export default function AdminLayout({
   const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState('');
 
-  // Don't apply auth check to login page
   const isLoginPage = pathname === '/admin/login';
 
-  useEffect(() => {
-    console.log('Layout mounted, pathname:', pathname, 'isLoginPage:', isLoginPage);
-    
-    // Skip auth check for login page
+  const checkAuth = useCallback(async () => {
     if (isLoginPage) {
-      console.log('Skipping auth check for login page');
       setIsLoading(false);
       return;
     }
 
-    // Check if user is authenticated
-    const checkAuth = async () => {
-      try {
-        // Get token from localStorage as fallback
-        let localToken = null;
-        try {
-          localToken = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null;
-          console.log('localStorage token:', localToken ? 'found' : 'not found');
-        } catch (e) {
-          console.error('localStorage error:', e);
-        }
-        
-        const headers: Record<string, string> = {};
-        if (localToken) {
-          headers['Authorization'] = `Bearer ${localToken}`;
-        }
-
-        console.log('Calling /api/admin/verify...');
-        const response = await fetch('/api/admin/verify', {
-          credentials: 'include',
-          headers,
-        });
-        
-        console.log('Verify response status:', response.status);
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Verify success:', data);
-          setIsAuthenticated(true);
-        } else {
-          const errorData = await response.json().catch(() => ({}));
-          console.log('Verify failed:', errorData);
-          setError(JSON.stringify(errorData));
-          // Don't auto-redirect, let user see the error
-          // router.push('/admin/login');
-        }
-      } catch (error) {
-        console.error('Auth check error:', error);
-        setError(String(error));
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    checkAuth();
-  }, [pathname, isLoginPage]);
-
-  const handleLogout = async () => {
     try {
-      localStorage.removeItem('admin_token');
-      await fetch('/api/admin/logout', {
-        method: 'POST',
+      const response = await fetch('/api/admin/verify', {
         credentials: 'include',
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('admin_token') || ''}`
+        }
       });
-      router.push('/admin/login');
+      
+      if (response.ok) {
+        setIsAuthenticated(true);
+      } else {
+        window.location.href = '/admin/login';
+      }
     } catch (error) {
-      console.error('Logout failed:', error);
+      window.location.href = '/admin/login';
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }, [isLoginPage]);
 
-  const handleRetry = () => {
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
+
+  const handleLogout = () => {
+    localStorage.removeItem('admin_token');
     window.location.href = '/admin/login';
   };
 
-  // For login page, just render children without layout
   if (isLoginPage) {
     return <>{children}</>;
   }
@@ -102,81 +60,43 @@ export default function AdminLayout({
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p>Loading...</p>
-        </div>
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
   }
 
   if (!isAuthenticated) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center max-w-md p-6 border rounded-lg">
-          <h2 className="text-xl font-bold mb-4">Authentication Required</h2>
-          {error && (
-            <div className="mb-4 p-3 bg-red-50 text-red-700 rounded text-sm">
-              <p className="font-semibold">Error:</p>
-              <p>{error}</p>
-            </div>
-          )}
-          <p className="mb-4 text-gray-600">You need to login to access the admin dashboard.</p>
-          <Button onClick={handleRetry}>Go to Login</Button>
-        </div>
-      </div>
-    );
+    return null;
   }
 
   return (
     <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <aside className="w-64 bg-gray-900 text-white shadow-lg">
+      <aside className="w-64 bg-gray-900 text-white">
         <div className="p-6">
-          <h1 className="text-2xl font-bold">LogoGenius Admin</h1>
-          <p className="text-sm text-gray-400 mt-1">Order Management</p>
+          <h1 className="text-2xl font-bold">LogoGenius</h1>
         </div>
-
-        <nav className="mt-8 space-y-2 px-4">
+        <nav className="px-4 space-y-2">
           <Link href="/admin/dashboard">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-white hover:bg-gray-800"
-            >
-              <LayoutDashboard className="mr-3 h-4 w-4" />
+            <Button variant="ghost" className="w-full justify-start text-white">
+              <LayoutDashboard className="mr-2 h-4 w-4" />
               Dashboard
             </Button>
           </Link>
-
           <Link href="/admin/create-order">
-            <Button
-              variant="ghost"
-              className="w-full justify-start text-white hover:bg-gray-800"
-            >
-              <Plus className="mr-3 h-4 w-4" />
+            <Button variant="ghost" className="w-full justify-start text-white">
+              <Plus className="mr-2 h-4 w-4" />
               Create Order
             </Button>
           </Link>
         </nav>
-
-        <div className="absolute bottom-6 left-4 right-4">
-          <Button
-            variant="ghost"
-            className="w-full justify-start text-white hover:bg-gray-800"
-            onClick={handleLogout}
-          >
-            <LogOut className="mr-3 h-4 w-4" />
+        <div className="absolute bottom-4 left-4 right-4">
+          <Button variant="ghost" className="w-full justify-start text-white" onClick={handleLogout}>
+            <LogOut className="mr-2 h-4 w-4" />
             Logout
           </Button>
         </div>
       </aside>
-
-      {/* Main Content */}
-      <main className="flex-1 overflow-auto">
-        <div className="p-8">
-          {children}
-        </div>
-      </main>
+      <main className="flex-1 p-8 overflow-auto">{children}</main>
     </div>
   );
 }
