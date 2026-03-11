@@ -15,13 +15,17 @@ export default function AdminLayout({
   const pathname = usePathname();
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
 
   // Don't apply auth check to login page
-  const isLoginPage = pathname === '/admin/login' || pathname?.startsWith('/admin/login');
+  const isLoginPage = pathname === '/admin/login';
 
   useEffect(() => {
+    console.log('Layout mounted, pathname:', pathname, 'isLoginPage:', isLoginPage);
+    
     // Skip auth check for login page
     if (isLoginPage) {
+      console.log('Skipping auth check for login page');
       setIsLoading(false);
       return;
     }
@@ -30,35 +34,52 @@ export default function AdminLayout({
     const checkAuth = async () => {
       try {
         // Get token from localStorage as fallback
-        const localToken = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null;
+        let localToken = null;
+        try {
+          localToken = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null;
+          console.log('localStorage token:', localToken ? 'found' : 'not found');
+        } catch (e) {
+          console.error('localStorage error:', e);
+        }
         
         const headers: Record<string, string> = {};
         if (localToken) {
           headers['Authorization'] = `Bearer ${localToken}`;
         }
 
+        console.log('Calling /api/admin/verify...');
         const response = await fetch('/api/admin/verify', {
           credentials: 'include',
           headers,
         });
         
+        console.log('Verify response status:', response.status);
+        
         if (response.ok) {
+          const data = await response.json();
+          console.log('Verify success:', data);
           setIsAuthenticated(true);
         } else {
-          router.push('/admin/login');
+          const errorData = await response.json().catch(() => ({}));
+          console.log('Verify failed:', errorData);
+          setError(JSON.stringify(errorData));
+          // Don't auto-redirect, let user see the error
+          // router.push('/admin/login');
         }
       } catch (error) {
-        router.push('/admin/login');
+        console.error('Auth check error:', error);
+        setError(String(error));
       } finally {
         setIsLoading(false);
       }
     };
 
     checkAuth();
-  }, [router, isLoginPage]);
+  }, [pathname, isLoginPage]);
 
   const handleLogout = async () => {
     try {
+      localStorage.removeItem('admin_token');
       await fetch('/api/admin/logout', {
         method: 'POST',
         credentials: 'include',
@@ -67,6 +88,10 @@ export default function AdminLayout({
     } catch (error) {
       console.error('Logout failed:', error);
     }
+  };
+
+  const handleRetry = () => {
+    window.location.href = '/admin/login';
   };
 
   // For login page, just render children without layout
@@ -86,7 +111,21 @@ export default function AdminLayout({
   }
 
   if (!isAuthenticated) {
-    return null;
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center max-w-md p-6 border rounded-lg">
+          <h2 className="text-xl font-bold mb-4">Authentication Required</h2>
+          {error && (
+            <div className="mb-4 p-3 bg-red-50 text-red-700 rounded text-sm">
+              <p className="font-semibold">Error:</p>
+              <p>{error}</p>
+            </div>
+          )}
+          <p className="mb-4 text-gray-600">You need to login to access the admin dashboard.</p>
+          <Button onClick={handleRetry}>Go to Login</Button>
+        </div>
+      </div>
+    );
   }
 
   return (
