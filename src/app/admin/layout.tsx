@@ -29,9 +29,19 @@ export default function AdminLayout({
     // Check if user is authenticated
     const checkAuth = async () => {
       try {
+        // Get token from localStorage as fallback
+        const localToken = typeof window !== 'undefined' ? localStorage.getItem('admin_token') : null;
+        
+        const headers: Record<string, string> = {};
+        if (localToken) {
+          headers['Authorization'] = `Bearer ${localToken}`;
+        }
+
         const response = await fetch('/api/admin/verify', {
           credentials: 'include',
+          headers,
         });
+        
         if (response.ok) {
           setIsAuthenticated(true);
         } else {

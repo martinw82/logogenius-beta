@@ -107,6 +107,12 @@ export async function verifyAdminSession(
   request: Request
 ): Promise<JWTPayload | null> {
   const token = getTokenFromRequest(request);
+  console.log("verifyAdminSession - token found:", !!token);
   if (!token) return null;
+  return verifyJWT(token);
+}
+
+// For client-side verification (fallback when cookies don't work)
+export async function verifyToken(token: string): Promise<JWTPayload | null> {
   return verifyJWT(token);
 }

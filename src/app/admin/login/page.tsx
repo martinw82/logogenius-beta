@@ -29,10 +29,18 @@ export default function AdminLoginPage() {
         credentials: 'include',
       });
 
+      const data = await response.json();
+      console.log('Login response:', data);
+
       if (!response.ok) {
-        const data = await response.json();
         setError(data.error || 'Login failed');
         return;
+      }
+
+      // Store token in localStorage as fallback
+      if (data.token) {
+        localStorage.setItem('admin_token', data.token);
+        console.log('Token stored in localStorage');
       }
 
       router.push('/admin/dashboard');
