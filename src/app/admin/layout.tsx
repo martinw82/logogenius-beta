@@ -1,54 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { LayoutDashboard, Plus, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
-  const pathname = usePathname();
-  const [auth, setAuth] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
-
-  useEffect(() => {
-    if (pathname === '/admin/login') {
-      setAuth('authenticated'); // Don't check auth on login page
-      return;
-    }
-
-    const token = localStorage.getItem('admin_token');
-    if (!token) {
-      window.location.replace('/admin/login');
-      return;
-    }
-
-    // Verify token
-    fetch('/api/admin/verify', {
-      headers: { 'Authorization': `Bearer ${token}` }
-    }).then(r => {
-      if (r.ok) {
-        setAuth('authenticated');
-      } else {
-        localStorage.removeItem('admin_token');
-        window.location.replace('/admin/login');
-      }
-    }).catch(() => {
-      window.location.replace('/admin/login');
-    });
-  }, [pathname]);
-
-  if (pathname === '/admin/login') {
-    return children;
-  }
-
-  if (auth === 'loading') {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
-      </div>
-    );
-  }
-
   return (
     <div className="flex h-screen bg-gray-50">
       <aside className="w-64 bg-gray-900 text-white">
@@ -75,7 +31,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             className="w-full justify-start text-white" 
             onClick={() => {
               localStorage.removeItem('admin_token');
-              window.location.replace('/admin/login');
+              window.location.href = '/admin/login';
             }}
           >
             <LogOut className="mr-2 h-4 w-4" />
