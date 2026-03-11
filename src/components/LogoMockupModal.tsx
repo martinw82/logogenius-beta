@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Button } from '@/components/ui/button';
 import { MockupTemplate } from './MockupTemplate';
 import { MockupTemplate as MockupTemplateType } from '@/lib/services/mockupRenderer';
+import { Download, ZoomIn, ZoomOut, Eye, EyeOff } from 'lucide-react';
 
 interface Logo {
   id: string;
@@ -22,13 +24,15 @@ interface LogoMockupModalProps {
   onSelectLogo?: (logoId: string, variantIndex: number) => void;
   /** Show selection buttons */
   showSelection?: boolean;
+  /** Show download buttons */
+  showDownload?: boolean;
 }
 
 /**
- * LogoMockupModal Component
+ * LogoMockupModal Component (Enhanced for Sprint 4)
  * Displays 4 logo variants on 3 different mockup templates
  * Total: 4 variants × 3 templates = 12 mockup views
- * Users can navigate between variants and see how logos look in real-world contexts
+ * Features: variant navigation, template tabs, zoom controls, download capability
  */
 export const LogoMockupModal: React.FC<LogoMockupModalProps> = ({
   isOpen,
@@ -36,30 +40,68 @@ export const LogoMockupModal: React.FC<LogoMockupModalProps> = ({
   logos,
   onSelectLogo,
   showSelection = true,
+  showDownload = false,
 }) => {
-  // Default to first logo variant
   const [selectedVariantIndex, setSelectedVariantIndex] = useState(0);
   const [selectedTemplate, setSelectedTemplate] = useState<MockupTemplateType>('letterhead');
+  const [zoom, setZoom] = useState(1);
+  const [showGrid, setShowGrid] = useState(true);
+  const mockupContainerRef = useRef<HTMLDivElement>(null);
 
   const currentLogo = logos[selectedVariantIndex];
   const mockupTemplates: MockupTemplateType[] = ['letterhead', 'tshirt', 'businesscard'];
 
-  const handleSelectLogo = useCallback((variantIndex: number) => {
-    if (onSelectLogo && logos[variantIndex]) {
-      onSelectLogo(logos[variantIndex].id, variantIndex);
-      // Optionally close modal after selection
-      setTimeout(onClose, 300);
+  const handleSelectLogo = useCallback(
+    (variantIndex: number) => {
+      if (onSelectLogo && logos[variantIndex]) {
+        onSelectLogo(logos[variantIndex].id, variantIndex);
+        // Close modal after selection
+        setTimeout(onClose, 300);
+      }
+    },
+    [logos, onSelectLogo, onClose]
+  );
+
+  const handleDownloadMockup = useCallback(async () => {
+    if (!mockupContainerRef.current) return;
+
+    try {
+      const canvas = mockupContainerRef.current.querySelector('canvas');
+      if (canvas) {
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = `logo-mockup-v${selectedVariantIndex + 1}-${selectedTemplate}.png`;
+        link.click();
+      }
+    } catch (error) {
+      console.error('Download failed:', error);
     }
-  }, [logos, onSelectLogo, onClose]);
+  }, [selectedVariantIndex, selectedTemplate]);
+
+  const handleDownloadLogo = useCallback(() => {
+    if (!currentLogo.url) return;
+
+    try {
+      const link = document.createElement('a');
+      link.href = currentLogo.url.startsWith('data:')
+        ? currentLogo.url
+        : `data:image/svg+xml,${encodeURIComponent(currentLogo.url)}`;
+      link.download = `logo-variant-${selectedVariantIndex + 1}.svg`;
+      link.click();
+    } catch (error) {
+      console.error('Download failed:', error);
+    }
+  }, [currentLogo.url, selectedVariantIndex]);
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl w-full max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-5xl w-full max-h-[95vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
             Logo Preview on Mockups
             <p className="text-sm font-normal text-gray-500 mt-1">
-              See how your logo looks in real-world contexts
+              Variant {selectedVariantIndex + 1} of {logos.length} - See how your logo looks in
+              real-world contexts
             </p>
           </DialogTitle>
         </DialogHeader>
@@ -67,21 +109,21 @@ export const LogoMockupModal: React.FC<LogoMockupModalProps> = ({
         <div className="grid gap-6 py-4">
           {/* Logo Variant Selector */}
           <div className="border-b pb-4">
-            <h3 className="text-sm font-semibold mb-3 text-gray-700">
-              Select Logo Variant
-            </h3>
+            <h3 className="text-sm font-semibold mb-3 text-gray-700">Select Logo Variant</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               {logos.map((logo, index) => (
                 <button
                   key={index}
-                  onClick={() => setSelectedVariantIndex(index)}
+                  onClick={() => {
+                    setSelectedVariantIndex(index);
+                    setZoom(1); // Reset zoom when changing variant
+                  }}
                   className={`relative p-2 rounded-lg border-2 transition-all ${
                     selectedVariantIndex === index
                       ? 'border-blue-500 bg-blue-50'
                       : 'border-gray-200 hover:border-gray-300 bg-white'
                   }`}
                 >
-                  {/* Logo preview thumbnail */}
                   <div className="aspect-square rounded bg-gray-100 flex items-center justify-center overflow-hidden">
                     {logo.url ? (
                       <img
@@ -97,12 +139,66 @@ export const LogoMockupModal: React.FC<LogoMockupModalProps> = ({
                       <span className="text-xs text-gray-400">No logo</span>
                     )}
                   </div>
-                  <p className="text-xs text-center mt-2 text-gray-600">
-                    Variant {index + 1}
-                  </p>
+                  <p className="text-xs text-center mt-2 text-gray-600">Variant {index + 1}</p>
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* Controls */}
+          <div className="flex gap-2 flex-wrap">
+            <div className="flex gap-1">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setZoom(Math.max(0.5, zoom - 0.25))}
+                disabled={zoom <= 0.5}
+              >
+                <ZoomOut className="h-4 w-4" />
+              </Button>
+              <span className="px-2 py-1 text-sm text-gray-600">{Math.round(zoom * 100)}%</span>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setZoom(Math.min(2, zoom + 0.25))}
+                disabled={zoom >= 2}
+              >
+                <ZoomIn className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowGrid(!showGrid)}
+              className="gap-2"
+            >
+              {showGrid ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+              Grid
+            </Button>
+
+            {showDownload && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadMockup}
+                  className="gap-2 ml-auto"
+                >
+                  <Download className="h-4 w-4" />
+                  Download Mockup
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleDownloadLogo}
+                  className="gap-2"
+                >
+                  <Download className="h-4 w-4" />
+                  Download Logo
+                </Button>
+              </>
+            )}
           </div>
 
           {/* Mockup Preview Section */}
@@ -114,19 +210,26 @@ export const LogoMockupModal: React.FC<LogoMockupModalProps> = ({
             {/* Template Tabs */}
             <Tabs
               value={selectedTemplate}
-              onValueChange={(value) => setSelectedTemplate(value as MockupTemplateType)}
+              onValueChange={(value) => {
+                setSelectedTemplate(value as MockupTemplateType);
+                setZoom(1); // Reset zoom when changing template
+              }}
               className="w-full"
             >
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
                 <TabsTrigger value="letterhead">Letterhead</TabsTrigger>
                 <TabsTrigger value="tshirt">T-Shirt</TabsTrigger>
                 <TabsTrigger value="businesscard">Business Card</TabsTrigger>
               </TabsList>
 
-              {/* Mockup Preview Tabs */}
+              {/* Mockup Preview Tabs with Zoom */}
               {mockupTemplates.map((template) => (
                 <TabsContent key={template} value={template} className="mt-4">
-                  <div className="bg-gray-50 rounded-lg p-4">
+                  <div
+                    ref={selectedTemplate === template ? mockupContainerRef : null}
+                    className="bg-gray-50 rounded-lg p-4 overflow-auto max-h-96"
+                    style={{ transform: `scale(${zoom})`, transformOrigin: 'top left' }}
+                  >
                     <MockupTemplate
                       template={template}
                       logoSvgData={currentLogo.url}
@@ -150,7 +253,7 @@ export const LogoMockupModal: React.FC<LogoMockupModalProps> = ({
                   }`}
                   onClick={() => setSelectedTemplate(template)}
                 >
-                  <div className="bg-white rounded">
+                  <div className="bg-white rounded overflow-hidden max-h-48">
                     <MockupTemplate
                       template={template}
                       logoSvgData={currentLogo.url}
@@ -158,6 +261,7 @@ export const LogoMockupModal: React.FC<LogoMockupModalProps> = ({
                       showLoading={false}
                     />
                   </div>
+                  <p className="text-xs text-center mt-2 text-gray-600 capitalize">{template}</p>
                 </div>
               ))}
             </div>
@@ -167,22 +271,17 @@ export const LogoMockupModal: React.FC<LogoMockupModalProps> = ({
           {showSelection && (
             <div className="border-t pt-4">
               <div className="flex flex-col gap-3">
-                <p className="text-sm text-gray-600">
-                  Ready to use Variant {selectedVariantIndex + 1}?
-                </p>
+                <p className="text-sm text-gray-600">Ready to use Variant {selectedVariantIndex + 1}?</p>
                 <div className="grid grid-cols-2 gap-3">
-                  <button
+                  <Button
                     onClick={() => handleSelectLogo(selectedVariantIndex)}
-                    className="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium text-sm"
+                    className="bg-blue-600 hover:bg-blue-700"
                   >
                     Select This Variant
-                  </button>
-                  <button
-                    onClick={onClose}
-                    className="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors font-medium text-sm"
-                  >
+                  </Button>
+                  <Button onClick={onClose} variant="outline">
                     Cancel
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
