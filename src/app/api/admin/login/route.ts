@@ -63,11 +63,13 @@ export const handler = async (request: NextRequest) => {
       name: "admin_token",
       value: token,
       httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      secure: true, // Always secure for HTTPS (Vercel)
+      sameSite: "none", // Required for cross-site cookies
       maxAge: 24 * 60 * 60, // 24 hours
+      path: "/", // Available for all paths
     });
 
+    console.log("Login - Cookie set for admin:", ADMIN_USERNAME);
     return response;
   } catch (error) {
     console.error("Login error:", error);
