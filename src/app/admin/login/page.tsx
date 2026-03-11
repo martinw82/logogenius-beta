@@ -1,14 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function AdminLoginPage() {
-  const router = useRouter();
   const [username, setUsername] = useState('admin');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -37,13 +35,13 @@ export default function AdminLoginPage() {
         return;
       }
 
-      // Store token in localStorage as fallback
+      // Store token in localStorage
       if (data.token) {
         localStorage.setItem('admin_token', data.token);
-        console.log('Token stored in localStorage');
       }
 
-      router.push('/admin/dashboard');
+      // Use window.location instead of router.push
+      window.location.href = '/admin/dashboard';
     } catch (err) {
       setError('An error occurred. Please try again.');
       console.error('Login error:', err);
