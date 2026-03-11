@@ -17,7 +17,7 @@ export default function AdminLayout({
   const [isLoading, setIsLoading] = useState(true);
 
   // Don't apply auth check to login page
-  const isLoginPage = pathname === '/admin/login';
+  const isLoginPage = pathname === '/admin/login' || pathname?.startsWith('/admin/login');
 
   useEffect(() => {
     // Skip auth check for login page

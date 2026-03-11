@@ -59,14 +59,27 @@ export const handler = async (request: NextRequest) => {
     );
 
     // Set cookie with token
-    response.cookies.set({
+    const cookieOptions = {
       name: "admin_token",
       value: token,
       httpOnly: true,
-      secure: true, // Always secure for HTTPS (Vercel)
-      sameSite: "none", // Required for cross-site cookies
-      maxAge: 24 * 60 * 60, // 24 hours
-      path: "/", // Available for all paths
+      secure: true,
+      sameSite: "none" as const,
+      maxAge: 24 * 60 * 60,
+      path: "/",
+    };
+    
+    response.cookies.set(cookieOptions);
+    
+    // Also set a non-httpOnly cookie for debugging
+    response.cookies.set({
+      name: "admin_logged_in",
+      value: "true",
+      httpOnly: false,
+      secure: true,
+      sameSite: "none" as const,
+      maxAge: 24 * 60 * 60,
+      path: "/",
     });
 
     console.log("Login - Cookie set for admin:", ADMIN_USERNAME);
