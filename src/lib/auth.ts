@@ -1,5 +1,4 @@
 import jwt from "jsonwebtoken";
-import { prisma } from "./db";
 
 const JWT_SECRET = process.env.JWT_SECRET || "";
 const JWT_EXPIRATION = "24h";
@@ -10,11 +9,18 @@ export interface JWTPayload {
   exp?: number;
 }
 
+// Lazy load Prisma to avoid build-time module issues
+function getPrisma() {
+  const { getPrisma: getPrismaClient } = require("./db");
+  return getPrismaClient();
+}
+
 export async function generateJWT(adminId: string): Promise<string> {
   if (!JWT_SECRET) {
     throw new Error("JWT_SECRET is not configured");
   }
 
+  const prisma = getPrisma();
   const token = jwt.sign({ adminId }, JWT_SECRET, {
     expiresIn: JWT_EXPIRATION,
   });
@@ -40,6 +46,7 @@ export async function verifyJWT(token: string): Promise<JWTPayload | null> {
     }
 
     const payload = jwt.verify(token, JWT_SECRET) as JWTPayload;
+    const prisma = getPrisma();
 
     // Check if session still exists in database
     const session = await prisma.adminSession.findUnique({
@@ -58,6 +65,7 @@ export async function verifyJWT(token: string): Promise<JWTPayload | null> {
 
 export async function revokeJWT(token: string): Promise<boolean> {
   try {
+    const prisma = getPrisma();
     const result = await prisma.adminSession.delete({
       where: { token },
     });

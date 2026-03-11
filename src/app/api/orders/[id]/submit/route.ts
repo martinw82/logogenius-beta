@@ -1,19 +1,22 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import {
-  tier1FormSchema,
-  tier2FormSchema,
-  tier3FormSchema,
-  type Tier1FormData,
-  type Tier2FormData,
-  type Tier3FormData,
+import type {
+  Tier1FormData,
+  Tier2FormData,
+  Tier3FormData,
 } from "@/lib/schemas/order-forms";
 
-export async function POST(
+export const handler = async (
   request: NextRequest,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
+    const { prisma } = await import("@/lib/db");
+    const {
+      tier1FormSchema,
+      tier2FormSchema,
+      tier3FormSchema,
+    } = await import("@/lib/schemas/order-forms");
+
     const orderId = params.id;
     const contentType = request.headers.get("content-type") || "";
 
@@ -157,4 +160,6 @@ export async function POST(
       { status: 500 }
     );
   }
-}
+};
+
+export const POST = handler;

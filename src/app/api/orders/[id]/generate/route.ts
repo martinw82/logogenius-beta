@@ -1,14 +1,21 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
-import { generateLogoConcepts } from "@/ai/flows/generate-logo-concepts";
-import { generateLogoMockups } from "@/ai/flows/generate-logo-mockups";
-import { generateComprehensiveBrandGuide } from "@/ai/flows/generate-comprehensive-brand-guide";
 
-export async function POST(
+export const handler = async (
   request: NextRequest,
   { params }: { params: { id: string } }
-) {
+) => {
   try {
+    const { prisma } = await import("@/lib/db");
+    const { generateLogoConcepts } = await import(
+      "@/ai/flows/generate-logo-concepts"
+    );
+    const { generateLogoMockups } = await import(
+      "@/ai/flows/generate-logo-mockups"
+    );
+    const { generateComprehensiveBrandGuide } = await import(
+      "@/ai/flows/generate-comprehensive-brand-guide"
+    );
+
     const orderId = params.id;
     const body = await request.json();
     const { userApiKey } = body;
@@ -276,4 +283,6 @@ export async function POST(
       { status: 500 }
     );
   }
-}
+};
+
+export const POST = handler;

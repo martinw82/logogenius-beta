@@ -1,9 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
-import { generateJWT } from "@/lib/auth";
-import { verifyAdminPassword } from "@/lib/hash";
 
-export async function POST(request: NextRequest) {
+export const handler = async (request: NextRequest) => {
   try {
+    const { generateJWT } = await import("@/lib/auth");
+    const { verifyAdminPassword } = await import("@/lib/hash");
+
     const body = await request.json();
     const { username, password } = body;
 
@@ -75,4 +76,6 @@ export async function POST(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+export const POST = handler;

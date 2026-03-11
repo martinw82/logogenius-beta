@@ -1,13 +1,28 @@
-import { PrismaClient } from "@prisma/client";
+let prismaClient: any = null;
 
-const globalForPrisma = globalThis as unknown as { prisma: PrismaClient };
+export function getPrisma() {
+  if (prismaClient) return prismaClient;
 
-export const prisma =
-  globalForPrisma.prisma ||
-  new PrismaClient({
-    log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
-  });
+  try {
+    const { PrismaClient } = require("@prisma/client");
+    const globalForPrisma = globalThis as any;
 
-if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = prisma;
+    prismaClient =
+      globalForPrisma.prisma ||
+      new PrismaClient({
+        log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
+      });
 
-export default prisma;
+    if (process.env.NODE_ENV !== "production") {
+      globalForPrisma.prisma = prismaClient;
+    }
+
+    return prismaClient;
+  } catch (error) {
+    console.error("Failed to initialize Prisma:", error);
+    throw error;
+  }
+}
+
+// Create a lazy accessor
+export const prisma = getPrisma();

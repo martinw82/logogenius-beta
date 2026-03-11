@@ -1,8 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
-import { verifyAdminSession } from "@/lib/auth";
 
-export async function GET(request: NextRequest) {
+export const handler = async (request: NextRequest) => {
   try {
+    const { verifyAdminSession } = await import("@/lib/auth");
+
     const session = await verifyAdminSession(request);
 
     if (!session) {
@@ -26,4 +27,6 @@ export async function GET(request: NextRequest) {
       { status: 500 }
     );
   }
-}
+};
+
+export const GET = handler;
