@@ -111,4 +111,71 @@ const handler = async (request: NextRequest) => {
   }
 };
 
+const postHandler = async (request: NextRequest) => {
+  const { verifyAdminMiddleware } = await import('@/lib/middleware/verify-admin');
+  const { getPrisma } = await import('@/lib/db');
+
+  try {
+    // Verify admin session
+    const session = await verifyAdminMiddleware(request);
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { tier, customerEmail, orderData } = body;
+
+    // Validate required fields
+    if (!tier || !customerEmail || !orderData) {
+      return NextResponse.json(
+        { error: 'Missing required fields' },
+        { status: 400 }
+      );
+    }
+
+    if (!['basic', 'pro', 'premium'].includes(tier)) {
+      return NextResponse.json(
+        { error: 'Invalid tier' },
+        { status: 400 }
+      );
+    }
+
+    const prisma = getPrisma();
+
+    // Create order
+    const order = await prisma.order.create({
+      data: {
+        tier,
+        customerEmail,
+        status: 'pending',
+        details: {
+          create: Object.entries(orderData).map(([fieldName, fieldValue]) => ({
+            fieldName,
+            fieldValue: String(fieldValue),
+          })),
+        },
+      },
+    });
+
+    return NextResponse.json(
+      {
+        success: true,
+        orderId: order.id,
+        message: 'Order created successfully',
+      },
+      { status: 201 }
+    );
+  } catch (error) {
+    console.error('Error creating order:', error);
+    return NextResponse.json(
+      {
+        error: 'Internal server error',
+        details: error instanceof Error ? error.message : 'Unknown error',
+      },
+      { status: 500 }
+    );
+  }
+};
+
 export const GET = handler;
+export const POST = postHandler;
