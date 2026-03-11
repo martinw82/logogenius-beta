@@ -1,72 +1,52 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
-import { useRouter, usePathname } from 'next/navigation';
+import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 import Link from 'next/link';
 import { LayoutDashboard, Plus, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-export default function AdminLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  const router = useRouter();
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [auth, setAuth] = useState<'loading' | 'authenticated' | 'unauthenticated'>('loading');
 
-  const isLoginPage = pathname === '/admin/login';
-
-  const checkAuth = useCallback(async () => {
-    if (isLoginPage) {
-      setIsLoading(false);
+  useEffect(() => {
+    if (pathname === '/admin/login') {
+      setAuth('authenticated'); // Don't check auth on login page
       return;
     }
 
-    try {
-      const response = await fetch('/api/admin/verify', {
-        credentials: 'include',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('admin_token') || ''}`
-        }
-      });
-      
-      if (response.ok) {
-        setIsAuthenticated(true);
-      } else {
-        window.location.href = '/admin/login';
-      }
-    } catch (error) {
-      window.location.href = '/admin/login';
-    } finally {
-      setIsLoading(false);
+    const token = localStorage.getItem('admin_token');
+    if (!token) {
+      window.location.replace('/admin/login');
+      return;
     }
-  }, [isLoginPage]);
 
-  useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    // Verify token
+    fetch('/api/admin/verify', {
+      headers: { 'Authorization': `Bearer ${token}` }
+    }).then(r => {
+      if (r.ok) {
+        setAuth('authenticated');
+      } else {
+        localStorage.removeItem('admin_token');
+        window.location.replace('/admin/login');
+      }
+    }).catch(() => {
+      window.location.replace('/admin/login');
+    });
+  }, [pathname]);
 
-  const handleLogout = () => {
-    localStorage.removeItem('admin_token');
-    window.location.href = '/admin/login';
-  };
-
-  if (isLoginPage) {
-    return <>{children}</>;
+  if (pathname === '/admin/login') {
+    return children;
   }
 
-  if (isLoading) {
+  if (auth === 'loading') {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
       </div>
     );
-  }
-
-  if (!isAuthenticated) {
-    return null;
   }
 
   return (
@@ -90,7 +70,14 @@ export default function AdminLayout({
           </Link>
         </nav>
         <div className="absolute bottom-4 left-4 right-4">
-          <Button variant="ghost" className="w-full justify-start text-white" onClick={handleLogout}>
+          <Button 
+            variant="ghost" 
+            className="w-full justify-start text-white" 
+            onClick={() => {
+              localStorage.removeItem('admin_token');
+              window.location.replace('/admin/login');
+            }}
+          >
             <LogOut className="mr-2 h-4 w-4" />
             Logout
           </Button>
