@@ -1,14 +1,17 @@
+// v2 - Complete rewrite to bypass cache
 import { NextRequest, NextResponse } from "next/server";
 import jwt from "jsonwebtoken";
 
-const JWT_SECRET = process.env.JWT_SECRET || "";
+export const dynamic = 'force-dynamic';
+export const runtime = 'nodejs';
 
-export const handler = async (request: NextRequest) => {
+export async function POST(request: NextRequest) {
+  console.log("[LOGIN v2] Starting login process");
+  
   try {
     const body = await request.json();
     const { username, password } = body;
 
-    // Validate input
     if (!username || !password) {
       return NextResponse.json(
         { error: "Username and password are required" },
@@ -18,15 +21,16 @@ export const handler = async (request: NextRequest) => {
 
     const ADMIN_USERNAME = "admin";
     const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
+    const JWT_SECRET = process.env.JWT_SECRET;
 
-    if (!ADMIN_PASSWORD) {
+    if (!ADMIN_PASSWORD || !JWT_SECRET) {
+      console.error("[LOGIN v2] Missing env vars");
       return NextResponse.json(
         { error: "Server configuration error" },
         { status: 500 }
       );
     }
 
-    // Verify credentials
     if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
       return NextResponse.json(
         { error: "Invalid credentials" },
@@ -34,31 +38,21 @@ export const handler = async (request: NextRequest) => {
       );
     }
 
-    // Generate JWT token (no database)
-    if (!JWT_SECRET) {
-      return NextResponse.json(
-        { error: "JWT_SECRET not configured" },
-        { status: 500 }
-      );
-    }
-
+    // Generate JWT - NO DATABASE
     const token = jwt.sign({ 
       adminId: ADMIN_USERNAME,
-      iat: Math.floor(Date.now() / 1000)
+      v: 2  // version to track
     }, JWT_SECRET, {
       expiresIn: "24h",
     });
 
+    console.log("[LOGIN v2] Token generated successfully");
+
     const response = NextResponse.json(
-      {
-        success: true,
-        token,
-        adminId: ADMIN_USERNAME,
-      },
+      { success: true, token, adminId: ADMIN_USERNAME },
       { status: 200 }
     );
 
-    // Set cookie
     response.cookies.set({
       name: "admin_token",
       value: token,
@@ -71,12 +65,10 @@ export const handler = async (request: NextRequest) => {
 
     return response;
   } catch (error) {
-    console.error("Login error:", error);
+    console.error("[LOGIN v2] Error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
   }
-};
-
-export const POST = handler;
+}
