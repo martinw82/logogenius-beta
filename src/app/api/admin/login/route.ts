@@ -42,7 +42,10 @@ export const handler = async (request: NextRequest) => {
       );
     }
 
-    const token = jwt.sign({ adminId: ADMIN_USERNAME }, JWT_SECRET, {
+    const token = jwt.sign({ 
+      adminId: ADMIN_USERNAME,
+      iat: Math.floor(Date.now() / 1000)
+    }, JWT_SECRET, {
       expiresIn: "24h",
     });
 
