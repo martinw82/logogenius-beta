@@ -52,3 +52,8 @@ export async function verifyAdminSession(request: Request): Promise<JWTPayload |
 // No-op functions for compatibility
 export async function revokeJWT(): Promise<boolean> { return true; }
 export async function verifyToken(token: string): Promise<JWTPayload | null> { return verifyJWT(token); }
+
+// Alias for compatibility with different naming conventions
+export async function verifyAdminToken(token: string): Promise<JWTPayload | null> {
+  return verifyJWT(token);
+}
