@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAllOrders } from '@/lib/database';
-import { verifyAdminToken } from '@/lib/auth';
+import { verifyAdminToken, getTokenFromRequest } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    // Verify admin authentication
-    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    // Verify admin authentication - check both headers and cookies
+    const token = getTokenFromRequest(request);
     if (!token) {
       return NextResponse.json(
         { error: 'Unauthorized - No token provided' },
