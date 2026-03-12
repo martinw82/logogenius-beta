@@ -63,6 +63,8 @@ export default function AdminOrderDetail() {
   const [successMessage, setSuccessMessage] = useState('');
   const [showConfirmDialog, setShowConfirmDialog] = useState(false);
   const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | null>(null);
+  const [isGenerating, setIsGenerating] = useState(false);
+  const [generationError, setGenerationError] = useState('');
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -175,6 +177,48 @@ export default function AdminOrderDetail() {
     }
   };
 
+  const handleGenerateLogos = async () => {
+    setIsGenerating(true);
+    setGenerationError('');
+    try {
+      const response = await fetch(`/api/orders/${orderId}/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          // API key will be read from GENKIT_API_KEY env var on server
+        }),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Generation failed');
+      }
+
+      const data = await response.json();
+      setSuccessMessage(`Generated ${data.generatedAssets.logoCount} logos successfully!`);
+      
+      // Refresh order data to show generated logos
+      const orderResponse = await fetch(`/api/admin/orders/${orderId}`, {
+        credentials: 'include',
+      });
+      if (orderResponse.ok) {
+        const orderData = await orderResponse.json();
+        setOrder(orderData);
+        setNewStatus(orderData.status);
+      }
+      
+      setTimeout(() => setSuccessMessage(''), 5000);
+    } catch (error) {
+      console.error('Generation error:', error);
+      setGenerationError(error instanceof Error ? error.message : 'Generation failed');
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="text-center py-12">
@@ -217,6 +261,36 @@ export default function AdminOrderDetail() {
         <Alert className="bg-green-50 border-green-200">
           <AlertDescription className="text-green-800">{successMessage}</AlertDescription>
         </Alert>
+      )}
+
+      {generationError && (
+        <Alert variant="destructive">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>{generationError}</AlertDescription>
+        </Alert>
+      )}
+
+      {/* Generate Logos Button - Only show for pending orders */}
+      {order.status === 'pending' && (
+        <Card className="bg-blue-50 border-blue-200">
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="font-semibold text-blue-900">Generate Logo Concepts</h3>
+                <p className="text-sm text-blue-700">
+                  Use AI to generate 4 logo variants and brand guide for this order
+                </p>
+              </div>
+              <Button 
+                onClick={handleGenerateLogos}
+                disabled={isGenerating}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                {isGenerating ? 'Generating...' : 'Generate Logos'}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
       )}
 
       <div className="grid grid-cols-3 gap-4">

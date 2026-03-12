@@ -1,11 +1,31 @@
 import { NextRequest, NextResponse } from "next/server";
+import { getOrderById, updateOrder, prisma } from "@/lib/database";
+import { verifyAdminToken, getTokenFromRequest } from "@/lib/auth";
+
+export const dynamic = 'force-dynamic';
 
 export const handler = async (
   request: NextRequest,
   { params }: { params: { id: string } }
 ) => {
   try {
-    const { prisma } = await import("@/lib/db");
+    // Verify authentication
+    const token = getTokenFromRequest(request);
+    if (!token) {
+      return NextResponse.json(
+        { error: "Unauthorized - No token provided" },
+        { status: 401 }
+      );
+    }
+
+    const admin = await verifyAdminToken(token);
+    if (!admin) {
+      return NextResponse.json(
+        { error: "Unauthorized - Invalid token" },
+        { status: 401 }
+      );
+    }
+
     const { generateLogoConcepts } = await import(
       "@/ai/flows/generate-logo-concepts"
     );
@@ -16,38 +36,37 @@ export const handler = async (
       "@/ai/flows/generate-comprehensive-brand-guide"
     );
 
-    const orderId = params.id;
+    const orderId = parseInt(params.id);
+    if (isNaN(orderId)) {
+      return NextResponse.json({ error: "Invalid order ID" }, { status: 400 });
+    }
+
     const body = await request.json();
-    const { userApiKey } = body;
+    // Use provided API key or fall back to environment variable
+    const userApiKey = body.userApiKey || process.env.GENKIT_API_KEY;
 
     if (!userApiKey) {
       return NextResponse.json(
-        { error: "User API key is required" },
+        { error: "API key is required. Provide userApiKey or set GENKIT_API_KEY" },
         { status: 400 }
       );
     }
 
     // Get the order and its details
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: { OrderDetail: true },
-    });
+    const order = await getOrderById(orderId);
 
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    // Convert OrderDetail array to object for easier access
+    // Convert details array to object for easier access
     const formData: Record<string, string> = {};
-    for (const detail of order.OrderDetail) {
+    for (const detail of order.details) {
       formData[detail.fieldName] = detail.fieldValue;
     }
 
     // Update order status to "generating"
-    await prisma.order.update({
-      where: { id: orderId },
-      data: { status: "generating" },
-    });
+    await updateOrder(orderId, { status: "generating" });
 
     try {
       // Step 1: Generate logos
@@ -82,12 +101,12 @@ export const handler = async (
         await prisma.orderDetail.upsert({
           where: {
             orderId_fieldName: {
-              orderId,
+              orderId: orderId,
               fieldName: `logoUrl_${i}`,
             },
           },
           create: {
-            orderId,
+            orderId: orderId,
             fieldName: `logoUrl_${i}`,
             fieldValue: logoResult.logoUrls[i],
           },
@@ -111,61 +130,32 @@ export const handler = async (
       const mockupResult = await generateLogoMockups(mockupInput);
 
       // Store mockup URLs
-      if (mockupResult.letterheadMockup) {
-        await prisma.orderDetail.upsert({
-          where: {
-            orderId_fieldName: {
-              orderId,
-              fieldName: "mockup_letterhead",
-            },
-          },
-          create: {
-            orderId,
-            fieldName: "mockup_letterhead",
-            fieldValue: mockupResult.letterheadMockup,
-          },
-          update: {
-            fieldValue: mockupResult.letterheadMockup,
-          },
-        });
-      }
+      const mockupFields = [
+        { key: 'letterheadMockup', field: 'mockup_letterhead' },
+        { key: 'tshirtMockup', field: 'mockup_tshirt' },
+        { key: 'businesscardMockup', field: 'mockup_businesscard' },
+      ];
 
-      if (mockupResult.tshirtMockup) {
-        await prisma.orderDetail.upsert({
-          where: {
-            orderId_fieldName: {
-              orderId,
-              fieldName: "mockup_tshirt",
+      for (const { key, field } of mockupFields) {
+        const value = (mockupResult as any)[key];
+        if (value) {
+          await prisma.orderDetail.upsert({
+            where: {
+              orderId_fieldName: {
+                orderId: orderId,
+                fieldName: field,
+              },
             },
-          },
-          create: {
-            orderId,
-            fieldName: "mockup_tshirt",
-            fieldValue: mockupResult.tshirtMockup,
-          },
-          update: {
-            fieldValue: mockupResult.tshirtMockup,
-          },
-        });
-      }
-
-      if (mockupResult.businesscardMockup) {
-        await prisma.orderDetail.upsert({
-          where: {
-            orderId_fieldName: {
-              orderId,
-              fieldName: "mockup_businesscard",
+            create: {
+              orderId: orderId,
+              fieldName: field,
+              fieldValue: value,
             },
-          },
-          create: {
-            orderId,
-            fieldName: "mockup_businesscard",
-            fieldValue: mockupResult.businesscardMockup,
-          },
-          update: {
-            fieldValue: mockupResult.businesscardMockup,
-          },
-        });
+            update: {
+              fieldValue: value,
+            },
+          });
+        }
       }
 
       // Step 3: Generate comprehensive brand guide
@@ -180,15 +170,15 @@ export const handler = async (
           .filter(Boolean)
           .join(", "),
         selectedLogoUrl: firstLogoUrl,
-        missionStatement: formData.missionStatement,
-        brandPillars: formData.brandPillars,
+        missionStatement: formData.mission,
+        brandPillars: formData.pillars,
         brandArchetype: formData.brandArchetype,
         keyTagline: formData.keyTagline,
         targetAudience: formData.targetAudience,
         companyValues: formData.companyValues,
         preferredColorPalette: formData.preferredColorPalette,
         preferredLogoStyle: formData.preferredLogoStyle,
-        web3BlockchainFocus: formData.web3BlockchainFocus === "true",
+        web3BlockchainFocus: formData.web3 === "true",
         web3ProjectType: formData.web3ProjectType,
         web3TokenSymbol: formData.web3TokenSymbol,
         web3CommunityValues: formData.web3CommunityValues,
@@ -220,27 +210,24 @@ export const handler = async (
           await prisma.orderDetail.upsert({
             where: {
               orderId_fieldName: {
-                orderId,
+                orderId: orderId,
                 fieldName: `guide_${field}`,
               },
             },
             create: {
-              orderId,
+              orderId: orderId,
               fieldName: `guide_${field}`,
-              fieldValue: value,
+              fieldValue: typeof value === 'string' ? value : JSON.stringify(value),
             },
             update: {
-              fieldValue: value,
+              fieldValue: typeof value === 'string' ? value : JSON.stringify(value),
             },
           });
         }
       }
 
       // Update order status to "ready_for_review"
-      await prisma.order.update({
-        where: { id: orderId },
-        data: { status: "ready_for_review" },
-      });
+      await updateOrder(orderId, { status: "ready_for_review" });
 
       return NextResponse.json(
         {
@@ -263,10 +250,7 @@ export const handler = async (
       console.error("Generation error:", generationError);
 
       // Update order status to "generation_failed"
-      await prisma.order.update({
-        where: { id: orderId },
-        data: { status: "generation_failed" },
-      });
+      await updateOrder(orderId, { status: "generation_failed" });
 
       return NextResponse.json(
         {
