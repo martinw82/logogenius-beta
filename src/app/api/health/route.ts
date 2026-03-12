@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { checkDatabaseHealth } from "@/lib/database-check";
 
 export async function GET() {
   const dbUrl = process.env.DATABASE_URL || "";
@@ -6,9 +7,17 @@ export async function GET() {
   // Mask password for security
   const maskedUrl = dbUrl.replace(/:([^@]+)@/, ':****@');
   
+  // Check actual database connectivity
+  const dbHealth = await checkDatabaseHealth();
+  
   return NextResponse.json({
-    status: "ok",
+    status: dbHealth.status === 'ok' ? "ok" : "degraded",
     timestamp: new Date().toISOString(),
+    database: {
+      status: dbHealth.status,
+      message: dbHealth.message,
+      details: dbHealth.details,
+    },
     env: {
       hasJwtSecret: !!process.env.JWT_SECRET,
       hasAdminPassword: !!process.env.ADMIN_PASSWORD,
