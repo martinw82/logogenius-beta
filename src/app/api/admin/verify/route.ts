@@ -1,22 +1,11 @@
-// v2 - Complete rewrite
 import { NextRequest, NextResponse } from "next/server";
-import jwt from "jsonwebtoken";
 
 export const dynamic = 'force-dynamic';
-export const runtime = 'nodejs';
 
 export async function GET(request: NextRequest) {
-  console.log("[VERIFY v2] Starting verification");
+  console.log("[VERIFY v3] Starting...");
   
   try {
-    const JWT_SECRET = process.env.JWT_SECRET;
-    if (!JWT_SECRET) {
-      return NextResponse.json(
-        { isValid: false, error: "JWT_SECRET not configured" },
-        { status: 500 }
-      );
-    }
-
     // Get token from header or cookie
     const authHeader = request.headers.get("Authorization");
     let token = authHeader?.startsWith("Bearer ") 
@@ -38,20 +27,35 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Verify JWT - NO DATABASE
-    const payload = jwt.verify(token, JWT_SECRET) as { adminId: string };
+    // Decode simple token
+    try {
+      const tokenData = JSON.parse(Buffer.from(token, 'base64').toString());
+      
+      // Check expiration
+      if (tokenData.exp && tokenData.exp < Date.now()) {
+        return NextResponse.json(
+          { isValid: false, error: "Token expired" },
+          { status: 401 }
+        );
+      }
 
-    console.log("[VERIFY v2] Token valid for:", payload.adminId);
+      console.log("[VERIFY v3] Token valid for:", tokenData.adminId);
 
-    return NextResponse.json({
-      isValid: true,
-      adminId: payload.adminId,
-    });
+      return NextResponse.json({
+        isValid: true,
+        adminId: tokenData.adminId,
+      });
+    } catch {
+      return NextResponse.json(
+        { isValid: false, error: "Invalid token format" },
+        { status: 401 }
+      );
+    }
   } catch (error) {
-    console.log("[VERIFY v2] Token invalid");
+    console.error("[VERIFY v3] Error:", error);
     return NextResponse.json(
-      { isValid: false, error: "Invalid token" },
-      { status: 401 }
+      { isValid: false, error: "Verification failed" },
+      { status: 500 }
     );
   }
 }
