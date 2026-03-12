@@ -4,12 +4,17 @@ import { verifyAdminToken, getTokenFromRequest } from "@/lib/auth";
 
 export const dynamic = 'force-dynamic';
 
-export const handler = async (
+// Import AI flows
+import { generateLogoConcepts } from "@/ai/flows/generate-logo-concepts";
+import { generateLogoMockups } from "@/ai/flows/generate-logo-mockups";
+import { generateComprehensiveBrandGuide } from "@/ai/flows/generate-comprehensive-brand-guide";
+
+export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
-) => {
+) {
   try {
-    // Verify authentication
+    // Verify admin authentication
     const token = getTokenFromRequest(request);
     if (!token) {
       return NextResponse.json(
@@ -26,74 +31,76 @@ export const handler = async (
       );
     }
 
-    const { generateLogoConcepts } = await import(
-      "@/ai/flows/generate-logo-concepts"
-    );
-    const { generateLogoMockups } = await import(
-      "@/ai/flows/generate-logo-mockups"
-    );
-    const { generateComprehensiveBrandGuide } = await import(
-      "@/ai/flows/generate-comprehensive-brand-guide"
-    );
-
     const orderId = parseInt(params.id);
     if (isNaN(orderId)) {
       return NextResponse.json({ error: "Invalid order ID" }, { status: 400 });
     }
 
-    const body = await request.json();
-    // Use provided API key or fall back to environment variable
-    const userApiKey = body.userApiKey || process.env.GENKIT_API_KEY;
-
-    if (!userApiKey) {
+    // Get API key from environment
+    const apiKey = process.env.GENKIT_API_KEY || process.env.TEST_GOOGLE_API_KEY;
+    if (!apiKey) {
       return NextResponse.json(
-        { error: "API key is required. Provide userApiKey or set GENKIT_API_KEY" },
-        { status: 400 }
+        { error: "API key not configured on server" },
+        { status: 500 }
       );
     }
 
-    // Get the order and its details
+    // Get order with form data from database
     const order = await getOrderById(orderId);
-
     if (!order) {
       return NextResponse.json({ error: "Order not found" }, { status: 404 });
     }
 
-    // Convert details array to object for easier access
+    // Convert order details to form data object
     const formData: Record<string, string> = {};
     for (const detail of order.details) {
       formData[detail.fieldName] = detail.fieldValue;
     }
 
-    // Update order status to "generating"
+    // Check if required fields exist
+    if (!formData.businessName) {
+      return NextResponse.json(
+        { error: "Order form not completed - business name missing" },
+        { status: 400 }
+      );
+    }
+
+    // Update status to "generating"
     await updateOrder(orderId, { status: "generating" });
 
     try {
-      // Step 1: Generate logos
+      // Step 1: Generate logo concepts using existing AI flow
+      console.log(`[Generate] Starting logo generation for order ${orderId}`);
+      
       const logoInput = {
-        businessName: formData.businessName || "Unknown Business",
+        businessName: formData.businessName,
         industry: formData.industry || "Technology",
         keywords: [
           formData.aestheticKeywords,
           formData.emotionalKeywords,
           formData.functionalKeywords,
-        ]
-          .filter(Boolean)
-          .join(", "),
+        ].filter(Boolean).join(", ") || "modern, professional",
         numberOfLogos: 4,
-        userApiKey,
-        ...(formData.preferredLogoStyle && {
-          preferredLogoStyle: formData.preferredLogoStyle,
-        }),
+        userApiKey: apiKey,
+        // Optional fields from form
+        ...(formData.preferredLogoStyle && { preferredLogoStyle: formData.preferredLogoStyle }),
         ...(formData.composition && { composition: formData.composition }),
-        ...(formData.iconPlacement && { iconPlacement: formData.iconPlacement }),
         ...(formData.targetAudience && { targetAudience: formData.targetAudience }),
+        ...(formData.missionStatement && { missionStatement: formData.missionStatement }),
+        ...(formData.brandPillars && { brandPillars: formData.brandPillars }),
+        ...(formData.brandArchetype && { brandArchetype: formData.brandArchetype }),
+        ...(formData.keyTagline && { keyTagline: formData.keyTagline }),
+        ...(formData.web3BlockchainFocus === "true" && { 
+          web3BlockchainFocus: true,
+          web3ProjectType: formData.web3ProjectType,
+        }),
       };
 
       const logoResult = await generateLogoConcepts(logoInput);
+      console.log(`[Generate] Generated ${logoResult.logoUrls?.length || 0} logos`);
 
       if (!logoResult.logoUrls || logoResult.logoUrls.length === 0) {
-        throw new Error("Failed to generate logos");
+        throw new Error("No logos were generated");
       }
 
       // Store logo URLs in OrderDetail
@@ -116,18 +123,20 @@ export const handler = async (
         });
       }
 
-      // Step 2: Generate mockups for first logo (primary variant)
+      // Step 2: Generate mockups for the first logo
       const firstLogoUrl = logoResult.logoUrls[0];
+      console.log(`[Generate] Starting mockup generation`);
+      
       const mockupInput = {
         logoImageUrl: firstLogoUrl,
-        businessName: formData.businessName || "Unknown Business",
+        businessName: formData.businessName,
         industry: formData.industry || "Technology",
         mockupTemplates: ["letterhead", "tshirt", "businesscard"] as const,
-        colorPalette: formData.preferredColorPalette,
-        userApiKey,
+        userApiKey: apiKey,
       };
 
       const mockupResult = await generateLogoMockups(mockupInput);
+      console.log(`[Generate] Mockups generated`);
 
       // Store mockup URLs
       const mockupFields = [
@@ -158,36 +167,33 @@ export const handler = async (
         }
       }
 
-      // Step 3: Generate comprehensive brand guide
+      // Step 3: Generate brand guide
+      console.log(`[Generate] Starting brand guide generation`);
+      
       const guideInput = {
-        businessName: formData.businessName || "Unknown Business",
+        businessName: formData.businessName,
         industry: formData.industry || "Technology",
         keywords: [
           formData.aestheticKeywords,
           formData.emotionalKeywords,
           formData.functionalKeywords,
-        ]
-          .filter(Boolean)
-          .join(", "),
+        ].filter(Boolean).join(", ") || "modern, professional",
         selectedLogoUrl: firstLogoUrl,
-        missionStatement: formData.mission,
-        brandPillars: formData.pillars,
+        missionStatement: formData.missionStatement || formData.mission,
+        brandPillars: formData.brandPillars || formData.pillars,
         brandArchetype: formData.brandArchetype,
         keyTagline: formData.keyTagline,
         targetAudience: formData.targetAudience,
-        companyValues: formData.companyValues,
         preferredColorPalette: formData.preferredColorPalette,
         preferredLogoStyle: formData.preferredLogoStyle,
-        web3BlockchainFocus: formData.web3 === "true",
-        web3ProjectType: formData.web3ProjectType,
-        web3TokenSymbol: formData.web3TokenSymbol,
-        web3CommunityValues: formData.web3CommunityValues,
-        userApiKey,
+        web3BlockchainFocus: formData.web3 === "true" || formData.web3BlockchainFocus === "true",
+        userApiKey: apiKey,
       };
 
       const guideResult = await generateComprehensiveBrandGuide(guideInput);
+      console.log(`[Generate] Brand guide generated`);
 
-      // Store brand guide sections in OrderDetail
+      // Store brand guide sections
       const guideFields = [
         "projectOverview",
         "brandIdentityVoice",
@@ -228,45 +234,43 @@ export const handler = async (
 
       // Update order status to "ready_for_review"
       await updateOrder(orderId, { status: "ready_for_review" });
+      console.log(`[Generate] Complete! Order ${orderId} ready for review`);
 
-      return NextResponse.json(
-        {
-          success: true,
-          orderId,
-          status: "ready_for_review",
-          generatedAssets: {
-            logoCount: logoResult.logoUrls.length,
-            mockupsGenerated: {
-              letterhead: !!mockupResult.letterheadMockup,
-              tshirt: !!mockupResult.tshirtMockup,
-              businesscard: !!mockupResult.businesscardMockup,
-            },
-            brandGuideGenerated: true,
+      return NextResponse.json({
+        success: true,
+        orderId,
+        status: "ready_for_review",
+        generatedAssets: {
+          logoCount: logoResult.logoUrls.length,
+          mockupsGenerated: {
+            letterhead: !!mockupResult.letterheadMockup,
+            tshirt: !!mockupResult.tshirtMockup,
+            businesscard: !!mockupResult.businesscardMockup,
           },
+          brandGuideGenerated: true,
         },
-        { status: 200 }
-      );
-    } catch (generationError) {
-      console.error("Generation error:", generationError);
+      });
 
-      // Update order status to "generation_failed"
+    } catch (generationError) {
+      console.error("[Generate] Generation error:", generationError);
+      
+      // Update status to failed
       await updateOrder(orderId, { status: "generation_failed" });
 
       return NextResponse.json(
         {
-          error: "Generation failed",
+          error: "Logo generation failed",
           details: generationError instanceof Error ? generationError.message : String(generationError),
         },
         { status: 500 }
       );
     }
+
   } catch (error) {
-    console.error("Orchestration error:", error);
+    console.error("[Generate] API error:", error);
     return NextResponse.json(
       { error: "Internal server error" },
       { status: 500 }
     );
   }
-};
-
-export const POST = handler;
+}

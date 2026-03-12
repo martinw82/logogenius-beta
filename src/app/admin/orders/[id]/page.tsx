@@ -270,15 +270,19 @@ export default function AdminOrderDetail() {
         </Alert>
       )}
 
-      {/* Generate Logos Button - Only show for pending orders */}
-      {order.status === 'pending' && (
+      {/* Generate Logos Button - Show for processing or generation_failed orders */}
+      {(order.status === 'processing' || order.status === 'generation_failed' || order.status === 'pending') && (
         <Card className="bg-blue-50 border-blue-200">
           <CardContent className="pt-6">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold text-blue-900">Generate Logo Concepts</h3>
                 <p className="text-sm text-blue-700">
-                  Use AI to generate 4 logo variants and brand guide for this order
+                  {order.status === 'processing' 
+                    ? 'Form submitted. Ready to generate 4 logo variants and brand guide.'
+                    : order.status === 'generation_failed'
+                    ? 'Previous generation failed. Try again.'
+                    : 'Use AI to generate 4 logo variants and brand guide for this order'}
                 </p>
               </div>
               <Button 
