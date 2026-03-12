@@ -117,7 +117,7 @@ const generateLogoMockupsFlow = ai.defineFlow(
 
         // Generate the mockup
         const response = await currentAi.generate({
-          model: 'googleai/gemini-2.0-flash',
+          model: 'googleai/gemini-1.5-flash',
           prompt: mockupPrompt,
           config: {
             responseModalities: ['TEXT', 'IMAGE'],

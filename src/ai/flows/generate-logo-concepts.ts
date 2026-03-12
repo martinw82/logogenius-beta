@@ -239,7 +239,7 @@ const generateLogoConceptsFlow = ai.defineFlow(
 
       try {
         const genResponse = await currentAi.generate({
-          model: 'googleai/gemini-2.0-flash', // Updated model name for image generation
+          model: 'googleai/gemini-1.5-flash', // Model that supports image generation
           prompt: finalPromptPayload,
           config: {
             responseModalities: ['TEXT', 'IMAGE'], // Must request both TEXT and IMAGE
