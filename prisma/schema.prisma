@@ -1,5 +1,4 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// This is your Prisma schema file
 
 generator client {
   provider = "prisma-client-js"
@@ -10,58 +9,52 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-// Brand Archetypes - Predefined personality types for brands
 model BrandArchetype {
-  id          Int     @id @default(autoincrement())
-  name        String  @unique
-  description String  @db.Text
-  traits      String  @db.Text // JSON array of trait strings
+  id          Int      @id @default(autoincrement())
+  name        String   @unique
+  description String   @db.Text
+  traits      String   @db.Text
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
   @@index([name])
 }
 
-// Master Orders - Main order record with tier and status
 model Order {
-  id             Int     @id @default(autoincrement())
-  tier           String  // "basic", "pro", "premium"
-  status         String  @default("pending") // pending, processing, ready, completed, archived
+  id             Int      @id @default(autoincrement())
+  tier           String
+  status         String   @default("pending")
   customerEmail  String?
-  selectedLogoId Int?    // Reference to the selected logo variant
+  selectedLogoId Int?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 
-  // Relations
-  details        OrderDetail[]
-  logoVariants   LogoVariant[]
+  details      OrderDetail[]
+  logoVariants LogoVariant[]
 
   @@index([status])
   @@index([tier])
   @@index([customerEmail])
 }
 
-// Order Details - Flexible key-value store for order data
 model OrderDetail {
-  id         Int     @id @default(autoincrement())
+  id         Int      @id @default(autoincrement())
   orderId    Int
-  fieldName  String  // e.g., "businessName", "mission", "logoPreference"
-  fieldValue String  @db.LongText // Stores values as JSON strings for complex data
+  fieldName  String
+  fieldValue String   @db.LongText
   createdAt  DateTime @default(now())
 
-  // Relations
-  order      Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
   @@index([fieldName])
   @@unique([orderId, fieldName])
 }
 
-// Admin Sessions - JWT token management for admin authentication
 model AdminSession {
-  id        Int     @id @default(autoincrement())
-  adminId   String  // Admin username
-  token     String  @unique
+  id        Int      @id @default(autoincrement())
+  adminId   String
+  token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
 
@@ -69,20 +62,18 @@ model AdminSession {
   @@index([token])
 }
 
-// Logo Variants - Generated logo variants with mockup paths
 model LogoVariant {
-  id           Int     @id @default(autoincrement())
-  orderId      Int
-  variantNum   Int     // 1-4
-  svgData      String  @db.LongText // SVG data URI or URL
-  svgPath      String? // File path if stored on server
-  selected     Boolean @default(false)
-  mockupPaths  String? @db.Text // JSON array of mockup image paths
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  id          Int      @id @default(autoincrement())
+  orderId     Int
+  variantNum  Int
+  svgData     String   @db.LongText
+  svgPath     String?
+  selected    Boolean  @default(false)
+  mockupPaths String?  @db.Text
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
 
-  // Relations
-  order        Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId])
   @@index([variantNum])
