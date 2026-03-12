@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
+
+const JWT_SECRET = process.env.JWT_SECRET || "";
 
 export const handler = async (request: NextRequest) => {
   try {
-    const { generateJWT } = await import("@/lib/auth");
-    const { verifyAdminPassword } = await import("@/lib/hash");
-
     const body = await request.json();
     const { username, password } = body;
 
@@ -16,7 +16,6 @@ export const handler = async (request: NextRequest) => {
       );
     }
 
-    // For MVP, we use a single admin account with credentials from env
     const ADMIN_USERNAME = "admin";
     const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD;
 
@@ -28,67 +27,50 @@ export const handler = async (request: NextRequest) => {
     }
 
     // Verify credentials
-    if (username !== ADMIN_USERNAME) {
+    if (username !== ADMIN_USERNAME || password !== ADMIN_PASSWORD) {
       return NextResponse.json(
         { error: "Invalid credentials" },
         { status: 401 }
       );
     }
 
-    const passwordValid = await verifyAdminPassword(password, ADMIN_PASSWORD);
-    if (!passwordValid) {
+    // Generate JWT token (no database)
+    if (!JWT_SECRET) {
       return NextResponse.json(
-        { error: "Invalid credentials" },
-        { status: 401 }
+        { error: "JWT_SECRET not configured" },
+        { status: 500 }
       );
     }
 
-    // Generate JWT token
-    const token = await generateJWT(ADMIN_USERNAME);
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
+    const token = jwt.sign({ adminId: ADMIN_USERNAME }, JWT_SECRET, {
+      expiresIn: "24h",
+    });
 
-    // Create response with token in cookie
     const response = NextResponse.json(
       {
         success: true,
         token,
         adminId: ADMIN_USERNAME,
-        expiresAt: expiresAt.toISOString(),
       },
       { status: 200 }
     );
 
-    // Set cookie with token
-    const cookieOptions = {
+    // Set cookie
+    response.cookies.set({
       name: "admin_token",
       value: token,
       httpOnly: true,
       secure: true,
-      sameSite: "none" as const,
-      maxAge: 24 * 60 * 60,
-      path: "/",
-    };
-    
-    response.cookies.set(cookieOptions);
-    
-    // Also set a non-httpOnly cookie for debugging
-    response.cookies.set({
-      name: "admin_logged_in",
-      value: "true",
-      httpOnly: false,
-      secure: true,
-      sameSite: "none" as const,
+      sameSite: "none",
       maxAge: 24 * 60 * 60,
       path: "/",
     });
 
-    console.log("Login - Cookie set for admin:", ADMIN_USERNAME);
     return response;
   } catch (error) {
     console.error("Login error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { error: "Internal server error", details: errorMessage },
+      { error: "Internal server error" },
       { status: 500 }
     );
   }

@@ -1,37 +1,48 @@
 import { NextRequest, NextResponse } from "next/server";
+import jwt from "jsonwebtoken";
 
-export const handler = async (request: NextRequest) => {
+const JWT_SECRET = process.env.JWT_SECRET || "";
+
+export async function GET(request: NextRequest) {
   try {
-    const { verifyAdminSession } = await import("@/lib/auth");
+    // Get token from header or cookie
+    const authHeader = request.headers.get("Authorization");
+    let token = authHeader?.startsWith("Bearer ") 
+      ? authHeader.substring(7) 
+      : null;
+    
+    // If no token in header, check cookie
+    if (!token) {
+      const cookieHeader = request.headers.get("cookie");
+      if (cookieHeader) {
+        const cookies = Object.fromEntries(
+          cookieHeader.split("; ").map((c) => {
+            const [key, ...v] = c.split("=");
+            return [key.trim(), decodeURIComponent(v.join("="))];
+          })
+        );
+        token = cookies.admin_token || null;
+      }
+    }
 
-    // Debug: log cookies received
-    const cookieHeader = request.headers.get("cookie");
-    console.log("Verify - Cookies received:", cookieHeader);
-
-    const session = await verifyAdminSession(request);
-
-    if (!session) {
+    if (!token) {
       return NextResponse.json(
-        { isValid: false, error: "Unauthorized", cookies: cookieHeader },
+        { isValid: false, error: "No token provided" },
         { status: 401 }
       );
     }
 
-    return NextResponse.json(
-      {
-        isValid: true,
-        adminId: session.adminId,
-      },
-      { status: 200 }
-    );
+    // Verify JWT
+    const payload = jwt.verify(token, JWT_SECRET) as { adminId: string };
+
+    return NextResponse.json({
+      isValid: true,
+      adminId: payload.adminId,
+    });
   } catch (error) {
-    console.error("Verify error:", error);
-    const errorMessage = error instanceof Error ? error.message : "Unknown error";
     return NextResponse.json(
-      { isValid: false, error: "Internal server error", details: errorMessage },
-      { status: 500 }
+      { isValid: false, error: "Invalid token" },
+      { status: 401 }
     );
   }
-};
-
-export const GET = handler;
+}
