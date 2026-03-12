@@ -85,7 +85,15 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { tier, customerEmail, orderData } = body;
+    const { 
+      tier, customerEmail, businessName, industry,
+      aestheticKeywords, emotionalKeywords, functionalKeywords,
+      primaryColors, secondaryColors, accentColors,
+      preferredLogoStyle, composition, iconPlacement, iconComplexity,
+      fontStyle, fontHeadings, fontBody,
+      missionStatement, brandPillars, brandArchetype, keyTagline, targetAudience,
+      web3, web3ProjectType, logoPreferences
+    } = body;
 
     // Validate required fields
     if (!tier || !['basic', 'pro', 'premium'].includes(tier)) {
@@ -95,44 +103,62 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    if (!customerEmail || !orderData?.businessName) {
+    if (!customerEmail || !businessName || !industry) {
       return NextResponse.json(
-        { error: 'Customer email and business name are required' },
+        { error: 'Customer email, business name and industry are required' },
         { status: 400 }
       );
     }
 
-    // Create order details array
-    const details = [
-      { fieldName: 'businessName', fieldValue: orderData.businessName },
-      { fieldName: 'industry', fieldValue: orderData.industry || '' },
+    // Build order details from all form fields
+    const details: Array<{fieldName: string, fieldValue: string}> = [
+      { fieldName: 'businessName', fieldValue: businessName },
+      { fieldName: 'industry', fieldValue: industry },
       { fieldName: 'customerEmail', fieldValue: customerEmail },
+      { fieldName: 'tier', fieldValue: tier },
     ];
 
-    if (orderData.brandArchetype) {
-      details.push({ fieldName: 'brandArchetype', fieldValue: orderData.brandArchetype });
+    // Add optional fields if provided
+    const optionalFields: Record<string, string | undefined> = {
+      aestheticKeywords,
+      emotionalKeywords,
+      functionalKeywords,
+      primaryColors,
+      secondaryColors,
+      accentColors,
+      preferredLogoStyle,
+      composition,
+      iconPlacement,
+      iconComplexity,
+      fontStyle,
+      fontHeadings,
+      fontBody,
+      missionStatement,
+      brandPillars,
+      brandArchetype,
+      keyTagline,
+      targetAudience,
+      web3ProjectType,
+      logoPreferences,
+    };
+
+    for (const [key, value] of Object.entries(optionalFields)) {
+      if (value) {
+        details.push({ fieldName: key, fieldValue: value });
+      }
     }
-    if (orderData.mission) {
-      details.push({ fieldName: 'mission', fieldValue: orderData.mission });
-    }
-    if (orderData.pillars) {
-      details.push({ fieldName: 'pillars', fieldValue: orderData.pillars });
-    }
-    if (orderData.targetAudience) {
-      details.push({ fieldName: 'targetAudience', fieldValue: orderData.targetAudience });
-    }
-    if (orderData.logoPreferences) {
-      details.push({ fieldName: 'logoPreferences', fieldValue: orderData.logoPreferences });
-    }
-    if (orderData.web3) {
+
+    // Add web3 flag
+    if (web3) {
       details.push({ fieldName: 'web3', fieldValue: 'true' });
+      details.push({ fieldName: 'web3BlockchainFocus', fieldValue: 'true' });
     }
 
     // Create order
     const order = await createOrder({
       tier,
       customerEmail,
-      status: 'pending',
+      status: 'processing', // Ready for logo generation
       details,
     });
 
