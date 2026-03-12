@@ -4,12 +4,18 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    // TEMP: Skip auth for testing
-    // const session = await verifyAdminMiddleware(request);
-    // if (!session) {
-    //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
-    // }
+    // TEMP: Return empty orders due to TiDB SSL issues
+    return NextResponse.json({
+      orders: [],
+      pagination: {
+        total: 0,
+        page: 1,
+        pageSize: 25,
+        pages: 0,
+      },
+    });
 
+    /* Original code - disabled due to TiDB SSL issues
     const { getPrisma } = await import('@/lib/db');
     const prisma = getPrisma();
 

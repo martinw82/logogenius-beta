@@ -6,22 +6,36 @@ export function getPrisma() {
   try {
     const { PrismaClient } = require("@prisma/client");
 
-    // TiDB Cloud requires SSL
     const dbUrl = process.env.DATABASE_URL;
     if (!dbUrl) {
       throw new Error("DATABASE_URL not set");
     }
     
-    // For TiDB Cloud, we need to parse and reconstruct the URL with proper SSL params
+    // TiDB Cloud requires SSL with specific parameters
+    // Format: mysql://user:pass@host:port/db?sslaccept=strict
     let urlWithSsl = dbUrl;
-    if (!dbUrl.includes('sslmode=')) {
-      // Check if URL already has query params
+    
+    // Parse the URL and add SSL parameters
+    try {
+      const url = new URL(dbUrl);
+      
+      // Add SSL parameters for TiDB Cloud
+      if (!url.searchParams.has('sslaccept')) {
+        url.searchParams.set('sslaccept', 'strict');
+      }
+      if (!url.searchParams.has('sslmode')) {
+        url.searchParams.set('sslmode', 'REQUIRED');
+      }
+      
+      urlWithSsl = url.toString();
+      console.log("Database URL configured with SSL");
+    } catch (e) {
+      console.error("Failed to parse DATABASE_URL:", e);
+      // Fallback: append SSL params manually
       const separator = dbUrl.includes('?') ? '&' : '?';
-      urlWithSsl = `${dbUrl}${separator}sslmode=require`;
+      urlWithSsl = `${dbUrl}${separator}sslaccept=strict&sslmode=REQUIRED`;
     }
 
-    console.log("Connecting to database with SSL...");
-    
     prismaClient = new PrismaClient({
       datasources: {
         db: {
