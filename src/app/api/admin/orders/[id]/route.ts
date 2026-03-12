@@ -1,19 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getOrderById, updateOrder, prisma } from '@/lib/database';
+import { verifyAdminToken, getTokenFromRequest } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
-const getHandler = async (
+// Helper to verify auth
+async function verifyAuth(request: NextRequest) {
+  const token = getTokenFromRequest(request);
+  if (!token) {
+    return { error: 'Unauthorized - No token provided', status: 401 };
+  }
+
+  const admin = await verifyAdminToken(token);
+  if (!admin) {
+    return { error: 'Unauthorized - Invalid token', status: 401 };
+  }
+
+  return { admin };
+}
+
+// GET /api/admin/orders/[id] - Get order details
+export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
-) => {
-  const { verifyAdminMiddleware } = await import('@/lib/middleware/verify-admin');
-  const { getPrisma } = await import('@/lib/db');
-
+) {
   try {
-    // Verify admin session
-    const session = await verifyAdminMiddleware(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const auth = await verifyAuth(request);
+    if ('error' in auth) {
+      return NextResponse.json(
+        { error: auth.error },
+        { status: auth.status }
+      );
     }
 
     const orderId = parseInt(params.id);
@@ -21,17 +38,8 @@ const getHandler = async (
       return NextResponse.json({ error: 'Invalid order ID' }, { status: 400 });
     }
 
-    const prisma = getPrisma();
-
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-      include: {
-        details: true,
-        logoVariants: {
-          orderBy: { variantNum: 'asc' },
-        },
-      },
-    });
+    // Fetch order from database
+    const order = await getOrderById(orderId);
 
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
@@ -39,7 +47,7 @@ const getHandler = async (
 
     // Transform details into an object
     const details: Record<string, any> = {};
-    order.details.forEach((detail) => {
+    order.details.forEach((detail: any) => {
       details[detail.fieldName] = detail.fieldValue;
     });
 
@@ -48,6 +56,7 @@ const getHandler = async (
       tier: order.tier,
       status: order.status,
       customerEmail: order.customerEmail,
+      selectedLogoId: order.selectedLogoId,
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       data: details,
@@ -63,20 +72,20 @@ const getHandler = async (
       { status: 500 }
     );
   }
-};
+}
 
-const patchHandler = async (
+// PATCH /api/admin/orders/[id] - Update order status
+export async function PATCH(
   request: NextRequest,
   { params }: { params: { id: string } }
-) => {
-  const { verifyAdminMiddleware } = await import('@/lib/middleware/verify-admin');
-  const { getPrisma } = await import('@/lib/db');
-
+) {
   try {
-    // Verify admin session
-    const session = await verifyAdminMiddleware(request);
-    if (!session) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    const auth = await verifyAuth(request);
+    if ('error' in auth) {
+      return NextResponse.json(
+        { error: auth.error },
+        { status: auth.status }
+      );
     }
 
     const orderId = parseInt(params.id);
@@ -91,22 +100,14 @@ const patchHandler = async (
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
 
-    const prisma = getPrisma();
-
     // Verify order exists
-    const order = await prisma.order.findUnique({
-      where: { id: orderId },
-    });
-
+    const order = await getOrderById(orderId);
     if (!order) {
       return NextResponse.json({ error: 'Order not found' }, { status: 404 });
     }
 
     // Update order status
-    const updated = await prisma.order.update({
-      where: { id: orderId },
-      data: { status },
-    });
+    const updated = await updateOrder(orderId, { status });
 
     // Save notes if provided
     if (notes) {
@@ -140,7 +141,4 @@ const patchHandler = async (
       { status: 500 }
     );
   }
-};
-
-export const GET = getHandler;
-export const PATCH = patchHandler;
+}
