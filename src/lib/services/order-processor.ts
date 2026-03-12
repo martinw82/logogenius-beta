@@ -1,4 +1,4 @@
-import { getPrisma } from '../db';
+import { getPrisma } from '../database';
 import { generateBrandGuidePDF } from './pdf-generator';
 import { generateReadmeContent } from './readme-generator';
 import { createBrandAssetZip } from './zip-packager';

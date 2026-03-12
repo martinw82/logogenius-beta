@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 
 export const handler = async (request: NextRequest) => {
   try {
-    const { prisma } = await import("@/lib/db");
+    const { prisma } = await import("@/lib/database");
     const { uuidv4 } = await import("@/utils");
 
     const body = await request.json();

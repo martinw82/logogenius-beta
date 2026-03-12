@@ -16,7 +16,7 @@ export async function GET(request: NextRequest) {
     });
 
     /* Original code - disabled due to TiDB SSL issues
-    const { getPrisma } = await import('@/lib/db');
+    const { getPrisma } = await import('@/lib/database');
     const prisma = getPrisma();
 
     const searchParams = request.nextUrl.searchParams;
