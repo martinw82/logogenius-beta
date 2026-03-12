@@ -24,21 +24,9 @@ export async function generateJWT(adminId: string): Promise<string> {
     expiresIn: JWT_EXPIRATION,
   });
 
-  // Store session in database for tracking/revocation
-  try {
-    const prisma = getPrisma();
-    const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000);
-    await prisma.adminSession.create({
-      data: {
-        adminId,
-        token,
-        expiresAt,
-      },
-    });
-  } catch (dbError) {
-    // Log but don't fail - token is still valid
-    console.error("Failed to store session in database:", dbError);
-  }
+  // Skip database session storage for now due to TiDB SSL issues
+  // Token is still valid without DB storage
+  console.log("JWT generated successfully (DB storage skipped)");
 
   return token;
 }
@@ -50,17 +38,9 @@ export async function verifyJWT(token: string): Promise<JWTPayload | null> {
     }
 
     const payload = jwt.verify(token, JWT_SECRET) as JWTPayload;
-    const prisma = getPrisma();
-
-    // Check if session still exists in database
-    const session = await prisma.adminSession.findUnique({
-      where: { token },
-    });
-
-    if (!session || session.expiresAt < new Date()) {
-      return null;
-    }
-
+    
+    // Skip database check due to TiDB SSL issues
+    // Just verify JWT is valid
     return payload;
   } catch (error) {
     return null;

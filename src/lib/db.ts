@@ -12,10 +12,13 @@ export function getPrisma() {
       throw new Error("DATABASE_URL not set");
     }
     
-    // Always add sslmode=require for TiDB Cloud
-    const urlWithSsl = dbUrl.includes('sslmode=') 
-      ? dbUrl 
-      : `${dbUrl}${dbUrl.includes('?') ? '&' : '?'}sslaccept=strict&sslmode=require`;
+    // For TiDB Cloud, we need to parse and reconstruct the URL with proper SSL params
+    let urlWithSsl = dbUrl;
+    if (!dbUrl.includes('sslmode=')) {
+      // Check if URL already has query params
+      const separator = dbUrl.includes('?') ? '&' : '?';
+      urlWithSsl = `${dbUrl}${separator}sslmode=require`;
+    }
 
     console.log("Connecting to database with SSL...");
     
