@@ -1,17 +1,60 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { getAllOrders } from '@/lib/database';
+import { verifyAdminToken } from '@/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    // Return empty orders (database disabled for now)
+    // Verify admin authentication
+    const token = request.headers.get('authorization')?.replace('Bearer ', '');
+    if (!token) {
+      return NextResponse.json(
+        { error: 'Unauthorized - No token provided' },
+        { status: 401 }
+      );
+    }
+
+    const admin = await verifyAdminToken(token);
+    if (!admin) {
+      return NextResponse.json(
+        { error: 'Unauthorized - Invalid token' },
+        { status: 401 }
+      );
+    }
+
+    // Get query parameters
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const pageSize = parseInt(searchParams.get('pageSize') || '25');
+    const status = searchParams.get('status');
+    const tier = searchParams.get('tier');
+
+    // Fetch orders from database
+    const allOrders = await getAllOrders();
+    
+    // Filter orders if needed
+    let filteredOrders = allOrders;
+    if (status) {
+      filteredOrders = filteredOrders.filter(o => o.status === status);
+    }
+    if (tier) {
+      filteredOrders = filteredOrders.filter(o => o.tier === tier);
+    }
+
+    // Paginate
+    const total = filteredOrders.length;
+    const pages = Math.ceil(total / pageSize);
+    const start = (page - 1) * pageSize;
+    const paginatedOrders = filteredOrders.slice(start, start + pageSize);
+
     return NextResponse.json({
-      orders: [],
+      orders: paginatedOrders,
       pagination: {
-        total: 0,
-        page: 1,
-        pageSize: 25,
-        pages: 0,
+        total,
+        page,
+        pageSize,
+        pages,
       },
     });
   } catch (error) {

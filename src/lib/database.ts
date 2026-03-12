@@ -107,7 +107,7 @@ function toCamelCase(obj: any): any {
   return result;
 }
 
-// Database operations
+// Prisma-style API for backward compatibility with existing code
 export const prisma = {
   order: {
     async count(): Promise<number> {
