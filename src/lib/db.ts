@@ -5,28 +5,28 @@ export function getPrisma() {
 
   try {
     const { PrismaClient } = require("@prisma/client");
-    const globalForPrisma = globalThis as any;
 
     // TiDB Cloud requires SSL
     const dbUrl = process.env.DATABASE_URL;
-    const urlWithSsl = dbUrl?.includes('sslmode=') 
-      ? dbUrl 
-      : `${dbUrl}${dbUrl?.includes('?') ? '&' : '?'}sslmode=require`;
-
-    prismaClient =
-      globalForPrisma.prisma ||
-      new PrismaClient({
-        datasources: {
-          db: {
-            url: urlWithSsl,
-          },
-        },
-        log: process.env.NODE_ENV === "development" ? ["error", "warn"] : ["error"],
-      });
-
-    if (process.env.NODE_ENV !== "production") {
-      globalForPrisma.prisma = prismaClient;
+    if (!dbUrl) {
+      throw new Error("DATABASE_URL not set");
     }
+    
+    // Always add sslmode=require for TiDB Cloud
+    const urlWithSsl = dbUrl.includes('sslmode=') 
+      ? dbUrl 
+      : `${dbUrl}${dbUrl.includes('?') ? '&' : '?'}sslaccept=strict&sslmode=require`;
+
+    console.log("Connecting to database with SSL...");
+    
+    prismaClient = new PrismaClient({
+      datasources: {
+        db: {
+          url: urlWithSsl,
+        },
+      },
+      log: ['error'],
+    });
 
     return prismaClient;
   } catch (error) {
