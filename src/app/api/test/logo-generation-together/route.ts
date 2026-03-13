@@ -69,6 +69,7 @@ export async function POST(request: NextRequest) {
         height: height,
         steps: 20,
         n: 1,
+        response_format: "b64_json"
       }),
     });
     const duration = Date.now() - startTime;
@@ -76,8 +77,27 @@ export async function POST(request: NextRequest) {
     console.log("[Together AI Test] Response status:", response.status);
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}));
-      console.error("[Together AI Test] API error:", response.status, errorData);
+      const errorText = await response.text();
+      console.error("[Together AI Test] API error:", response.status, errorText);
+      let errorData;
+      try {
+        errorData = JSON.parse(errorText);
+      } catch {
+        errorData = { raw: errorText };
+      }
+      
+      if (response.status === 400) {
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: "Bad Request (400)",
+            details: errorData.error?.message || errorData.raw || "Invalid request parameters",
+            suggestion: "Check the error details and API documentation",
+            debug: errorData
+          },
+          { status: 400 }
+        );
+      }
       
       if (response.status === 401) {
         return NextResponse.json(
