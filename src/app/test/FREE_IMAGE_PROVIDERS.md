@@ -117,12 +117,34 @@ Once you're ready to pay:
 
 ---
 
+## Known Issues
+
+### Pollinations.ai
+- **Issue:** Images may not load due to on-the-fly generation timing out
+- **Status:** Service may be rate limited or temporarily down
+- **Workaround:** Try refreshing after 15 seconds, or use a different provider
+
+### Hugging Face (Error 410)
+- **Issue:** Getting "410 Gone" error - model endpoints have changed
+- **Status:** Hugging Face updated their inference API
+- **Workaround:** Try different models (SD v1.5 instead of SDXL), or use Together AI
+
+### Google AI Free Tier
+- **Issue:** Image generation is restricted on free accounts
+- **Status:** Confirmed not working without paid access
+- **Workaround:** Use Together AI or Hugging Face instead
+
+### Together AI (RECOMMENDED)
+- **Status:** ✅ Most reliable option
+- **Notes:** $5 free credit on signup, no warmup time, fast generation
+
 ## Implementation Status
 
-- [x] Pollinations.ai endpoint created
-- [x] Hugging Face endpoint created
-- [x] Google AI endpoint (tries multiple models)
-- [x] Unified test UI
+- [x] Pollinations.ai endpoint created (may have reliability issues)
+- [x] Hugging Face endpoint created (410 errors with some models)
+- [x] Together AI endpoint created (RECOMMENDED - most reliable)
+- [x] Google AI endpoint (tries multiple models, mostly fails)
+- [x] Unified test UI with 4 providers
 - [ ] Update main AI flows to use working provider
 - [ ] Add fallback logic (try multiple providers)
 
