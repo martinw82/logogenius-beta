@@ -12,7 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export const dynamic = "force-dynamic";
 
-type Provider = "pollinations" | "huggingface" | "google";
+type Provider = "pollinations" | "huggingface" | "together" | "google";
 
 const HUGGINGFACE_MODELS = [
   { value: "stabilityai/stable-diffusion-xl-base-1.0", label: "SDXL Base 1.0 (Best Quality)", desc: "Best overall quality, slower" },
@@ -38,6 +38,7 @@ export default function TestPage() {
     const endpoints = {
       pollinations: "/api/test/logo-generation-pollinations",
       huggingface: "/api/test/logo-generation-huggingface",
+      together: "/api/test/logo-generation-together",
       google: "/api/test/logo-generation",
     };
 
@@ -83,18 +84,22 @@ export default function TestPage() {
           <CardContent className="space-y-4">
             
             <Tabs value={provider} onValueChange={(v) => setProvider(v as Provider)}>
-              <TabsList className="grid w-full grid-cols-3">
+              <TabsList className="grid w-full grid-cols-4">
                 <TabsTrigger value="pollinations">
-                  Pollinations.ai
-                  <Badge variant="secondary" className="ml-2 text-xs">No API Key</Badge>
+                  Pollinations
+                  <Badge variant="secondary" className="ml-2 text-xs">No Key</Badge>
                 </TabsTrigger>
                 <TabsTrigger value="huggingface">
                   Hugging Face
-                  <Badge variant="secondary" className="ml-2 text-xs">Free API</Badge>
+                  <Badge variant="secondary" className="ml-2 text-xs">1k/mo</Badge>
+                </TabsTrigger>
+                <TabsTrigger value="together">
+                  Together AI
+                  <Badge variant="secondary" className="ml-2 text-xs">$5 Free</Badge>
                 </TabsTrigger>
                 <TabsTrigger value="google">
                   Google AI
-                  <Badge variant="secondary" className="ml-2 text-xs">Free Tier</Badge>
+                  <Badge variant="secondary" className="ml-2 text-xs">Limited</Badge>
                 </TabsTrigger>
               </TabsList>
 
@@ -140,6 +145,18 @@ export default function TestPage() {
                   <p className="text-xs text-gray-500">
                     {HUGGINGFACE_MODELS.find(m => m.value === hfModel)?.desc}
                   </p>
+                </div>
+              </TabsContent>
+
+              <TabsContent value="together" className="space-y-4">
+                <div className="p-4 bg-purple-50 rounded-lg">
+                  <h4 className="font-semibold text-purple-800">💎 Most Reliable ($5 Free)</h4>
+                  <ul className="text-sm text-purple-700 mt-2 space-y-1">
+                    <li>• $5 free credit on signup (~2,500 images)</li>
+                    <li>• No warmup time</li>
+                    <li>• Very reliable API</li>
+                    <li>• ⚠️ Requires signup at together.ai</li>
+                  </ul>
                 </div>
               </TabsContent>
 
@@ -264,9 +281,9 @@ export default function TestPage() {
                     />
                   )}
                 </div>
-                {provider === "pollinations" && (
+                {(provider === "pollinations" || provider === "together") && (
                   <p className="text-xs text-green-600 mt-2">
-                    💡 Tip: If image doesn&apos;t appear, wait 10 seconds and refresh. Pollinations generates on-the-fly.
+                    💡 Tip: If image doesn&apos;t appear immediately, wait a few seconds and refresh.
                   </p>
                 )}
               </div>

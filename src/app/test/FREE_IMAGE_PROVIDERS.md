@@ -6,9 +6,17 @@ This document outlines the free options available for AI image generation in Log
 
 | Provider | Cost | Setup | Quality | Best For |
 |----------|------|-------|---------|----------|
-| **Pollinations.ai** | ✅ Free, unlimited | ❌ None | ⭐⭐⭐ Good | Quick testing, prototyping |
+| **Together AI** | ✅ $5 free credit | ⚠️ Signup | ⭐⭐⭐⭐⭐ Best | Most reliable, fast |
 | **Hugging Face** | ✅ 1,000 req/month | ⚠️ Free signup | ⭐⭐⭐⭐ Better | Production with free tier |
+| **Pollinations.ai** | ✅ Free, unlimited | ❌ None | ⭐⭐⭐ Good | Quick testing |
 | **Google AI** | ⚠️ Limited/Restricted | ✅ Already have | ⭐⭐⭐⭐⭐ Best | If you have paid access |
+
+## My Recommendation
+
+1. **Start with Together AI** - Most reliable, $5 free credit = ~2,500 images
+2. **Backup with Hugging Face** - If Together credit runs out
+3. **Pollinations as last resort** - May have reliability issues
+4. **Avoid Google AI free tier** - Image generation is restricted
 
 ---
 
