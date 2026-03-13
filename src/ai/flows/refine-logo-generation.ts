@@ -118,7 +118,7 @@ const refineLogoGenerationFlow = ai.defineFlow(
 
 
     const { output } = await currentAi.generate({
-      model: 'googleai/gemini-1.5-flash', // Model that supports image generation
+      model: 'googleai/gemini-2.0-flash', // Updated to latest stable model (text-only output, no image generation needed here)
       prompt: REFINE_PROMPT_HANDLEBARS_TEMPLATE,
       input: promptData, // Pass data for Handlebars template
       output: { schema: RefineLogoGenerationOutputSchema },

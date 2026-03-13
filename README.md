@@ -14,9 +14,9 @@ AI-powered logo and brand identity generation platform.
 - **Landing Page** - Main site accessible ✅
 - **Health Check** - `/api/health` endpoint for diagnostics ✅
 
-### 🔄 Migrating to Firebase Studio
-- **Logo Generation** - Moving to Firebase Studio for better Google AI integration
-- **Status**: See `FIREBASE_STUDIO_MIGRATION.md` for details
+### ✅ Logo Generation (FIXED)
+- **Status**: Image generation now working with updated Google AI models
+- **Models**: Using `gemini-2.0-flash-exp` for image generation, `gemini-2.0-flash` for text
 
 ### 📋 Migration Files
 - `FIREBASE_STUDIO_MIGRATION.md` - Complete migration guide
