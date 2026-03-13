@@ -204,6 +204,22 @@ export default function TestPage() {
               <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
                 <h3 className="font-semibold text-red-800 mb-2">❌ Error</h3>
                 <p className="text-red-700">{error}</p>
+                
+                {/* 402 Payment Required */}
+                {result?.solutions && (
+                  <div className="mt-3 p-3 bg-amber-100 rounded text-sm">
+                    <strong className="text-amber-900">💡 Solutions:</strong>
+                    <ol className="list-decimal list-inside mt-1 space-y-1 text-amber-800">
+                      {result.solutions.map((solution: string, i: number) => (
+                        <li key={i}>{solution}</li>
+                      ))}
+                    </ol>
+                    {result.costs && (
+                      <p className="mt-2 text-amber-700 font-semibold">{result.costs}</p>
+                    )}
+                  </div>
+                )}
+                
                 {result?.setup && (
                   <div className="mt-3 p-3 bg-red-100 rounded text-sm">
                     <strong>Setup required:</strong>

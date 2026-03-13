@@ -91,13 +91,30 @@ export async function POST(request: NextRequest) {
         );
       }
       
+      if (response.status === 402) {
+        return NextResponse.json(
+          { 
+            success: false, 
+            error: "Payment Required (402) - Free credits exhausted",
+            details: "Your $5 free credit has been used up, or you need to add a payment method.",
+            solutions: [
+              "1. Add a small amount of credit ($5-10) at https://api.together.xyz/settings/billing",
+              "2. Try Pollinations.ai instead (completely free, no signup)",
+              "3. Try creating a new Together AI account for another $5 free credit",
+            ],
+            costs: "Together AI is cheap: ~$0.002 per image = 500 images for $1"
+          },
+          { status: 402 }
+        );
+      }
+      
       if (response.status === 429) {
         return NextResponse.json(
           { 
             success: false, 
-            error: "Rate limit or insufficient credits",
-            details: "You may have exceeded rate limits or run out of credits.",
-            suggestion: "Check your credits at https://api.together.xyz/settings/billing"
+            error: "Rate limit exceeded",
+            details: "Too many requests in a short time.",
+            suggestion: "Wait a minute and try again."
           },
           { status: 429 }
         );
