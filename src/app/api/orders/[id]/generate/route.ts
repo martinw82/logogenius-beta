@@ -36,11 +36,11 @@ export async function POST(
       return NextResponse.json({ error: "Invalid order ID" }, { status: 400 });
     }
 
-    // Get API key from environment
-    const apiKey = process.env.GENKIT_API_KEY || process.env.TEST_GOOGLE_API_KEY;
+    // Get API key from environment (Together AI)
+    const apiKey = process.env.TOGETHER_API_KEY;
     if (!apiKey) {
       return NextResponse.json(
-        { error: "API key not configured on server" },
+        { error: "Together AI API key not configured. Please set TOGETHER_API_KEY in environment variables." },
         { status: 500 }
       );
     }
@@ -95,6 +95,8 @@ export async function POST(
           web3ProjectType: formData.web3ProjectType,
         }),
       };
+      
+      console.log("[Generate] Calling generateLogoConcepts with Together AI...");
 
       const logoResult = await generateLogoConcepts(logoInput);
       console.log(`[Generate] Generated ${logoResult.logoUrls?.length || 0} logos`);
@@ -134,6 +136,8 @@ export async function POST(
         mockupTemplates: ["letterhead", "tshirt", "businesscard"] as const,
         userApiKey: apiKey,
       };
+      
+      console.log("[Generate] Calling generateLogoMockups with Together AI...");
 
       const mockupResult = await generateLogoMockups(mockupInput);
       console.log(`[Generate] Mockups generated`);

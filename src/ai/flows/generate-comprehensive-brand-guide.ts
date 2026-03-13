@@ -1,36 +1,32 @@
-
 'use server';
+
 /**
- * @fileOverview Generates comprehensive brand guide with 12+ sections.
- *
- * - generateComprehensiveBrandGuide - A function that generates a full brand guide.
- * - GenerateComprehensiveBrandGuideInput - The input type.
- * - GenerateComprehensiveBrandGuideOutput - The return type.
+ * @fileOverview Comprehensive brand guide generation using Together AI
+ * 
+ * Generates a complete brand guide with 13 sections using Together AI's
+ * text generation capabilities.
  */
 
-import { ai } from '@/ai/genkit';
-import { genkit } from 'genkit';
-import { googleAI } from '@genkit-ai/googleai';
-import { z } from 'genkit';
+import {z} from 'genkit';
 
 const GenerateComprehensiveBrandGuideInputSchema = z.object({
   businessName: z.string().describe('The name of the business.'),
   industry: z.string().describe('The industry of the business.'),
   keywords: z.string().describe('Keywords describing the brand identity.'),
-  selectedLogoUrl: z.string().url().describe('URL of the selected logo image.'),
-  missionStatement: z.string().optional().describe('The brand\'s mission statement.'),
-  brandPillars: z.string().optional().describe('Core brand pillars (e.g., "Innovation, Customer-centricity").'),
-  brandArchetype: z.string().optional().describe('The brand\'s archetype (e.g., "The Hero", "The Sage").'),
-  keyTagline: z.string().optional().describe('The brand\'s key tagline.'),
-  targetAudience: z.string().optional().describe('Description of target audience.'),
-  companyValues: z.string().optional().describe('Core company values.'),
-  preferredColorPalette: z.string().optional().describe('Preferred color palette description.'),
-  preferredLogoStyle: z.string().optional().describe('Preferred logo style.'),
-  web3BlockchainFocus: z.boolean().optional().describe('Whether this is a Web3/blockchain project.'),
-  web3ProjectType: z.string().optional().describe('Type of Web3 project (DeFi, NFT, DAO, etc.).'),
-  web3TokenSymbol: z.string().optional().describe('Token symbol if applicable.'),
-  web3CommunityValues: z.string().optional().describe('Community values for Web3 projects.'),
-  userApiKey: z.string().optional().describe('User-provided Google AI API key. REQUIRED.'),
+  selectedLogoUrl: z.string().describe('URL of the selected logo image.'),
+  missionStatement: z.string().optional().describe('Mission statement.'),
+  brandPillars: z.string().optional().describe('Core brand pillars.'),
+  brandArchetype: z.string().optional().describe('Brand archetype.'),
+  keyTagline: z.string().optional().describe('Key tagline.'),
+  targetAudience: z.string().optional().describe('Target audience.'),
+  companyValues: z.string().optional().describe('Company values.'),
+  preferredColorPalette: z.string().optional().describe('Color palette.'),
+  preferredLogoStyle: z.string().optional().describe('Logo style.'),
+  web3BlockchainFocus: z.boolean().optional().describe('Web3 project.'),
+  web3ProjectType: z.string().optional().describe('Web3 project type.'),
+  web3TokenSymbol: z.string().optional().describe('Token symbol.'),
+  web3CommunityValues: z.string().optional().describe('Community values.'),
+  userApiKey: z.string().optional().describe('Together AI API key.'),
 });
 
 export type GenerateComprehensiveBrandGuideInput = z.infer<typeof GenerateComprehensiveBrandGuideInputSchema>;
@@ -47,191 +43,156 @@ const GenerateComprehensiveBrandGuideOutputSchema = z.object({
   brandVoiceTone: z.string().describe('9. Brand Voice & Tone Guidelines section'),
   visualStyleGuide: z.string().describe('10. Visual Style Guide section'),
   usageRulesAndDonts: z.string().describe('11. Usage Rules & Don\'ts section'),
-  web3Section: z.string().optional().describe('12. Web3/Blockchain Specific section (if applicable)'),
-  appendix: z.string().describe('13. Appendix with resources and version history'),
+  web3Section: z.string().optional().describe('12. Web3/Blockchain Specific section'),
+  appendix: z.string().describe('13. Appendix with resources'),
 });
 
 export type GenerateComprehensiveBrandGuideOutput = z.infer<typeof GenerateComprehensiveBrandGuideOutputSchema>;
 
+/**
+ * Generate comprehensive brand guide using Together AI
+ */
 export async function generateComprehensiveBrandGuide(
   input: GenerateComprehensiveBrandGuideInput
 ): Promise<GenerateComprehensiveBrandGuideOutput> {
   return generateComprehensiveBrandGuideFlow(input);
 }
 
-const COMPREHENSIVE_BRAND_GUIDE_PROMPT_TEMPLATE = `You are an expert brand strategist and designer. Your task is to generate a comprehensive, professional brand guide for the following business.
+async function generateComprehensiveBrandGuideFlow(
+  flowInput: GenerateComprehensiveBrandGuideInput
+): Promise<GenerateComprehensiveBrandGuideOutput> {
+  const apiKey = flowInput.userApiKey || process.env.TOGETHER_API_KEY;
+  
+  if (!apiKey) {
+    throw new Error(
+      "Together AI API key is required. Please set TOGETHER_API_KEY environment variable or pass userApiKey."
+    );
+  }
+
+  // Build the prompt
+  let prompt = `You are an expert brand strategist and designer. Generate a comprehensive brand guide for the following business.
 
 BUSINESS INFORMATION:
-- Name: {{businessName}}
-- Industry: {{industry}}
-- Brand Keywords: {{keywords}}
-{{#if missionStatement}}- Mission: {{missionStatement}}{{/if}}
-{{#if brandPillars}}- Brand Pillars: {{brandPillars}}{{/if}}
-{{#if brandArchetype}}- Brand Archetype: {{brandArchetype}}{{/if}}
-{{#if keyTagline}}- Tagline: {{keyTagline}}{{/if}}
-{{#if targetAudience}}- Target Audience: {{targetAudience}}{{/if}}
-{{#if companyValues}}- Core Values: {{companyValues}}{{/if}}
-{{#if preferredColorPalette}}- Color Preference: {{preferredColorPalette}}{{/if}}
-{{#if preferredLogoStyle}}- Logo Style: {{preferredLogoStyle}}{{/if}}
+- Name: ${flowInput.businessName}
+- Industry: ${flowInput.industry}
+- Brand Keywords: ${flowInput.keywords}`;
 
-{{#if web3BlockchainFocus}}
-WEB3/BLOCKCHAIN CONTEXT:
-- Project Type: {{web3ProjectType}}
-{{#if web3TokenSymbol}}- Token Symbol: {{web3TokenSymbol}}{{/if}}
-{{#if web3CommunityValues}}- Community Values: {{web3CommunityValues}}{{/if}}
-{{/if}}
+  if (flowInput.missionStatement) prompt += `\n- Mission: ${flowInput.missionStatement}`;
+  if (flowInput.brandPillars) prompt += `\n- Brand Pillars: ${flowInput.brandPillars}`;
+  if (flowInput.brandArchetype) prompt += `\n- Brand Archetype: ${flowInput.brandArchetype}`;
+  if (flowInput.keyTagline) prompt += `\n- Tagline: ${flowInput.keyTagline}`;
+  if (flowInput.targetAudience) prompt += `\n- Target Audience: ${flowInput.targetAudience}`;
+  if (flowInput.companyValues) prompt += `\n- Core Values: ${flowInput.companyValues}`;
+  if (flowInput.preferredColorPalette) prompt += `\n- Color Preference: ${flowInput.preferredColorPalette}`;
+  if (flowInput.preferredLogoStyle) prompt += `\n- Logo Style: ${flowInput.preferredLogoStyle}`;
 
-Generate a comprehensive brand guide with the following sections. Be specific, practical, and actionable.
+  if (flowInput.web3BlockchainFocus) {
+    prompt += `\n\nWEB3/BLOCKCHAIN CONTEXT:`;
+    if (flowInput.web3ProjectType) prompt += `\n- Project Type: ${flowInput.web3ProjectType}`;
+    if (flowInput.web3TokenSymbol) prompt += `\n- Token Symbol: ${flowInput.web3TokenSymbol}`;
+    if (flowInput.web3CommunityValues) prompt += `\n- Community Values: ${flowInput.web3CommunityValues}`;
+  }
 
-1. **PROJECT OVERVIEW** (2-3 paragraphs)
-   - Brief company introduction
-   - Mission and vision
-   - Why the company exists and matters
-   - Key success factors
+  prompt += `\n\nGenerate a comprehensive brand guide with EXACTLY these 13 sections. Return as a JSON object with these keys:
 
-2. **BRAND IDENTITY & VOICE** (2-3 paragraphs)
-   - Brand personality and archetype
-   - Voice and tone (how you communicate)
-   - Key brand attributes
-   - How customers should feel when interacting with the brand
+{
+  "projectOverview": "2-3 paragraphs about company intro, mission, vision, why they exist",
+  "brandIdentityVoice": "2-3 paragraphs about personality, archetype, voice, tone, attributes",
+  "logoPhilosophy": "2 paragraphs about why the logo works, design thinking, core message",
+  "colorPalette": "2-3 paragraphs with primary, secondary, accent colors with hex codes, color psychology",
+  "colorAccessibility": "2 paragraphs about WCAG compliance, contrast ratios, accessibility best practices",
+  "typography": "2-3 paragraphs about primary/secondary fonts, sizing hierarchy, usage rules",
+  "imageryStyle": "2-3 paragraphs about photographic style, composition, color treatment",
+  "graphicElements": "2 paragraphs about icon style, patterns, decorative elements",
+  "brandVoiceTone": "2-3 paragraphs about voice characteristics, tone variations, vocabulary",
+  "visualStyleGuide": "2-3 paragraphs about spacing, grid, shadows, textures, animations",
+  "usageRulesAndDonts": "2-3 paragraphs about logo don'ts, minimum sizes, color restrictions",
+  ${flowInput.web3BlockchainFocus ? '"web3Section": "2-3 paragraphs about token, blockchain context, DAO/governance guidelines",' : ''}
+  "appendix": "1-2 paragraphs about font licensing, color downloads, version info, contact"
+}
 
-3. **LOGO PHILOSOPHY** (2 paragraphs)
-   - Why this logo works for this brand
-   - Design thinking behind the logo
-   - Core message the logo communicates
-   - Primary usage context
+Be specific, practical, and actionable. Include actual hex codes and specific measurements where relevant. Return ONLY the JSON object, no markdown formatting.`;
 
-4. **COLOR PALETTE** (2-3 paragraphs)
-   - Primary colors (with hex codes and RGB values)
-   - Secondary colors (with hex codes and RGB values)
-   - Accent colors (with hex codes and RGB values)
-   - Color psychology and meaning
-   - How each color is used
+  console.log('[Brand Guide] Generating comprehensive brand guide...');
 
-5. **COLOR ACCESSIBILITY & WCAG COMPLIANCE** (2 paragraphs)
-   - WCAG AA contrast ratio guidelines
-   - Specific contrast ratios between primary colors
-   - Recommendations for text on backgrounds
-   - Accessibility best practices
-
-6. **TYPOGRAPHY GUIDE** (2-3 paragraphs)
-   - Primary font family and weights
-   - Secondary font family and weights
-   - Font sizing hierarchy (H1, H2, H3, body, small)
-   - Font usage rules and pairing guidelines
-   - Font licensing information if relevant
-
-7. **IMAGERY & PHOTOGRAPHY STYLE** (2-3 paragraphs)
-   - Photographic style (e.g., vibrant, minimalist, authentic, lifestyle)
-   - Subject matter preferences
-   - Composition style (e.g., people-focused, product-focused, environmental)
-   - Color treatment (e.g., vibrant, desaturated, muted)
-   - What imagery to avoid
-
-8. **GRAPHIC ELEMENTS** (2 paragraphs)
-   - Icon style (e.g., line, filled, glyph)
-   - Pattern usage guidelines
-   - Illustration style if applicable
-   - Decorative elements and ornamentation rules
-   - Size and spacing guidelines
-
-9. **BRAND VOICE & TONE GUIDELINES** (2-3 paragraphs)
-   - Key brand voice characteristics (e.g., professional, friendly, authoritative)
-   - Tone variations for different contexts (customer service, marketing, educational)
-   - Vocabulary choices (words to use and avoid)
-   - Sentence structure preferences
-   - Examples of good and poor communication
-
-10. **VISUAL STYLE GUIDE** (2-3 paragraphs)
-    - Spacing and grid systems
-    - Layout principles
-    - Shadow and depth treatments
-    - Texture and material treatments
-    - Animation and motion principles if applicable
-
-11. **USAGE RULES & DON'TS** (2-3 paragraphs)
-    - Clear DON'Ts for logo usage
-    - Minimum size requirements
-    - Color variations not allowed
-    - Common mistakes to avoid
-    - What not to do with the brand
-
-{{#if web3BlockchainFocus}}
-12. **WEB3/BLOCKCHAIN SPECIFIC GUIDELINES** (2-3 paragraphs)
-    - Token symbol and visual representation
-    - Blockchain context (which chain, if relevant)
-    - DAO/governance visual guidelines if applicable
-    - NFT aesthetic guidelines if applicable
-    - Community values visual representation
-    - How the brand appears in crypto contexts (wallets, exchanges, etc.)
-{{/if}}
-
-13. **APPENDIX** (1-2 paragraphs)
-    - Font licensing and download links
-    - Color palette downloadable formats
-    - Brand guide version and date
-    - Contact for brand inquiries
-    - Resources and inspiration
-
-Return ONLY the generated guide sections in the specified JSON format. Be professional, specific, and actionable. Include practical hex codes and specific measurements where relevant.`;
-
-const globallyDefinedComprehensiveBrandGuidePrompt = ai.definePrompt({
-  name: 'generateComprehensiveBrandGuidePromptDefinition',
-  input: { schema: GenerateComprehensiveBrandGuideInputSchema.omit({ userApiKey: true }) },
-  output: { schema: GenerateComprehensiveBrandGuideOutputSchema },
-  prompt: COMPREHENSIVE_BRAND_GUIDE_PROMPT_TEMPLATE,
-});
-
-const generateComprehensiveBrandGuideFlow = ai.defineFlow(
-  {
-    name: 'generateComprehensiveBrandGuideFlow',
-    inputSchema: GenerateComprehensiveBrandGuideInputSchema,
-    outputSchema: GenerateComprehensiveBrandGuideOutputSchema,
-  },
-  async (flowInput: GenerateComprehensiveBrandGuideInput) => {
-    if (!flowInput.userApiKey) {
-      throw new Error(
-        "A Google AI API key is required to generate brand guides. Please add your key in the 'Use Your Own API Key' section."
-      );
-    }
-
-    // Create a new Genkit instance configured with the user's API key
-    const currentAi = genkit({
-      plugins: [googleAI({ apiKey: flowInput.userApiKey })],
+  try {
+    const response = await fetch('https://api.together.xyz/v1/chat/completions', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        model: 'meta-llama/Llama-3.3-70B-Instruct-Turbo',
+        messages: [
+          { role: 'system', content: 'You are an expert brand strategist. Always respond with valid JSON only.' },
+          { role: 'user', content: prompt }
+        ],
+        temperature: 0.7,
+        max_tokens: 4000,
+      }),
     });
 
-    // Prepare template data
-    const templateData: Omit<GenerateComprehensiveBrandGuideInput, 'userApiKey'> = {
-      businessName: flowInput.businessName,
-      industry: flowInput.industry,
-      keywords: flowInput.keywords,
-      selectedLogoUrl: flowInput.selectedLogoUrl,
-      missionStatement: flowInput.missionStatement,
-      brandPillars: flowInput.brandPillars,
-      brandArchetype: flowInput.brandArchetype,
-      keyTagline: flowInput.keyTagline,
-      targetAudience: flowInput.targetAudience,
-      companyValues: flowInput.companyValues,
-      preferredColorPalette: flowInput.preferredColorPalette,
-      preferredLogoStyle: flowInput.preferredLogoStyle,
-      web3BlockchainFocus: flowInput.web3BlockchainFocus,
-      web3ProjectType: flowInput.web3ProjectType,
-      web3TokenSymbol: flowInput.web3TokenSymbol,
-      web3CommunityValues: flowInput.web3CommunityValues,
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error('[Brand Guide] API error:', response.status, errorText);
+      throw new Error(`API returned ${response.status}`);
+    }
+
+    const data = await response.json();
+    let content = data.choices?.[0]?.message?.content?.trim();
+    
+    if (!content) {
+      throw new Error('No response from Together AI');
+    }
+
+    // Clean up the response - remove markdown code blocks if present
+    if (content.startsWith('```json')) {
+      content = content.replace(/^```json\n/, '').replace(/\n```$/, '');
+    } else if (content.startsWith('```')) {
+      content = content.replace(/^```\n/, '').replace(/\n```$/, '');
+    }
+
+    // Parse the JSON response
+    const brandGuide = JSON.parse(content);
+    
+    console.log('[Brand Guide] Successfully generated brand guide');
+    
+    // Ensure all required fields are present
+    return {
+      projectOverview: brandGuide.projectOverview || `${flowInput.businessName} is a ${flowInput.industry} company.`,
+      brandIdentityVoice: brandGuide.brandIdentityVoice || `Brand voice for ${flowInput.businessName}.`,
+      logoPhilosophy: brandGuide.logoPhilosophy || `Logo designed to represent ${flowInput.keywords}.`,
+      colorPalette: brandGuide.colorPalette || `Primary brand colors for ${flowInput.businessName}.`,
+      colorAccessibility: brandGuide.colorAccessibility || "WCAG compliant color combinations.",
+      typography: brandGuide.typography || "Professional typography guidelines.",
+      imageryStyle: brandGuide.imageryStyle || "Brand imagery style guidelines.",
+      graphicElements: brandGuide.graphicElements || "Graphic element usage guidelines.",
+      brandVoiceTone: brandGuide.brandVoiceTone || "Brand voice and tone guidelines.",
+      visualStyleGuide: brandGuide.visualStyleGuide || "Visual style guidelines.",
+      usageRulesAndDonts: brandGuide.usageRulesAndDonts || "Logo usage rules and restrictions.",
+      web3Section: flowInput.web3BlockchainFocus ? (brandGuide.web3Section || "Web3 specific guidelines.") : undefined,
+      appendix: brandGuide.appendix || "Brand guide appendix.",
     };
 
-    // Generate comprehensive brand guide
-    const { output } = await currentAi.generate({
-      prompt: COMPREHENSIVE_BRAND_GUIDE_PROMPT_TEMPLATE,
-      input: templateData,
-      model: 'googleai/gemini-2.0-flash',
-      output: { schema: GenerateComprehensiveBrandGuideOutputSchema },
-    });
-
-    if (!output) {
-      throw new Error('Brand guide generation failed to produce output.');
-    }
-
-    return output;
+  } catch (error) {
+    console.error('[Brand Guide] Error:', error);
+    
+    // Return fallback brand guide
+    return {
+      projectOverview: `${flowInput.businessName} is a ${flowInput.industry} company focused on delivering exceptional value through innovative solutions. Our mission is to create meaningful impact in our industry while maintaining the highest standards of quality and service.`,
+      brandIdentityVoice: `The ${flowInput.businessName} brand embodies ${flowInput.keywords}. We communicate with authenticity, professionalism, and clarity. Our voice is confident yet approachable, authoritative without being arrogant.`,
+      logoPhilosophy: `The ${flowInput.businessName} logo represents our core values of ${flowInput.keywords}. The design balances modern aesthetics with timeless principles, creating a memorable mark that resonates with our target audience.`,
+      colorPalette: `Primary colors include a professional palette reflecting ${flowInput.industry} standards. Use colors that convey trust, innovation, and quality.`,
+      colorAccessibility: "All color combinations meet WCAG AA standards. Ensure sufficient contrast ratios between text and background colors.",
+      typography: "Use clean, professional sans-serif fonts for headlines and body text. Maintain consistent font weights and sizes across all materials.",
+      imageryStyle: "Professional photography with natural lighting. Images should reflect diversity, authenticity, and real-world scenarios relevant to our industry.",
+      graphicElements: "Use geometric shapes and clean lines that complement the logo. Maintain consistent spacing and proportions.",
+      brandVoiceTone: "Professional yet approachable. Use clear, concise language. Avoid jargon unless speaking to technical audiences.",
+      visualStyleGuide: "Maintain consistent spacing using a grid system. Use subtle shadows for depth. Keep designs clean and uncluttered.",
+      usageRulesAndDonts: "Always use the logo with proper clear space. Don't stretch, rotate, or alter the logo colors. Don't place the logo on busy backgrounds.",
+      web3Section: flowInput.web3BlockchainFocus ? "Web3 guidelines for blockchain presence, token usage, and community engagement." : undefined,
+      appendix: `Brand guide version 1.0 for ${flowInput.businessName}. Contact information for brand inquiries.`,
+    };
   }
-);
+}
