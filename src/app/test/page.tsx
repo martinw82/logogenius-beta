@@ -147,6 +147,13 @@ export default function TestPage() {
                     <li>• ⚠️ Requires signup at together.ai</li>
                   </ul>
                 </div>
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <h4 className="font-semibold text-amber-800">⏳ Credit Activation Delay</h4>
+                  <p className="text-sm text-amber-700 mt-2">
+                    If you just added credit and get 402 error: <strong>WAIT 10-30 minutes</strong>. 
+                    Credit card payments take time to activate. Check your balance at together.ai
+                  </p>
+                </div>
               </TabsContent>
 
               <TabsContent value="google" className="space-y-4">

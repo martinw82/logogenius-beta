@@ -95,13 +95,15 @@ export async function POST(request: NextRequest) {
         return NextResponse.json(
           { 
             success: false, 
-            error: "Payment Required (402) - Free credits exhausted",
-            details: "Your $5 free credit has been used up, or you need to add a payment method.",
+            error: "Payment Required (402) - Credits not available yet",
+            details: "Your credits may be processing or not yet activated.",
             solutions: [
-              "1. Add a small amount of credit ($5-10) at https://api.together.xyz/settings/billing",
-              "2. Try Pollinations.ai instead (completely free, no signup)",
-              "3. Try creating a new Together AI account for another $5 free credit",
+              "1. WAIT 10-30 minutes after adding credit - there's often a delay",
+              "2. Check your balance at https://api.together.xyz/settings/billing",
+              "3. Try refreshing the page and testing again",
+              "4. If still failing after 30 mins, contact Together AI support",
             ],
+            note: "Credit card payments can take 10-30 minutes to activate. Crypto payments are instant.",
             costs: "Together AI is cheap: ~$0.002 per image = 500 images for $1"
           },
           { status: 402 }
