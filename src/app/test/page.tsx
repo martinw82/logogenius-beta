@@ -96,9 +96,17 @@ export default function TestPage() {
             {result?.success && result.imageUrl && (
               <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
                 <h3 className="font-semibold text-green-800 mb-4">✅ Success!</h3>
-                <p className="text-green-700 mb-4">
+                <p className="text-green-700 mb-2">
                   Generated in {result.duration}ms
                 </p>
+                <p className="text-green-700 mb-4 text-sm">
+                  <strong>Model used:</strong> {result.modelUsed}
+                </p>
+                {result.modelsTried && result.modelsTried.length > 0 && (
+                  <p className="text-green-600 mb-4 text-xs">
+                    Failed models before success: {result.modelsTried.join(", ")}
+                  </p>
+                )}
                 <div className="border rounded-lg overflow-hidden bg-white">
                   <img 
                     src={result.imageUrl} 
@@ -117,12 +125,17 @@ export default function TestPage() {
               </div>
             )}
 
-            {result && !result.success && result.debug && (
+            {result && !result.success && result.errors && (
               <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                <h3 className="font-semibold text-yellow-800 mb-2">Debug Info</h3>
-                <pre className="text-xs overflow-auto">
-                  {JSON.stringify(result.debug, null, 2)}
-                </pre>
+                <h3 className="font-semibold text-yellow-800 mb-2">Errors by Model</h3>
+                <div className="space-y-2">
+                  {Object.entries(result.errors).map(([model, error]) => (
+                    <div key={model} className="text-xs">
+                      <strong className="text-yellow-900">{model}:</strong>
+                      <span className="text-yellow-700 ml-2">{String(error).substring(0, 100)}...</span>
+                    </div>
+                  ))}
+                </div>
               </div>
             )}
           </CardContent>

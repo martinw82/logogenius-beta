@@ -7,7 +7,7 @@ export const dynamic = "force-dynamic";
 /**
  * Simple test endpoint for image generation
  * POST /api/test/logo-generation
- * Body: { prompt?: string }
+ * Body: { prompt?: string, model?: string }
  */
 export async function POST(request: NextRequest) {
   console.log("[Test Generation] Starting simple image generation test");
@@ -36,6 +36,7 @@ export async function POST(request: NextRequest) {
     // 2. Parse request body
     const body = await request.json().catch(() => ({}));
     const prompt = body.prompt || "A simple minimalist logo for a coffee shop called 'Bean There', flat design, warm brown colors, transparent background";
+    const requestedModel = body.model; // Allow user to specify a model
     
     console.log("[Test Generation] Prompt:", prompt);
 
@@ -46,60 +47,80 @@ export async function POST(request: NextRequest) {
     });
     console.log("[Test Generation] Genkit initialized successfully");
 
-    // 4. Attempt image generation
-    console.log("[Test Generation] Calling generate with model: googleai/gemini-2.0-flash-exp");
-    
-    const startTime = Date.now();
-    const result = await ai.generate({
-      model: "googleai/gemini-2.0-flash-exp",
-      prompt: prompt,
-      config: {
-        responseModalities: ["TEXT", "IMAGE"],
-      },
-    });
-    const duration = Date.now() - startTime;
+    // 4. Try different models for image generation
+    // Based on research, these are the models that might support image generation
+    const modelsToTry = requestedModel 
+      ? [`googleai/${requestedModel}`]
+      : [
+          "googleai/gemini-2.0-flash-exp-image-generation",
+          "googleai/gemini-2.0-flash-preview-image-generation", 
+          "googleai/gemini-2.0-flash-exp",
+          "googleai/gemini-2.0-flash",
+          "googleai/imagen-3.0-generate-001",
+        ];
 
-    console.log("[Test Generation] Generation completed in", duration, "ms");
-    console.log("[Test Generation] Result keys:", Object.keys(result));
-    console.log("[Test Generation] Result media:", result.media);
-    console.log("[Test Generation] Result text:", result.text ? result.text.substring(0, 100) + "..." : "none");
-
-    // 5. Check if we got an image
-    const imageUrl = result.media?.url;
+    const errors: Record<string, string> = {};
     
-    if (!imageUrl) {
-      console.error("[Test Generation] No image URL in response");
-      return NextResponse.json(
-        { 
-          success: false, 
-          error: "No image generated",
-          details: "The API returned a response but no image URL was found",
-          debug: {
-            resultKeys: Object.keys(result),
-            hasMedia: !!result.media,
-            mediaKeys: result.media ? Object.keys(result.media) : null,
-            text: result.text,
-          }
-        },
-        { status: 500 }
-      );
+    for (const modelName of modelsToTry) {
+      console.log(`[Test Generation] Trying model: ${modelName}`);
+      
+      try {
+        const startTime = Date.now();
+        const result = await ai.generate({
+          model: modelName,
+          prompt: prompt,
+          config: {
+            responseModalities: ["TEXT", "IMAGE"],
+          },
+        });
+        const duration = Date.now() - startTime;
+
+        console.log(`[Test Generation] Model ${modelName} responded in ${duration}ms`);
+        console.log("[Test Generation] Result keys:", Object.keys(result));
+        console.log("[Test Generation] Result media:", result.media);
+
+        // Check if we got an image
+        const imageUrl = result.media?.url;
+        
+        if (imageUrl) {
+          console.log(`[Test Generation] SUCCESS with model ${modelName}!`);
+          
+          return NextResponse.json({
+            success: true,
+            message: "Image generated successfully",
+            imageUrl: imageUrl,
+            duration: duration,
+            prompt: prompt,
+            modelUsed: modelName,
+            modelsTried: Object.keys(errors),
+          });
+        } else {
+          console.log(`[Test Generation] Model ${modelName} returned no image URL`);
+          errors[modelName] = "No image URL in response";
+        }
+      } catch (modelError) {
+        const errorMsg = modelError instanceof Error ? modelError.message : String(modelError);
+        console.error(`[Test Generation] Model ${modelName} failed:`, errorMsg);
+        errors[modelName] = errorMsg;
+      }
     }
 
-    // 6. Success!
-    console.log("[Test Generation] SUCCESS! Image URL received (first 50 chars):", imageUrl.substring(0, 50));
-
-    return NextResponse.json({
-      success: true,
-      message: "Image generated successfully",
-      imageUrl: imageUrl,
-      duration: duration,
-      prompt: prompt,
-    });
+    // All models failed
+    console.error("[Test Generation] All models failed");
+    return NextResponse.json(
+      { 
+        success: false, 
+        error: "All image generation models failed",
+        details: "Tried multiple models, none worked",
+        errors: errors,
+        suggestion: "Check your API key permissions at https://aistudio.google.com/app/apikey"
+      },
+      { status: 500 }
+    );
 
   } catch (error) {
     console.error("[Test Generation] ERROR:", error);
     
-    // Capture full error details
     const errorDetails = {
       message: error instanceof Error ? error.message : "Unknown error",
       stack: error instanceof Error ? error.stack : undefined,
@@ -126,7 +147,17 @@ export async function GET() {
     message: "Test logo generation endpoint is ready. Send a POST request with an optional 'prompt' field.",
     usage: {
       method: "POST",
-      body: { prompt: "optional custom prompt string" }
-    }
+      body: { 
+        prompt: "optional custom prompt string",
+        model: "optional specific model name (e.g., gemini-2.0-flash-exp)"
+      }
+    },
+    models: [
+      "gemini-2.0-flash-exp-image-generation",
+      "gemini-2.0-flash-preview-image-generation",
+      "gemini-2.0-flash-exp",
+      "gemini-2.0-flash",
+      "imagen-3.0-generate-001"
+    ]
   });
 }
