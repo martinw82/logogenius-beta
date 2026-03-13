@@ -8,14 +8,24 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 export const dynamic = "force-dynamic";
 
 type Provider = "pollinations" | "huggingface" | "google";
 
+const HUGGINGFACE_MODELS = [
+  { value: "stabilityai/stable-diffusion-xl-base-1.0", label: "SDXL Base 1.0 (Best Quality)", desc: "Best overall quality, slower" },
+  { value: "runwayml/stable-diffusion-v1-5", label: "SD v1.5 (Fast)", desc: "Good balance of speed and quality" },
+  { value: "prompthero/openjourney", label: "Openjourney (Artistic)", desc: "Midjourney-style artistic images" },
+  { value: "dreamlike-art/dreamlike-diffusion-1.0", label: "Dreamlike (Surreal)", desc: "Dreamy, artistic style" },
+  { value: "CompVis/stable-diffusion-v1-4", label: "SD v1.4 (Reliable)", desc: "Stable, well-tested" },
+];
+
 export default function TestPage() {
   const [prompt, setPrompt] = useState("A simple minimalist logo for a coffee shop called 'Bean There', flat design, warm brown colors");
   const [provider, setProvider] = useState<Provider>("pollinations");
+  const [hfModel, setHfModel] = useState(HUGGINGFACE_MODELS[0].value);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
@@ -32,10 +42,15 @@ export default function TestPage() {
     };
 
     try {
+      const body: any = { prompt };
+      if (provider === "huggingface") {
+        body.model = hfModel;
+      }
+      
       const response = await fetch(endpoints[provider], {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ prompt }),
+        body: JSON.stringify(body),
       });
 
       const data = await response.json();
@@ -104,6 +119,27 @@ export default function TestPage() {
                     <li>• Multiple models available</li>
                     <li>• ⚠️ Requires free API key from huggingface.co</li>
                   </ul>
+                </div>
+                <div className="space-y-2">
+                  <Label>Select Model</Label>
+                  <Select value={hfModel} onValueChange={setHfModel}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select a model" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {HUGGINGFACE_MODELS.map((model) => (
+                        <SelectItem key={model.value} value={model.value}>
+                          <div className="flex flex-col items-start">
+                            <span>{model.label}</span>
+                            <span className="text-xs text-gray-500">{model.desc}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500">
+                    {HUGGINGFACE_MODELS.find(m => m.value === hfModel)?.desc}
+                  </p>
                 </div>
               </TabsContent>
 
@@ -204,12 +240,35 @@ export default function TestPage() {
                   </p>
                 )}
                 <div className="border rounded-lg overflow-hidden bg-white">
-                  <img 
-                    src={result.imageUrl} 
-                    alt="Generated logo"
-                    className="w-full max-w-md mx-auto"
-                  />
+                  {provider === "pollinations" ? (
+                    <div className="relative">
+                      <img 
+                        src={result.imageUrl} 
+                        alt="Generated logo"
+                        className="w-full max-w-md mx-auto"
+                        onLoad={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.classList.remove('opacity-0');
+                        }}
+                        style={{ opacity: 0, transition: 'opacity 0.5s' }}
+                      />
+                      <div className="absolute inset-0 flex items-center justify-center bg-gray-100 animate-pulse" id="pollinations-loading">
+                        <span className="text-gray-500">⏳ Loading image from Pollinations...</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <img 
+                      src={result.imageUrl} 
+                      alt="Generated logo"
+                      className="w-full max-w-md mx-auto"
+                    />
+                  )}
                 </div>
+                {provider === "pollinations" && (
+                  <p className="text-xs text-green-600 mt-2">
+                    💡 Tip: If image doesn&apos;t appear, wait 10 seconds and refresh. Pollinations generates on-the-fly.
+                  </p>
+                )}
               </div>
             )}
           </CardContent>
