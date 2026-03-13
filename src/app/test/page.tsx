@@ -24,7 +24,7 @@ const HUGGINGFACE_MODELS = [
 
 export default function TestPage() {
   const [prompt, setPrompt] = useState("A simple minimalist logo for a coffee shop called 'Bean There', flat design, warm brown colors");
-  const [provider, setProvider] = useState<Provider>("pollinations");
+  const [provider, setProvider] = useState<Provider>("together");
   const [hfModel, setHfModel] = useState(HUGGINGFACE_MODELS[0].value);
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<any>(null);
@@ -85,17 +85,17 @@ export default function TestPage() {
             
             <Tabs value={provider} onValueChange={(v) => setProvider(v as Provider)}>
               <TabsList className="grid w-full grid-cols-4">
-                <TabsTrigger value="pollinations">
-                  Pollinations
-                  <Badge variant="secondary" className="ml-2 text-xs">No Key</Badge>
+                <TabsTrigger value="together">
+                  Together AI
+                  <Badge className="ml-2 text-xs bg-green-500">RECOMMENDED</Badge>
                 </TabsTrigger>
                 <TabsTrigger value="huggingface">
                   Hugging Face
-                  <Badge variant="secondary" className="ml-2 text-xs">1k/mo</Badge>
+                  <Badge variant="destructive" className="ml-2 text-xs">Issues</Badge>
                 </TabsTrigger>
-                <TabsTrigger value="together">
-                  Together AI
-                  <Badge variant="secondary" className="ml-2 text-xs">$5 Free</Badge>
+                <TabsTrigger value="pollinations">
+                  Pollinations
+                  <Badge variant="secondary" className="ml-2 text-xs">No Key</Badge>
                 </TabsTrigger>
                 <TabsTrigger value="google">
                   Google AI
@@ -116,35 +116,24 @@ export default function TestPage() {
               </TabsContent>
 
               <TabsContent value="huggingface" className="space-y-4">
-                <div className="p-4 bg-blue-50 rounded-lg">
-                  <h4 className="font-semibold text-blue-800">🔧 Higher Quality (Setup Required)</h4>
-                  <ul className="text-sm text-blue-700 mt-2 space-y-1">
-                    <li>• Better image quality</li>
-                    <li>• 1,000 requests/month free</li>
-                    <li>• Multiple models available</li>
-                    <li>• ⚠️ Requires free API key from huggingface.co</li>
-                  </ul>
-                </div>
-                <div className="space-y-2">
-                  <Label>Select Model</Label>
-                  <Select value={hfModel} onValueChange={setHfModel}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select a model" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {HUGGINGFACE_MODELS.map((model) => (
-                        <SelectItem key={model.value} value={model.value}>
-                          <div className="flex flex-col items-start">
-                            <span>{model.label}</span>
-                            <span className="text-xs text-gray-500">{model.desc}</span>
-                          </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <p className="text-xs text-gray-500">
-                    {HUGGINGFACE_MODELS.find(m => m.value === hfModel)?.desc}
+                <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
+                  <h4 className="font-semibold text-orange-800">⚠️ Currently Unreliable</h4>
+                  <p className="text-sm text-orange-700 mt-2">
+                    Hugging Face has deprecated many free inference endpoints (410 errors).
+                    The endpoint now tries multiple models automatically.
                   </p>
+                  <p className="text-sm text-orange-700 mt-2 font-semibold">
+                    💡 RECOMMENDATION: Use Together AI instead - much more reliable!
+                  </p>
+                </div>
+                <div className="p-4 bg-blue-50 rounded-lg">
+                  <h4 className="font-semibold text-blue-800">🔧 If you still want to try:</h4>
+                  <ul className="text-sm text-blue-700 mt-2 space-y-1">
+                    <li>• Will try 6 different models automatically</li>
+                    <li>• 1,000 requests/month free</li>
+                    <li>• ⚠️ Most models return 410 errors now</li>
+                    <li>• Requires free API key from huggingface.co</li>
+                  </ul>
                 </div>
               </TabsContent>
 
