@@ -312,6 +312,52 @@ export const prisma = {
       return toCamelCase(rows);
     },
 
+    async findFirst(options: { where: { orderId: number; variantNum: number } }): Promise<LogoVariant | null> {
+      const [rows] = await getPool().execute(
+        'SELECT * FROM logo_variants WHERE order_id = ? AND variant_num = ?',
+        [options.where.orderId, options.where.variantNum]
+      );
+      const results = toCamelCase(rows) as LogoVariant[];
+      return results.length > 0 ? results[0] : null;
+    },
+
+    async update(options: {
+      where: { id: number };
+      data: Partial<LogoVariant>;
+    }): Promise<LogoVariant> {
+      const updates: string[] = [];
+      const params: any[] = [];
+
+      if (options.data.svgData !== undefined) {
+        updates.push('svg_data = ?');
+        params.push(options.data.svgData);
+      }
+      if (options.data.svgPath !== undefined) {
+        updates.push('svg_path = ?');
+        params.push(options.data.svgPath);
+      }
+      if (options.data.selected !== undefined) {
+        updates.push('selected = ?');
+        params.push(options.data.selected);
+      }
+      if (options.data.mockupPaths !== undefined) {
+        updates.push('mockup_paths = ?');
+        params.push(options.data.mockupPaths);
+      }
+
+      params.push(options.where.id);
+      await getPool().execute(
+        `UPDATE logo_variants SET ${updates.join(', ')} WHERE id = ?`,
+        params
+      );
+      
+      const [rows] = await getPool().execute(
+        'SELECT * FROM logo_variants WHERE id = ?',
+        [options.where.id]
+      );
+      return toCamelCase((rows as any[])[0]);
+    },
+
     async updateMany(options: {
       where: { orderId: number; variantNum: number };
       data: Partial<LogoVariant>;
