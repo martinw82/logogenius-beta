@@ -125,6 +125,26 @@ export async function POST(
         });
       }
 
+      // Store logos in LogoVariant table (for admin display)
+      for (let i = 0; i < logoResult.logoUrls.length; i++) {
+        await prisma.logoVariant.upsert({
+          where: {
+            orderId_variantNum: {
+              orderId: orderId,
+              variantNum: i + 1,
+            },
+          },
+          create: {
+            orderId: orderId,
+            variantNum: i + 1,
+            svgData: logoResult.logoUrls[i],
+          },
+          update: {
+            svgData: logoResult.logoUrls[i],
+          },
+        });
+      }
+
       // Step 2: Generate mockups for the first logo
       const firstLogoUrl = logoResult.logoUrls[0];
       console.log(`[Generate] Starting mockup generation`);
@@ -142,7 +162,7 @@ export async function POST(
       const mockupResult = await generateLogoMockups(mockupInput);
       console.log(`[Generate] Mockups generated`);
 
-      // Store mockup URLs
+      // Store mockup URLs in OrderDetail
       const mockupFields = [
         { key: 'letterheadMockup', field: 'mockup_letterhead' },
         { key: 'tshirtMockup', field: 'mockup_tshirt' },
@@ -169,6 +189,24 @@ export async function POST(
             },
           });
         }
+      }
+
+      // Store mockups in LogoVariant table (for first logo variant)
+      const mockupPaths: Record<string, string> = {};
+      if (mockupResult.letterheadMockup) mockupPaths['letterhead'] = mockupResult.letterheadMockup;
+      if (mockupResult.tshirtMockup) mockupPaths['tshirt'] = mockupResult.tshirtMockup;
+      if (mockupResult.businesscardMockup) mockupPaths['businesscard'] = mockupResult.businesscardMockup;
+      
+      if (Object.keys(mockupPaths).length > 0) {
+        await prisma.logoVariant.updateMany({
+          where: {
+            orderId: orderId,
+            variantNum: 1,
+          },
+          data: {
+            mockupPaths: JSON.stringify(mockupPaths),
+          },
+        });
       }
 
       // Step 3: Generate brand guide

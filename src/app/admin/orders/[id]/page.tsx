@@ -32,14 +32,11 @@ interface OrderData {
     variantNum: number;
     svgData: string;
     svgPath: string | null;
+    mockupPaths: string | null;
   }>;
 }
 
-interface LogoVariant {
-  id: number;
-  variantNum: number;
-  svgData: string;
-}
+
 
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
@@ -270,32 +267,34 @@ export default function AdminOrderDetail() {
         </Alert>
       )}
 
-      {/* Generate Logos Button - Show for processing or generation_failed orders */}
-      {(order.status === 'processing' || order.status === 'generation_failed' || order.status === 'pending') && (
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="pt-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="font-semibold text-blue-900">Generate Logo Concepts</h3>
-                <p className="text-sm text-blue-700">
-                  {order.status === 'processing' 
-                    ? 'Form submitted. Ready to generate 4 logo variants and brand guide.'
-                    : order.status === 'generation_failed'
-                    ? 'Previous generation failed. Try again.'
-                    : 'Use AI to generate 4 logo variants and brand guide for this order'}
-                </p>
-              </div>
-              <Button 
-                onClick={handleGenerateLogos}
-                disabled={isGenerating}
-                className="bg-blue-600 hover:bg-blue-700"
-              >
-                {isGenerating ? 'Generating...' : 'Generate Logos'}
-              </Button>
+      {/* Generate/Regenerate Logos Button - Always show for admin */}
+      <Card className="bg-blue-50 border-blue-200">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="font-semibold text-blue-900">
+                {order.logos.length > 0 ? 'Regenerate Logo Concepts' : 'Generate Logo Concepts'}
+              </h3>
+              <p className="text-sm text-blue-700">
+                {order.status === 'processing' 
+                  ? 'Form submitted. Ready to generate 4 logo variants and brand guide.'
+                  : order.status === 'generation_failed'
+                  ? 'Previous generation failed. Try again.'
+                  : order.logos.length > 0
+                  ? 'Regenerate to create new logo variants and mockups. This will overwrite existing logos.'
+                  : 'Use AI to generate 4 logo variants and brand guide for this order'}
+              </p>
             </div>
-          </CardContent>
-        </Card>
-      )}
+            <Button 
+              onClick={handleGenerateLogos}
+              disabled={isGenerating}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {isGenerating ? 'Generating...' : order.logos.length > 0 ? 'Regenerate Logos' : 'Generate Logos'}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
 
       <div className="grid grid-cols-3 gap-4">
         {/* Order Info */}
@@ -339,12 +338,13 @@ export default function AdminOrderDetail() {
                   className="border rounded-lg p-4 bg-gray-50 flex flex-col items-center justify-center min-h-48"
                 >
                   {logo.svgData ? (
-                    <div
-                      dangerouslySetInnerHTML={{ __html: logo.svgData }}
-                      className="w-full h-40 flex items-center justify-center"
+                    <img
+                      src={logo.svgData}
+                      alt={`Logo Variant ${logo.variantNum}`}
+                      className="w-full h-40 object-contain"
                     />
                   ) : (
-                    <p className="text-gray-400 text-sm">SVG not available</p>
+                    <p className="text-gray-400 text-sm">Logo not available</p>
                   )}
                   <p className="mt-2 text-xs text-gray-600">Variant {logo.variantNum}</p>
                 </div>
@@ -375,56 +375,104 @@ export default function AdminOrderDetail() {
 
             {/* Row 1: Letterhead mockups */}
             <div className="col-span-4 grid grid-cols-4 gap-4 mb-6">
-              {[1, 2, 3, 4].map((variant) => (
-                <div
-                  key={`letterhead-${variant}`}
-                  className="border rounded-lg bg-gray-50 aspect-video flex flex-col items-center justify-center p-4"
-                >
-                  <div className="text-xs text-gray-400 mb-2">Letterhead</div>
-                  <div className="text-gray-300 text-sm">
-                    [Mockup V{variant}]
+              {[1, 2, 3, 4].map((variant) => {
+                const logo = order.logos.find(l => l.variantNum === variant);
+                const mockups = logo?.mockupPaths ? JSON.parse(logo.mockupPaths) : {};
+                return (
+                  <div
+                    key={`letterhead-${variant}`}
+                    className="border rounded-lg bg-gray-50 aspect-video flex flex-col items-center justify-center p-4"
+                  >
+                    <div className="text-xs text-gray-400 mb-2">Letterhead</div>
+                    {mockups.letterhead ? (
+                      <img
+                        src={mockups.letterhead}
+                        alt={`Letterhead Mockup V${variant}`}
+                        className="w-full h-24 object-contain"
+                      />
+                    ) : (
+                      <div className="text-gray-300 text-sm">
+                        [Mockup V{variant}]
+                      </div>
+                    )}
+                    {mockups.letterhead && (
+                      <Button variant="ghost" size="sm" className="mt-2" asChild>
+                        <a href={mockups.letterhead} download={`letterhead-v${variant}.png`}>
+                          <Download className="h-3 w-3" />
+                        </a>
+                      </Button>
+                    )}
                   </div>
-                  <Button variant="ghost" size="sm" className="mt-2">
-                    <Download className="h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Row 2: T-Shirt mockups */}
             <div className="col-span-4 grid grid-cols-4 gap-4 mb-6">
-              {[1, 2, 3, 4].map((variant) => (
-                <div
-                  key={`tshirt-${variant}`}
-                  className="border rounded-lg bg-gray-50 aspect-video flex flex-col items-center justify-center p-4"
-                >
-                  <div className="text-xs text-gray-400 mb-2">T-Shirt</div>
-                  <div className="text-gray-300 text-sm">
-                    [Mockup V{variant}]
+              {[1, 2, 3, 4].map((variant) => {
+                const logo = order.logos.find(l => l.variantNum === variant);
+                const mockups = logo?.mockupPaths ? JSON.parse(logo.mockupPaths) : {};
+                return (
+                  <div
+                    key={`tshirt-${variant}`}
+                    className="border rounded-lg bg-gray-50 aspect-video flex flex-col items-center justify-center p-4"
+                  >
+                    <div className="text-xs text-gray-400 mb-2">T-Shirt</div>
+                    {mockups.tshirt ? (
+                      <img
+                        src={mockups.tshirt}
+                        alt={`T-Shirt Mockup V${variant}`}
+                        className="w-full h-24 object-contain"
+                      />
+                    ) : (
+                      <div className="text-gray-300 text-sm">
+                        [Mockup V{variant}]
+                      </div>
+                    )}
+                    {mockups.tshirt && (
+                      <Button variant="ghost" size="sm" className="mt-2" asChild>
+                        <a href={mockups.tshirt} download={`tshirt-v${variant}.png`}>
+                          <Download className="h-3 w-3" />
+                        </a>
+                      </Button>
+                    )}
                   </div>
-                  <Button variant="ghost" size="sm" className="mt-2">
-                    <Download className="h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
 
             {/* Row 3: Business Card mockups */}
             <div className="col-span-4 grid grid-cols-4 gap-4">
-              {[1, 2, 3, 4].map((variant) => (
-                <div
-                  key={`card-${variant}`}
-                  className="border rounded-lg bg-gray-50 aspect-video flex flex-col items-center justify-center p-4"
-                >
-                  <div className="text-xs text-gray-400 mb-2">Business Card</div>
-                  <div className="text-gray-300 text-sm">
-                    [Mockup V{variant}]
+              {[1, 2, 3, 4].map((variant) => {
+                const logo = order.logos.find(l => l.variantNum === variant);
+                const mockups = logo?.mockupPaths ? JSON.parse(logo.mockupPaths) : {};
+                return (
+                  <div
+                    key={`card-${variant}`}
+                    className="border rounded-lg bg-gray-50 aspect-video flex flex-col items-center justify-center p-4"
+                  >
+                    <div className="text-xs text-gray-400 mb-2">Business Card</div>
+                    {mockups.businesscard ? (
+                      <img
+                        src={mockups.businesscard}
+                        alt={`Business Card Mockup V${variant}`}
+                        className="w-full h-24 object-contain"
+                      />
+                    ) : (
+                      <div className="text-gray-300 text-sm">
+                        [Mockup V{variant}]
+                      </div>
+                    )}
+                    {mockups.businesscard && (
+                      <Button variant="ghost" size="sm" className="mt-2" asChild>
+                        <a href={mockups.businesscard} download={`businesscard-v${variant}.png`}>
+                          <Download className="h-3 w-3" />
+                        </a>
+                      </Button>
+                    )}
                   </div>
-                  <Button variant="ghost" size="sm" className="mt-2">
-                    <Download className="h-3 w-3" />
-                  </Button>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
