@@ -13,7 +13,6 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Loader2, Sparkles, Wand2 } from 'lucide-react';
 import * as z from 'zod';
-import { suggestFormDetails } from '@/ai/flows/suggest-form-details';
 
 // Form schema
 const adminOrderSchema = z.object({
@@ -21,6 +20,7 @@ const adminOrderSchema = z.object({
   tier: z.enum(['basic', 'pro', 'premium']),
   businessName: z.string().min(1, 'Business name required'),
   industry: z.string().min(1, 'Industry required'),
+  industrySubcategory: z.string().optional(),
   
   // Brand identity
   aestheticKeywords: z.string().optional(),
@@ -49,11 +49,73 @@ const adminOrderSchema = z.object({
 
 type AdminOrderFormData = z.infer<typeof adminOrderSchema>;
 
-const industries = [
-  'Technology', 'Finance', 'Healthcare', 'E-commerce', 'Real Estate',
-  'Education', 'Non-profit', 'Hospitality', 'Fashion', 'Food & Beverage',
-  'Manufacturing', 'Consulting', 'Legal', 'Construction', 'Other'
-];
+// Expanded industries with subcategories
+const industryCategories: Record<string, { label: string; subcategories: string[] }> = {
+  'technology': {
+    label: '💻 Technology & Software',
+    subcategories: ['SaaS', 'Mobile Apps', 'Web Development', 'AI/Machine Learning', 'Cybersecurity', 'Data Analytics', 'Cloud Services', 'IT Consulting', 'Hardware', 'Gaming', 'Blockchain/Web3']
+  },
+  'finance': {
+    label: '💰 Finance & Banking',
+    subcategories: ['Banking', 'Investment', 'Insurance', 'Accounting', 'Fintech', 'Cryptocurrency', 'Wealth Management', 'Mortgage', 'Financial Planning']
+  },
+  'healthcare': {
+    label: '🏥 Healthcare & Wellness',
+    subcategories: ['Medical Practice', 'Dental', 'Mental Health', 'Fitness & Gym', 'Nutrition', 'Pharmaceuticals', 'Medical Devices', 'Telehealth', 'Elder Care', 'Veterinary']
+  },
+  'retail': {
+    label: '🛍️ Retail & E-commerce',
+    subcategories: ['E-commerce', 'Brick & Mortar', 'Fashion & Apparel', 'Electronics', 'Home & Garden', 'Beauty & Cosmetics', 'Food & Grocery', 'Luxury Goods', 'Sports & Outdoors']
+  },
+  'food': {
+    label: '🍽️ Food & Beverage',
+    subcategories: ['Restaurant', 'Cafe', 'Fast Food', 'Catering', 'Food Truck', 'Bakery', 'Bar & Pub', 'Winery/Brewery', 'Food Production', 'Organic/Health Food']
+  },
+  'realestate': {
+    label: '🏠 Real Estate & Construction',
+    subcategories: ['Residential Real Estate', 'Commercial Real Estate', 'Property Management', 'Construction', 'Architecture', 'Interior Design', 'Landscaping', 'Home Services', 'Rental/Airbnb']
+  },
+  'professional': {
+    label: '👔 Professional Services',
+    subcategories: ['Legal', 'Accounting', 'Consulting', 'Marketing Agency', 'HR/Recruiting', 'Coaching', 'Translation', 'Event Planning', 'Public Relations']
+  },
+  'creative': {
+    label: '🎨 Creative & Media',
+    subcategories: ['Graphic Design', 'Photography', 'Video Production', 'Music & Audio', 'Writing/Publishing', 'Advertising', 'Animation', 'Art Gallery', 'Performing Arts']
+  },
+  'education': {
+    label: '📚 Education & Training',
+    subcategories: ['K-12 School', 'University', 'Online Courses', 'Tutoring', 'Corporate Training', 'Language Learning', 'Vocational Training', 'Childcare/Daycare']
+  },
+  'hospitality': {
+    label: '🏨 Hospitality & Travel',
+    subcategories: ['Hotel', 'Resort', 'Vacation Rental', 'Travel Agency', 'Tourism', 'Spa & Wellness', 'Event Venue', 'Transportation']
+  },
+  'automotive': {
+    label: '🚗 Automotive & Transportation',
+    subcategories: ['Car Dealership', 'Auto Repair', 'Car Rental', 'Car Wash', 'Parts & Accessories', 'Electric Vehicles', 'Fleet Services', 'Logistics', 'Rideshare']
+  },
+  'manufacturing': {
+    label: '🏭 Manufacturing & Industrial',
+    subcategories: ['Consumer Goods', 'Industrial Equipment', 'Electronics Manufacturing', 'Textile', 'Chemical', 'Packaging', 'Printing', 'Quality Control']
+  },
+  'nonprofit': {
+    label: '💚 Non-Profit & Community',
+    subcategories: ['Charity', 'Foundation', 'Religious Organization', 'Community Center', 'Environmental', 'Animal Welfare', 'Arts & Culture', 'Social Services', 'Advocacy']
+  },
+  'sports': {
+    label: '⚽ Sports & Recreation',
+    subcategories: ['Sports Team', 'Gym/Fitness Center', 'Yoga Studio', 'Sports Equipment', 'Outdoor Recreation', 'Esports', 'Sports Coaching', 'Dance Studio']
+  },
+  'pets': {
+    label: '🐾 Pets & Animals',
+    subcategories: ['Pet Store', 'Veterinary', 'Pet Grooming', 'Pet Boarding', 'Pet Training', 'Pet Food/Treats', 'Animal Rescue']
+  },
+  'other': {
+    label: '📦 Other',
+    subcategories: ['General']
+  }
+};
 
 const logoStyles = [
   'Modern Minimalist', 'Vintage/Retro', 'Hand-drawn/Organic', 'Geometric',
@@ -92,9 +154,18 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
   const watchBusinessName = form.watch('businessName');
   const watchIndustry = form.watch('industry');
 
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+
+  const handleCategoryChange = (category: string) => {
+    setSelectedCategory(category);
+    form.setValue('industry', category);
+    form.setValue('industrySubcategory', '');
+  };
+
   const handleAiFill = async () => {
     const businessName = form.getValues('businessName');
     const industry = form.getValues('industry');
+    const subcategory = form.getValues('industrySubcategory');
 
     if (!businessName || !industry) {
       setAiError('Please enter Business Name and Industry first');
@@ -105,12 +176,25 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
     setAiError('');
 
     try {
-      // Use server-side API key for admin form
-      const result = await suggestFormDetails({
-        businessName,
-        industry,
-        userApiKey: process.env.NEXT_PUBLIC_GOOGLE_AI_KEY || '',
+      // Call API route instead of server function
+      const response = await fetch('/api/admin/auto-fill-form', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({
+          businessName,
+          industry: subcategory || industryCategories[industry]?.label.replace(/^\W+\s*/, '') || industry,
+        }),
       });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to auto-fill form');
+      }
+
+      const result = await response.json();
 
       // Fill form fields
       if (result.aestheticKeywords) form.setValue('aestheticKeywords', result.aestheticKeywords);
@@ -122,6 +206,7 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
       if (result.preferredLogoStyle) form.setValue('preferredLogoStyle', result.preferredLogoStyle);
       if (result.targetAudience) form.setValue('targetAudience', result.targetAudience);
       if (result.brandArchetype) form.setValue('brandArchetype', result.brandArchetype);
+      if (result.composition) form.setValue('composition', result.composition);
       if (result.keyTagline) form.setValue('keyTagline', result.keyTagline);
       if (result.missionStatement) form.setValue('missionStatement', result.missionStatement);
       if (result.brandPillars) form.setValue('brandPillars', result.brandPillars);
@@ -150,7 +235,7 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-4">
               <FormField
                 control={form.control}
                 name="businessName"
@@ -165,28 +250,70 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
                 )}
               />
 
-              <FormField
-                control={form.control}
-                name="industry"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Industry *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select industry" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {industries.map((ind) => (
-                          <SelectItem key={ind} value={ind}>{ind}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Industry Category */}
+                <FormField
+                  control={form.control}
+                  name="industry"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Industry Category *</FormLabel>
+                      <Select 
+                        onValueChange={(value) => {
+                          field.onChange(value);
+                          handleCategoryChange(value);
+                        }} 
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-11">
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-80">
+                          {Object.entries(industryCategories).map(([key, category]) => (
+                            <SelectItem key={key} value={key}>
+                              {category.label}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+
+                {/* Industry Subcategory */}
+                <FormField
+                  control={form.control}
+                  name="industrySubcategory"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Subcategory (Optional)</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value}
+                        disabled={!selectedCategory}
+                      >
+                        <FormControl>
+                          <SelectTrigger className="h-11">
+                            <SelectValue placeholder={selectedCategory ? "Select subcategory" : "Select category first"} />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent className="max-h-72">
+                          {selectedCategory && industryCategories[selectedCategory]?.subcategories.map((sub) => (
+                            <SelectItem key={sub} value={sub}>{sub}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormDescription>
+                        More specific industry for better AI results
+                      </FormDescription>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
             </div>
 
             <Button
