@@ -48,11 +48,37 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
     // Extract data from OrderDetail records
     const orderData = extractOrderData(order.details);
 
+    // Get mockups for PDF
+    const mockupData: Record<string, string> = {};
+    const mockupDetails = order.details.filter(d => 
+      d.fieldName === 'mockup_letterhead' || 
+      d.fieldName === 'mockup_businesscard' || 
+      d.fieldName === 'mockup_tshirt'
+    );
+    for (const detail of mockupDetails) {
+      const key = detail.fieldName.replace('mockup_', '');
+      mockupData[key] = detail.fieldValue;
+    }
+
+    // Get logo for PDF cover
+    const logoVariant = await prisma.logoVariant.findFirst({
+      where: { orderId: input.orderId, variantNum: 1 },
+    });
+
     // Generate PDF
     console.log(`[${input.orderId}] Generating PDF...`);
     const pdfBuffer = await generateBrandGuidePDF({
       businessName: input.businessName,
       tagline: orderData.tagline,
+      logo: logoVariant?.svgData ? {
+        url: logoVariant.svgData,
+        colors: orderData.colorPalette?.primary || []
+      } : undefined,
+      mockups: {
+        letterhead: mockupData['letterhead'],
+        businesscard: mockupData['businesscard'],
+        tshirt: mockupData['tshirt'],
+      },
       sections: {
         projectOverview: orderData.projectOverview,
         brandIdentity: orderData.brandIdentity,

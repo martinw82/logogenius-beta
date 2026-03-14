@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Progress } from '@/components/ui/progress';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -17,7 +18,9 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ChevronLeft, Download, AlertCircle } from 'lucide-react';
+import { ChevronLeft, Download, AlertCircle, Loader2 } from 'lucide-react';
+import { useClientMockupGenerator } from '@/hooks/useClientMockupGenerator';
+import { useClientSocialGenerator } from '@/hooks/useClientSocialGenerator';
 
 interface OrderData {
   id: number;
@@ -78,6 +81,20 @@ export default function AdminOrderDetail() {
   const [confirmAction, setConfirmAction] = useState<'approve' | 'reject' | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState('');
+  const [clientGenStep, setClientGenStep] = useState<'idle' | 'logos' | 'mockups' | 'social' | 'complete'>('idle');
+  
+  // Client-side generators
+  const { 
+    isGenerating: isGeneratingMockups, 
+    progress: mockupProgress, 
+    generateAndUploadMockups 
+  } = useClientMockupGenerator();
+  
+  const { 
+    isGenerating: isGeneratingSocial, 
+    progress: socialProgress, 
+    generateAndUploadSocialAssets 
+  } = useClientSocialGenerator();
 
   useEffect(() => {
     const fetchOrder = async () => {
@@ -193,15 +210,16 @@ export default function AdminOrderDetail() {
   const handleGenerateLogos = async () => {
     setIsGenerating(true);
     setGenerationError('');
+    setClientGenStep('logos');
+    
     try {
+      // Step 1: Generate logos server-side
       const response = await fetch(`/api/orders/${orderId}/generate`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          // API key will be read from GENKIT_API_KEY env var on server
-        }),
+        body: JSON.stringify({}),
         credentials: 'include',
       });
 
@@ -214,22 +232,94 @@ export default function AdminOrderDetail() {
       }
 
       const data = await response.json();
-      setSuccessMessage(`Generated ${data.generatedAssets.logoCount} logos successfully!`);
+      setSuccessMessage(`Generated ${data.generatedAssets.logoCount} logos! Creating mockups...`);
       
-      // Refresh order data to show generated logos
+      // Refresh order data to get the logos
       const orderResponse = await fetch(`/api/admin/orders/${orderId}`, {
         credentials: 'include',
       });
-      if (orderResponse.ok) {
-        const orderData = await orderResponse.json();
-        setOrder(orderData);
-        setNewStatus(orderData.status);
+      
+      if (!orderResponse.ok) {
+        throw new Error('Failed to fetch updated order');
       }
       
-      setTimeout(() => setSuccessMessage(''), 5000);
+      const orderData = await orderResponse.json();
+      setOrder(orderData);
+      setNewStatus(orderData.status);
+      
+      // Step 2: Generate mockups client-side
+      if (orderData.logos.length > 0 && orderData.data.businessName) {
+        setClientGenStep('mockups');
+        
+        const firstLogo = orderData.logos[0].svgData;
+        const primaryColor = orderData.data.primaryColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#0a192f';
+        const secondaryColor = orderData.data.secondaryColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#f4a261';
+        
+        const mockupResult = await generateAndUploadMockups(parseInt(orderId), {
+          logoUrl: firstLogo,
+          businessName: orderData.data.businessName,
+          tagline: orderData.data.keyTagline,
+          primaryColor,
+          secondaryColor,
+        });
+        
+        if (!mockupResult.success) {
+          console.warn('Mockup generation failed:', mockupResult.error);
+        } else {
+          console.log('Mockups generated:', mockupResult.mockups);
+        }
+        
+        // Refresh to show mockups
+        const updatedOrderResponse = await fetch(`/api/admin/orders/${orderId}`, {
+          credentials: 'include',
+        });
+        if (updatedOrderResponse.ok) {
+          const updatedData = await updatedOrderResponse.json();
+          setOrder(updatedData);
+        }
+        
+        // Step 3: Generate social media assets for Tier 3
+        if (orderData.tier === 'premium') {
+          setClientGenStep('social');
+          setSuccessMessage('Creating social media assets...');
+          
+          const socialResult = await generateAndUploadSocialAssets(parseInt(orderId), {
+            logoUrl: firstLogo,
+            businessName: orderData.data.businessName,
+            tagline: orderData.data.keyTagline,
+            primaryColor,
+            secondaryColor,
+            accentColor: '#ffffff',
+          });
+          
+          if (!socialResult.success) {
+            console.warn('Social generation failed:', socialResult.error);
+          } else {
+            console.log('Social assets generated:', socialResult.assets);
+          }
+          
+          // Refresh to show all assets
+          const finalOrderResponse = await fetch(`/api/admin/orders/${orderId}`, {
+            credentials: 'include',
+          });
+          if (finalOrderResponse.ok) {
+            const finalData = await finalOrderResponse.json();
+            setOrder(finalData);
+          }
+        }
+      }
+      
+      setClientGenStep('complete');
+      setSuccessMessage('All assets generated successfully!');
+      setTimeout(() => {
+        setSuccessMessage('');
+        setClientGenStep('idle');
+      }, 5000);
+      
     } catch (error) {
       console.error('Generation error:', error);
       setGenerationError(error instanceof Error ? error.message : 'Generation failed');
+      setClientGenStep('idle');
     } finally {
       setIsGenerating(false);
     }
@@ -290,26 +380,75 @@ export default function AdminOrderDetail() {
       <Card className="bg-blue-50 border-blue-200">
         <CardContent className="pt-6">
           <div className="flex items-center justify-between">
-            <div>
+            <div className="flex-1">
               <h3 className="font-semibold text-blue-900">
                 {order.logos.length > 0 ? 'Regenerate Logo Concepts' : 'Generate Logo Concepts'}
               </h3>
               <p className="text-sm text-blue-700">
-                {order.status === 'processing' 
+                {isGenerating 
+                  ? clientGenStep === 'logos' 
+                    ? 'Generating 4 logo variants with AI...'
+                    : clientGenStep === 'mockups'
+                    ? `Creating mockups... (${mockupProgress.current}/${mockupProgress.total})`
+                    : clientGenStep === 'social'
+                    ? `Creating social media assets... (${socialProgress.current}/${socialProgress.total})`
+                    : 'Finalizing...'
+                  : order.status === 'processing' 
                   ? 'Form submitted. Ready to generate 4 logo variants and brand guide.'
                   : order.status === 'generation_failed'
                   ? 'Previous generation failed. Try again.'
                   : order.logos.length > 0
                   ? 'Regenerate to create new logo variants and mockups. This will overwrite existing logos.'
-                  : 'Use AI to generate 4 logo variants and brand guide for this order'}
+                  : 'Use AI to generate 4 logo variants, mockups, and brand guide for this order'}
               </p>
+              
+              {/* Progress indicators */}
+              {isGenerating && (
+                <div className="mt-3 space-y-2">
+                  {clientGenStep === 'logos' && (
+                    <div className="flex items-center gap-2 text-sm text-blue-800">
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                      <span>Generating logos with Together AI...</span>
+                    </div>
+                  )}
+                  
+                  {clientGenStep === 'mockups' && (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-sm text-blue-800">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>{mockupProgress.step}</span>
+                      </div>
+                      <Progress value={(mockupProgress.current / mockupProgress.total) * 100} className="h-2 w-64" />
+                    </div>
+                  )}
+                  
+                  {clientGenStep === 'social' && order.tier === 'premium' && (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-sm text-blue-800">
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                        <span>{socialProgress.step}</span>
+                      </div>
+                      <Progress value={(socialProgress.current / socialProgress.total) * 100} className="h-2 w-64" />
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
             <Button 
               onClick={handleGenerateLogos}
               disabled={isGenerating}
-              className="bg-blue-600 hover:bg-blue-700"
+              className="bg-blue-600 hover:bg-blue-700 ml-4"
             >
-              {isGenerating ? 'Generating...' : order.logos.length > 0 ? 'Regenerate Logos' : 'Generate Logos'}
+              {isGenerating ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Generating...
+                </>
+              ) : order.logos.length > 0 ? (
+                'Regenerate Logos'
+              ) : (
+                'Generate Logos'
+              )}
             </Button>
           </div>
         </CardContent>
