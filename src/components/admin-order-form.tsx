@@ -445,11 +445,6 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
         </Card>
 
         {/* Brand Identity */}
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Brand Identity */}
         <Card>
           <CardHeader>
             <CardTitle>Brand Identity</CardTitle>
