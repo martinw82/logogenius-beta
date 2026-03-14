@@ -10,7 +10,7 @@
  * Switch providers by setting IMAGE_GEN_PROVIDER env var
  */
 
-export type ImageGenProvider = 'together' | 'replicate' | 'fal' | 'google';
+export type ImageGenProvider = 'together' | 'replicate' | 'fal' | 'google' | 'laozhang';
 
 export interface ImageGenOptions {
   prompt: string;
@@ -44,6 +44,8 @@ export async function generateImage(
       return generateWithFal(options);
     case 'google':
       return generateWithGoogle(options);
+    case 'laozhang':
+      return generateWithLaozhang(options);
     case 'together':
     default:
       return generateWithTogether(options);
@@ -264,5 +266,46 @@ async function generateWithGoogle(options: ImageGenOptions): Promise<ImageGenRes
     provider: 'google',
     model: 'imagen-3',
     cost: 0.04, // ~$0.04 per image
+  };
+}
+
+
+async function generateWithLaozhang(options: ImageGenOptions): Promise<ImageGenResult> {
+  const apiKey = process.env.LAOZHANG_API_KEY;
+  if (!apiKey) throw new Error('LAOZHANG_API_KEY not set');
+
+  // Laozhang.ai uses OpenAI-compatible API
+  const response = await fetch('https://api.laozhang.ai/v1/images/generations', {
+    method: 'POST',
+    headers: {
+      'Authorization': `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({
+      model: options.model || 'imagen-3',
+      prompt: options.prompt,
+      n: 1,
+      size: `${options.width || 1024}x${options.height || 1024}`,
+      response_format: 'b64_json',
+    }),
+  });
+
+  if (!response.ok) {
+    const error = await response.text();
+    throw new Error(`Laozhang.ai error: ${error}`);
+  }
+
+  const data = await response.json();
+  const imageData = data.data?.[0]?.b64_json;
+
+  if (!imageData) {
+    throw new Error('No image data returned');
+  }
+
+  return {
+    imageUrl: `data:image/png;base64,${imageData}`,
+    provider: 'laozhang',
+    model: options.model || 'imagen-3',
+    cost: 0.05, // ~$0.05 per image (similar to Replicate)
   };
 }

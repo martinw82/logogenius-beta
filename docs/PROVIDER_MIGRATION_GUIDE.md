@@ -8,10 +8,11 @@
 
 | Provider | Cost/Image | Quality | Setup Difficulty | Best For |
 |----------|-----------|---------|------------------|----------|
-| **Together AI** | $0.001 | ⭐⭐⭐ | Easy | Prototyping, low budget |
-| **Replicate** | $0.05 | ⭐⭐⭐⭐⭐ | Easy | Production, Imagen 3 access |
+| **Together AI** | $0.001 | ⭐⭐⭐ | Super Easy | Prototyping, low budget |
+| **Replicate** | $0.05 | ⭐⭐⭐⭐⭐ | Easy | Production, Imagen 3 |
 | **Fal.ai** | $0.15 | ⭐⭐⭐⭐⭐ | Easy | Fastest generation |
-| **Google** | $0.04 | ⭐⭐⭐⭐⭐ | Medium | Best quality, direct access |
+| **Laozhang.ai** | $0.05 | ⭐⭐⭐⭐⭐ | Easy | OpenAI-compatible |
+| **Google** | $0.04 | ⭐⭐⭐⭐⭐ | Medium | Best quality at scale |
 
 ## How to Switch Providers
 
@@ -121,12 +122,12 @@ Together AI (SDXL) needs different prompts than Google Imagen:
 
 ## Cost Calculator
 
-| Logos/Month | Together | Replicate | Fal | Google |
-|-------------|----------|-----------|-----|--------|
-| 100 | $0.10 | $5 | $15 | $4 |
-| 500 | $0.50 | $25 | $75 | $20 |
-| 1000 | $1 | $50 | $150 | $40 |
-| 5000 | $5 | $250 | $750 | $200 |
+| Logos/Month | Together | Replicate | Fal | Laozhang | Google |
+|-------------|----------|-----------|-----|----------|--------|
+| 100 | $0.10 | $5 | $15 | $5 | $4 |
+| 500 | $0.50 | $25 | $75 | $25 | $20 |
+| 1000 | $1 | $50 | $150 | $50 | $40 |
+| 5000 | $5 | $250 | $750 | $250 | $200 |
 
 ## Recommendation
 
