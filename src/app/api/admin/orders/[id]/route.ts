@@ -51,6 +51,17 @@ export async function GET(
       details[detail.fieldName] = detail.fieldValue;
     });
 
+    // Merge logo data: use logoVariants for structure, but get full image from OrderDetail
+    const logos = order.logoVariants.map((variant: any) => {
+      const logoUrlKey = `logoUrl_${variant.variantNum - 1}`;
+      const fullImageData = details[logoUrlKey];
+      return {
+        ...variant,
+        // Use full image from OrderDetail if available, otherwise fall back to svgData
+        svgData: fullImageData || variant.svgData,
+      };
+    });
+
     return NextResponse.json({
       id: order.id,
       tier: order.tier,
@@ -60,7 +71,7 @@ export async function GET(
       createdAt: order.createdAt,
       updatedAt: order.updatedAt,
       data: details,
-      logos: order.logoVariants,
+      logos: logos,
     });
   } catch (error) {
     console.error('Error fetching order:', error);

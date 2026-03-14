@@ -145,6 +145,7 @@ export async function POST(
 
       // Store logos in LogoVariant table (for admin display)
       console.log("[Generate] Storing logos in LogoVariant...");
+      let logoVariantStored = false;
       try {
         for (let i = 0; i < logoResult.logoUrls.length; i++) {
           // Check if logo variant exists
@@ -155,11 +156,18 @@ export async function POST(
             },
           });
           
+          // Truncate svgData if too large (MySQL TEXT limit is 65535)
+          // Store full image in OrderDetail, truncated reference in LogoVariant
+          const fullImageData = logoResult.logoUrls[i];
+          const truncatedData = fullImageData.length > 65000 
+            ? fullImageData.substring(0, 65000) + '...[truncated]'
+            : fullImageData;
+          
           if (existing) {
             // Update existing
             await prisma.logoVariant.update({
               where: { id: existing.id },
-              data: { svgData: logoResult.logoUrls[i] },
+              data: { svgData: truncatedData },
             });
           } else {
             // Create new
@@ -167,14 +175,16 @@ export async function POST(
               data: {
                 orderId: orderId,
                 variantNum: i + 1,
-                svgData: logoResult.logoUrls[i],
+                svgData: truncatedData,
               },
             });
           }
         }
+        logoVariantStored = true;
       } catch (dbError) {
-        console.error("[Generate] Failed to store logos in LogoVariant:", dbError);
-        throw new Error(`Database error (LogoVariant): ${dbError instanceof Error ? dbError.message : String(dbError)}`);
+        console.warn("[Generate] Failed to store logos in LogoVariant (non-critical):", dbError);
+        console.log("[Generate] Logos are still stored in OrderDetail and will be displayed from there");
+        // Non-critical error - logos are still in OrderDetail
       }
 
       // Step 2: Generate mockups for the first logo
