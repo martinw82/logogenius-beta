@@ -9,6 +9,10 @@ import { generateLogoConcepts } from "@/ai/flows/generate-logo-concepts";
 import { generateLogoMockups } from "@/ai/flows/generate-logo-mockups";
 import { generateComprehensiveBrandGuide } from "@/ai/flows/generate-comprehensive-brand-guide";
 
+// Import FREE mockup and social media generators
+import { generateAllMockups, MockupTemplate } from "@/lib/services/mockup-generator";
+import { generateAllSocialAssets, SocialPlatform } from "@/lib/services/social-media-generator";
+
 export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -332,6 +336,123 @@ export async function POST(
         }
       }
 
+      // Step 4: Generate FREE mockups using HTML/CSS templates
+      console.log(`[Generate] Starting mockup generation (FREE templates)`);
+      let mockupResults: Record<string, string> = {};
+      
+      try {
+        // Get primary color from form data
+        const primaryColor = formData.primaryColors?.includes('#') 
+          ? formData.primaryColors.match(/#[0-9A-Fa-f]{6}/)?.[0] 
+          : '#0a192f';
+        const secondaryColor = formData.secondaryColors?.includes('#')
+          ? formData.secondaryColors.match(/#[0-9A-Fa-f]{6}/)?.[0]
+          : '#f4a261';
+        
+        // Generate mockups for variant 1 (all tiers)
+        const variant1Logo = logoResult.logoUrls[0];
+        mockupResults = await generateAllMockups({
+          logoUrl: variant1Logo,
+          businessName: formData.businessName,
+          tagline: formData.keyTagline,
+          primaryColor: primaryColor || '#0a192f',
+          secondaryColor: secondaryColor || '#f4a261',
+        });
+        
+        console.log(`[Generate] Mockups generated:`, Object.keys(mockupResults));
+        
+        // Store mockups in OrderDetail
+        for (const [template, imageUrl] of Object.entries(mockupResults)) {
+          await prisma.orderDetail.upsert({
+            where: {
+              orderId_fieldName: {
+                orderId: orderId,
+                fieldName: `mockup_${template}`,
+              },
+            },
+            create: {
+              orderId: orderId,
+              fieldName: `mockup_${template}`,
+              fieldValue: imageUrl,
+            },
+            update: {
+              fieldValue: imageUrl,
+            },
+          });
+        }
+        
+        // Also update LogoVariant for display
+        if (Object.keys(mockupResults).length > 0) {
+          await prisma.logoVariant.updateMany({
+            where: {
+              orderId: orderId,
+              variantNum: 1,
+            },
+            data: {
+              mockupPaths: JSON.stringify(mockupResults),
+            },
+          });
+        }
+      } catch (mockupError) {
+        console.error("[Generate] Mockup generation failed:", mockupError);
+        // Non-critical - continue without mockups
+      }
+
+      // Step 5: Generate FREE social media assets (Tier 3 only)
+      let socialResults: Partial<Record<SocialPlatform, string>> = {};
+      
+      if (order.tier === 'premium') {
+        console.log(`[Generate] Starting social media generation (Tier 3 - FREE templates)`);
+        
+        try {
+          const primaryColor = formData.primaryColors?.includes('#') 
+            ? formData.primaryColors.match(/#[0-9A-Fa-f]{6}/)?.[0] 
+            : '#0a192f';
+          const secondaryColor = formData.secondaryColors?.includes('#')
+            ? formData.secondaryColors.match(/#[0-9A-Fa-f]{6}/)?.[0]
+            : '#f4a261';
+          const accentColor = formData.accentColors?.includes('#')
+            ? formData.accentColors.match(/#[0-9A-Fa-f]{6}/)?.[0]
+            : '#ffffff';
+          
+          socialResults = await generateAllSocialAssets({
+            logoUrl: logoResult.logoUrls[0],
+            businessName: formData.businessName,
+            tagline: formData.keyTagline,
+            primaryColor: primaryColor || '#0a192f',
+            secondaryColor: secondaryColor || '#f4a261',
+            accentColor: accentColor || '#ffffff',
+          });
+          
+          console.log(`[Generate] Social assets generated:`, Object.keys(socialResults).length);
+          
+          // Store social assets in OrderDetail
+          for (const [platform, imageUrl] of Object.entries(socialResults)) {
+            if (imageUrl) {
+              await prisma.orderDetail.upsert({
+                where: {
+                  orderId_fieldName: {
+                    orderId: orderId,
+                    fieldName: `social_${platform}`,
+                  },
+                },
+                create: {
+                  orderId: orderId,
+                  fieldName: `social_${platform}`,
+                  fieldValue: imageUrl,
+                },
+                update: {
+                  fieldValue: imageUrl,
+                },
+              });
+            }
+          }
+        } catch (socialError) {
+          console.error("[Generate] Social media generation failed:", socialError);
+          // Non-critical - continue without social assets
+        }
+      }
+
       // Update order status to "ready_for_review"
       await updateOrder(orderId, { status: "ready_for_review" });
       console.log(`[Generate] Complete! Order ${orderId} ready for review`);
@@ -342,11 +463,11 @@ export async function POST(
         status: "ready_for_review",
         generatedAssets: {
           logoCount: logoResult.logoUrls.length,
-          mockupsGenerated: {
-            letterhead: !!mockupResult.letterheadMockup,
-            tshirt: !!mockupResult.tshirtMockup,
-            businesscard: !!mockupResult.businesscardMockup,
-          },
+          mockupsGenerated: Object.keys(mockupResults).reduce((acc, key) => {
+            acc[key] = true;
+            return acc;
+          }, {} as Record<string, boolean>),
+          socialAssetsGenerated: order.tier === 'premium' ? Object.keys(socialResults).length : 0,
           brandGuideGenerated: true,
         },
       });

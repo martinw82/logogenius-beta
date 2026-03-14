@@ -26,7 +26,23 @@ interface OrderData {
   customerEmail: string;
   createdAt: string;
   updatedAt: string;
-  data: Record<string, any>;
+  data: Record<string, any> & {
+    // Mockups
+    mockup_businesscard?: string;
+    mockup_letterhead?: string;
+    mockup_tshirt?: string;
+    // Social Media
+    social_instagram_post?: string;
+    social_instagram_story?: string;
+    social_facebook_cover?: string;
+    social_twitter_header?: string;
+    social_linkedin_banner?: string;
+    social_youtube_thumbnail?: string;
+    social_pinterest_pin?: string;
+    social_tiktok_cover?: string;
+    social_email_header?: string;
+    social_website_hero?: string;
+  };
   logos: Array<{
     id: number;
     variantNum: number;
@@ -489,6 +505,63 @@ export default function AdminOrderDetail() {
           )}
         </CardContent>
       </Card>
+
+      {/* Social Media Assets (Tier 3 Only) */}
+      {order.tier === 'premium' && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Social Media Assets (Tier 3)</CardTitle>
+            <CardDescription>
+              Ready-to-use social media templates with your branding
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {[
+                { key: 'social_instagram_post', label: 'Instagram Post', size: '1080×1080' },
+                { key: 'social_instagram_story', label: 'Instagram Story', size: '1080×1920' },
+                { key: 'social_facebook_cover', label: 'Facebook Cover', size: '820×312' },
+                { key: 'social_twitter_header', label: 'Twitter Header', size: '1500×500' },
+                { key: 'social_linkedin_banner', label: 'LinkedIn Banner', size: '1584×396' },
+                { key: 'social_youtube_thumbnail', label: 'YouTube Thumb', size: '1280×720' },
+                { key: 'social_pinterest_pin', label: 'Pinterest Pin', size: '1000×1500' },
+                { key: 'social_tiktok_cover', label: 'TikTok Cover', size: '1080×1920' },
+                { key: 'social_email_header', label: 'Email Header', size: '600×200' },
+                { key: 'social_website_hero', label: 'Website Hero', size: '1920×1080' },
+              ].map(({ key, label, size }) => {
+                const imageUrl = order.data[key];
+                return (
+                  <div
+                    key={key}
+                    className="border rounded-lg bg-gray-50 flex flex-col items-center justify-center p-4 aspect-square"
+                  >
+                    <div className="text-xs text-gray-500 mb-1">{label}</div>
+                    <div className="text-[10px] text-gray-400 mb-2">{size}</div>
+                    {imageUrl ? (
+                      <>
+                        <img
+                          src={imageUrl}
+                          alt={label}
+                          className="w-full h-20 object-contain mb-2"
+                        />
+                        <Button variant="ghost" size="sm" className="mt-auto" asChild>
+                          <a href={imageUrl} download={`${key.replace('social_', '')}.png`}>
+                            <Download className="h-3 w-3" />
+                          </a>
+                        </Button>
+                      </>
+                    ) : (
+                      <div className="text-gray-300 text-xs text-center">
+                        Not generated
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Order Data */}
       <Card>
