@@ -162,6 +162,31 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
     form.setValue('industrySubcategory', '');
   };
 
+  // Collect existing field values to send to AI
+  const getExistingFields = () => {
+    const fields = [
+      'aestheticKeywords', 'emotionalKeywords', 'functionalKeywords',
+      'primaryColors', 'secondaryColors', 'accentColors',
+      'preferredLogoStyle', 'brandArchetype', 'composition',
+      'targetAudience', 'keyTagline', 'missionStatement', 'brandPillars'
+    ];
+    
+    const existing: Record<string, string> = {};
+    fields.forEach(field => {
+      const value = form.getValues(field as any);
+      if (value && value.trim() !== '') {
+        existing[field] = value;
+      }
+    });
+    return existing;
+  };
+
+  // Count how many fields are filled (for showing AI button)
+  const getFilledFieldCount = () => {
+    const existing = getExistingFields();
+    return Object.keys(existing).length;
+  };
+
   const handleAiFill = async () => {
     const businessName = form.getValues('businessName');
     const industry = form.getValues('industry');
@@ -175,8 +200,11 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
     setIsAiFilling(true);
     setAiError('');
 
+    // Get existing fields to preserve and use as context
+    const existingFields = getExistingFields();
+
     try {
-      // Call API route instead of server function
+      // Call API route with existing fields
       const response = await fetch('/api/admin/auto-fill-form', {
         method: 'POST',
         headers: {
@@ -186,6 +214,8 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
         body: JSON.stringify({
           businessName,
           industry: subcategory || industryCategories[industry]?.label.replace(/^\W+\s*/, '') || industry,
+          subcategory,
+          existingFields,
         }),
       });
 
@@ -196,20 +226,36 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
 
       const result = await response.json();
 
-      // Fill form fields
-      if (result.aestheticKeywords) form.setValue('aestheticKeywords', result.aestheticKeywords);
-      if (result.emotionalKeywords) form.setValue('emotionalKeywords', result.emotionalKeywords);
-      if (result.functionalKeywords) form.setValue('functionalKeywords', result.functionalKeywords);
-      if (result.primaryColors) form.setValue('primaryColors', result.primaryColors);
-      if (result.secondaryColors) form.setValue('secondaryColors', result.secondaryColors);
-      if (result.accentColors) form.setValue('accentColors', result.accentColors);
-      if (result.preferredLogoStyle) form.setValue('preferredLogoStyle', result.preferredLogoStyle);
-      if (result.targetAudience) form.setValue('targetAudience', result.targetAudience);
-      if (result.brandArchetype) form.setValue('brandArchetype', result.brandArchetype);
-      if (result.composition) form.setValue('composition', result.composition);
-      if (result.keyTagline) form.setValue('keyTagline', result.keyTagline);
-      if (result.missionStatement) form.setValue('missionStatement', result.missionStatement);
-      if (result.brandPillars) form.setValue('brandPillars', result.brandPillars);
+      // Fill ONLY empty form fields (preserve existing)
+      const fieldsToFill: Record<string, string> = {
+        aestheticKeywords: result.aestheticKeywords,
+        emotionalKeywords: result.emotionalKeywords,
+        functionalKeywords: result.functionalKeywords,
+        primaryColors: result.primaryColors,
+        secondaryColors: result.secondaryColors,
+        accentColors: result.accentColors,
+        preferredLogoStyle: result.preferredLogoStyle,
+        targetAudience: result.targetAudience,
+        brandArchetype: result.brandArchetype,
+        composition: result.composition,
+        keyTagline: result.keyTagline,
+        missionStatement: result.missionStatement,
+        brandPillars: result.brandPillars,
+      };
+
+      let filledCount = 0;
+      Object.entries(fieldsToFill).forEach(([field, value]) => {
+        const currentValue = form.getValues(field as any);
+        if ((!currentValue || currentValue.trim() === '') && value) {
+          form.setValue(field as any, value, { shouldValidate: true });
+          filledCount++;
+        }
+      });
+
+      // Show success message
+      if (filledCount > 0) {
+        setAiError(''); // Clear any errors
+      }
 
     } catch (error) {
       console.error('AI fill error:', error);
@@ -228,14 +274,53 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Sparkles className="h-5 w-5 text-purple-600" />
-              AI Auto-Fill
+              Business Information
             </CardTitle>
             <CardDescription>
-              Let AI fill out the brand details based on business name and industry
+              Enter business details, then use AI to auto-fill brand elements
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-4">
-            <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <FormField
+                control={form.control}
+                name="customerEmail"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Customer Email *</FormLabel>
+                    <FormControl>
+                      <Input type="email" placeholder="customer@example.com" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="tier"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Tier *</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="basic">Basic - Logo only ($50)</SelectItem>
+                        <SelectItem value="pro">Pro - Logo + Brand Guide ($150)</SelectItem>
+                        <SelectItem value="premium">Premium - Everything + Social ($500)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            </div>
+
+            <div className="space-y-4 pt-4 border-t border-purple-200">
               <FormField
                 control={form.control}
                 name="businessName"
@@ -316,25 +401,40 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
               </div>
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleAiFill}
-              disabled={isAiFilling || !watchBusinessName || !watchIndustry}
-              className="w-full"
-            >
-              {isAiFilling ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  AI is thinking...
-                </>
-              ) : (
-                <>
-                  <Wand2 className="mr-2 h-4 w-4" />
-                  ✨ Auto-fill Brand Details
-                </>
-              )}
-            </Button>
+            {/* AI Auto-fill button - shown after basic info is filled */}
+            {watchBusinessName && watchIndustry && watchTier && (
+              <div className="space-y-3">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={handleAiFill}
+                  disabled={isAiFilling}
+                  className="w-full bg-gradient-to-r from-purple-100 to-blue-100 border-purple-300 hover:from-purple-200 hover:to-blue-200"
+                >
+                  {isAiFilling ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      AI is thinking...
+                    </>
+                  ) : (
+                    <>
+                      <Wand2 className="mr-2 h-4 w-4" />
+                      ✨ Auto-fill Remaining Brand Details
+                    </>
+                  )}
+                </Button>
+
+                {getFilledFieldCount() > 0 && (
+                  <p className="text-sm text-gray-600 text-center">
+                    <span className="font-medium">{getFilledFieldCount()} fields</span> already filled - AI will use these as inspiration
+                  </p>
+                )}
+
+                <p className="text-xs text-gray-500 text-center">
+                  AI will only fill empty fields, preserving your existing input
+                </p>
+              </div>
+            )}
 
             {aiError && (
               <Alert variant="destructive">
@@ -344,49 +444,7 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
           </CardContent>
         </Card>
 
-        {/* Order Details */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Order Details</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="customerEmail"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Customer Email *</FormLabel>
-                    <FormControl>
-                      <Input type="email" placeholder="customer@example.com" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="tier"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Tier *</FormLabel>
-                    <Select onValueChange={field.onChange} value={field.value}>
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="basic">Basic - Logo only ($50)</SelectItem>
-                        <SelectItem value="pro">Pro - Logo + Brand Guide ($150)</SelectItem>
-                        <SelectItem value="premium">Premium - Everything + Social ($500)</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        {/* Brand Identity */}
             </div>
           </CardContent>
         </Card>

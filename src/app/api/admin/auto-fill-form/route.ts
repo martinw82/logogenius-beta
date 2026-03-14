@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 /**
  * API route for form auto-fill using Google Gemini
  * POST /api/admin/auto-fill-form
- * Body: { businessName: string, industry: string }
+ * Body: { businessName, industry, existingFields: {...} }
  */
 export async function POST(request: NextRequest) {
   try {
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
 
     // Parse request body
     const body = await request.json();
-    const { businessName, industry } = body;
+    const { businessName, industry, subcategory, existingFields = {} } = body;
 
     if (!businessName || !industry) {
       return NextResponse.json(
@@ -48,9 +48,10 @@ export async function POST(request: NextRequest) {
     }
 
     console.log(`[AutoFill] Generating brand details for: ${businessName} (${industry})`);
+    console.log(`[AutoFill] Existing fields:`, Object.keys(existingFields).filter(k => existingFields[k]));
 
-    // Call Google Gemini API directly
-    const prompt = buildPrompt(businessName, industry);
+    // Call Google Gemini API
+    const prompt = buildPrompt(businessName, industry, subcategory, existingFields);
     
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
@@ -96,9 +97,19 @@ export async function POST(request: NextRequest) {
     // Parse the JSON response
     const result = parseResponse(content);
     
-    console.log('[AutoFill] Generated successfully');
+    // Merge with existing fields - don't overwrite
+    const mergedResult = { ...result };
+    for (const [key, value] of Object.entries(existingFields)) {
+      if (value && value.trim() !== '') {
+        // Keep existing value, don't overwrite
+        mergedResult[key] = value;
+      }
+    }
     
-    return NextResponse.json(result);
+    console.log('[AutoFill] Generated successfully');
+    console.log('[AutoFill] Fields preserved:', Object.keys(existingFields).filter(k => existingFields[k]));
+    
+    return NextResponse.json(mergedResult);
 
   } catch (error) {
     console.error('[AutoFill] Error:', error);
@@ -112,40 +123,57 @@ export async function POST(request: NextRequest) {
   }
 }
 
-function buildPrompt(businessName: string, industry: string): string {
+function buildPrompt(
+  businessName: string, 
+  industry: string, 
+  subcategory: string | undefined,
+  existingFields: Record<string, string>
+): string {
+  
+  // Build context from existing fields
+  const existingContext = Object.entries(existingFields)
+    .filter(([_, value]) => value && value.trim() !== '')
+    .map(([key, value]) => `- ${key}: ${value}`)
+    .join('\n');
+
+  const fullIndustry = subcategory ? `${subcategory} (${industry})` : industry;
+
   return `You are an expert brand strategist. Create comprehensive brand details for a business.
 
 BUSINESS INFORMATION:
 - Name: ${businessName}
-- Industry: ${industry}
+- Industry: ${fullIndustry}
 
-Generate the following brand elements. Be specific, professional, and creative.
+${existingContext ? `ALREADY DEFINED (use these as inspiration for other fields):\n${existingContext}\n` : ''}
 
 AVAILABLE OPTIONS:
 Logo Styles: Modern Minimalist, Vintage/Retro, Hand-drawn/Organic, Geometric, Typography-focused, Mascot/Character, Abstract, Emblem/Badge
-
 Brand Archetypes: The Innovator, The Caregiver, The Hero, The Explorer, The Creator, The Ruler, The Magician, The Lover, The Jester, The Sage, The Outlaw, The Innocent
-
 Compositions: Icon left text right, Icon above text below, Icon only, Text only, Icon right text left, Integrated icon in text
+
+INSTRUCTIONS:
+1. Generate ONLY the fields that are NOT already defined above
+2. Make new suggestions consistent with existing defined fields
+3. Be creative but practical
 
 REQUIRED OUTPUT - Return ONLY this JSON structure:
 {
-  "aestheticKeywords": "3 visual descriptors (e.g., Modern, Minimalist, Premium)",
-  "emotionalKeywords": "3 emotional descriptors (e.g., Trustworthy, Innovative, Friendly)",
-  "functionalKeywords": "3 functional descriptors (e.g., Fast, Reliable, Efficient)",
-  "primaryColors": "1-2 primary colors with hex codes (e.g., Deep Blue #1a365d)",
-  "secondaryColors": "1-2 secondary colors with hex codes (e.g., Light Gray #e2e8f0)",
-  "accentColors": "1 accent color with hex code (e.g., Bright Orange #ed8936)",
-  "preferredLogoStyle": "ONE from the available logo styles list",
-  "brandArchetype": "ONE from the available brand archetypes list",
-  "composition": "ONE from the available compositions list",
+  "aestheticKeywords": "3 visual descriptors",
+  "emotionalKeywords": "3 emotional descriptors", 
+  "functionalKeywords": "3 functional descriptors",
+  "primaryColors": "1-2 primary colors with hex codes",
+  "secondaryColors": "1-2 secondary colors with hex codes",
+  "accentColors": "1 accent color with hex code",
+  "preferredLogoStyle": "ONE from logo styles list",
+  "brandArchetype": "ONE from archetypes list",
+  "composition": "ONE from compositions list",
   "targetAudience": "Brief target audience description",
   "keyTagline": "Catchy tagline (5-8 words)",
-  "missionStatement": "Mission statement (1-2 sentences, 20-30 words)",
-  "brandPillars": "3-5 comma-separated values (e.g., Innovation, Integrity, Excellence)"
+  "missionStatement": "Mission statement (1-2 sentences)",
+  "brandPillars": "3-5 comma-separated values"
 }
 
-IMPORTANT: Return ONLY valid JSON. No markdown, no explanations, no code blocks.`;
+IMPORTANT: Return ONLY valid JSON. No markdown, no explanations.`;
 }
 
 function parseResponse(content: string): Record<string, string> {
