@@ -51,14 +51,27 @@ export async function GET(
       details[detail.fieldName] = detail.fieldValue;
     });
 
-    // Merge logo data: use logoVariants for structure, but get full image from OrderDetail
+    // Merge logo data: use logoVariants for structure, but get full data from OrderDetail
     const logos = order.logoVariants.map((variant: any) => {
       const logoUrlKey = `logoUrl_${variant.variantNum - 1}`;
       const fullImageData = details[logoUrlKey];
+      
+      // Build mockup paths from OrderDetail (only variant 1 has mockups generated)
+      const mockupPaths: Record<string, string> = {};
+      if (variant.variantNum === 1) {
+        if (details.mockup_letterhead) mockupPaths.letterhead = details.mockup_letterhead;
+        if (details.mockup_tshirt) mockupPaths.tshirt = details.mockup_tshirt;
+        if (details.mockup_businesscard) mockupPaths.businesscard = details.mockup_businesscard;
+      }
+      
       return {
         ...variant,
         // Use full image from OrderDetail if available, otherwise fall back to svgData
         svgData: fullImageData || variant.svgData,
+        // Merge mockup paths from OrderDetail with existing mockupPaths
+        mockupPaths: Object.keys(mockupPaths).length > 0 
+          ? JSON.stringify(mockupPaths) 
+          : variant.mockupPaths,
       };
     });
 
