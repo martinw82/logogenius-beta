@@ -191,7 +191,10 @@ export default function AdminOrderDetail() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Generation failed');
+        const errorMessage = errorData.details 
+          ? `${errorData.error}: ${errorData.details}` 
+          : errorData.error || 'Generation failed';
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();

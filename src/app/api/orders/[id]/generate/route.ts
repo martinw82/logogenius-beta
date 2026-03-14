@@ -58,6 +58,12 @@ export async function POST(
     }
 
     // Check if required fields exist
+    console.log("[Generate] Form data:", {
+      businessName: formData.businessName,
+      industry: formData.industry,
+      hasKeywords: !!(formData.aestheticKeywords || formData.emotionalKeywords || formData.functionalKeywords),
+    });
+    
     if (!formData.businessName) {
       return NextResponse.json(
         { error: "Order form not completed - business name missing" },
@@ -98,51 +104,69 @@ export async function POST(
       
       console.log("[Generate] Calling generateLogoConcepts with Together AI...");
 
-      const logoResult = await generateLogoConcepts(logoInput);
-      console.log(`[Generate] Generated ${logoResult.logoUrls?.length || 0} logos`);
+      let logoResult;
+      try {
+        logoResult = await generateLogoConcepts(logoInput);
+        console.log(`[Generate] Generated ${logoResult.logoUrls?.length || 0} logos`);
+      } catch (logoError) {
+        console.error("[Generate] Logo generation failed:", logoError);
+        throw new Error(`Logo generation failed: ${logoError instanceof Error ? logoError.message : String(logoError)}`);
+      }
 
       if (!logoResult.logoUrls || logoResult.logoUrls.length === 0) {
-        throw new Error("No logos were generated");
+        throw new Error("No logos were generated - API returned empty result");
       }
 
       // Store logo URLs in OrderDetail
-      for (let i = 0; i < logoResult.logoUrls.length; i++) {
-        await prisma.orderDetail.upsert({
-          where: {
-            orderId_fieldName: {
+      console.log("[Generate] Storing logos in OrderDetail...");
+      try {
+        for (let i = 0; i < logoResult.logoUrls.length; i++) {
+          await prisma.orderDetail.upsert({
+            where: {
+              orderId_fieldName: {
+                orderId: orderId,
+                fieldName: `logoUrl_${i}`,
+              },
+            },
+            create: {
               orderId: orderId,
               fieldName: `logoUrl_${i}`,
+              fieldValue: logoResult.logoUrls[i],
             },
-          },
-          create: {
-            orderId: orderId,
-            fieldName: `logoUrl_${i}`,
-            fieldValue: logoResult.logoUrls[i],
-          },
-          update: {
-            fieldValue: logoResult.logoUrls[i],
-          },
-        });
+            update: {
+              fieldValue: logoResult.logoUrls[i],
+            },
+          });
+        }
+      } catch (dbError) {
+        console.error("[Generate] Failed to store logos in OrderDetail:", dbError);
+        throw new Error(`Database error (OrderDetail): ${dbError instanceof Error ? dbError.message : String(dbError)}`);
       }
 
       // Store logos in LogoVariant table (for admin display)
-      for (let i = 0; i < logoResult.logoUrls.length; i++) {
-        await prisma.logoVariant.upsert({
-          where: {
-            orderId_variantNum: {
+      console.log("[Generate] Storing logos in LogoVariant...");
+      try {
+        for (let i = 0; i < logoResult.logoUrls.length; i++) {
+          await prisma.logoVariant.upsert({
+            where: {
+              orderId_variantNum: {
+                orderId: orderId,
+                variantNum: i + 1,
+              },
+            },
+            create: {
               orderId: orderId,
               variantNum: i + 1,
+              svgData: logoResult.logoUrls[i],
             },
-          },
-          create: {
-            orderId: orderId,
-            variantNum: i + 1,
-            svgData: logoResult.logoUrls[i],
-          },
-          update: {
-            svgData: logoResult.logoUrls[i],
-          },
-        });
+            update: {
+              svgData: logoResult.logoUrls[i],
+            },
+          });
+        }
+      } catch (dbError) {
+        console.error("[Generate] Failed to store logos in LogoVariant:", dbError);
+        throw new Error(`Database error (LogoVariant): ${dbError instanceof Error ? dbError.message : String(dbError)}`);
       }
 
       // Step 2: Generate mockups for the first logo
@@ -159,8 +183,18 @@ export async function POST(
       
       console.log("[Generate] Calling generateLogoMockups with Together AI...");
 
-      const mockupResult = await generateLogoMockups(mockupInput);
-      console.log(`[Generate] Mockups generated`);
+      let mockupResult;
+      try {
+        mockupResult = await generateLogoMockups(mockupInput);
+        console.log(`[Generate] Mockups generated:`, {
+          letterhead: !!mockupResult.letterheadMockup,
+          tshirt: !!mockupResult.tshirtMockup,
+          businesscard: !!mockupResult.businesscardMockup,
+        });
+      } catch (mockupError) {
+        console.error("[Generate] Mockup generation failed:", mockupError);
+        throw new Error(`Mockup generation failed: ${mockupError instanceof Error ? mockupError.message : String(mockupError)}`);
+      }
 
       // Store mockup URLs in OrderDetail
       const mockupFields = [
@@ -232,8 +266,14 @@ export async function POST(
         userApiKey: apiKey,
       };
 
-      const guideResult = await generateComprehensiveBrandGuide(guideInput);
-      console.log(`[Generate] Brand guide generated`);
+      let guideResult;
+      try {
+        guideResult = await generateComprehensiveBrandGuide(guideInput);
+        console.log(`[Generate] Brand guide generated`);
+      } catch (guideError) {
+        console.error("[Generate] Brand guide generation failed:", guideError);
+        throw new Error(`Brand guide generation failed: ${guideError instanceof Error ? guideError.message : String(guideError)}`);
+      }
 
       // Store brand guide sections
       const guideFields = [

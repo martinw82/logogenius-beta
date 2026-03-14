@@ -127,6 +127,30 @@ async function generateLogoConceptsFlow(
       if (!response.ok) {
         const errorText = await response.text();
         console.error(`[Logo Concepts] API error for logo ${i + 1}:`, response.status, errorText);
+        
+        // Parse error for detailed reporting
+        let errorData;
+        try {
+          errorData = JSON.parse(errorText);
+        } catch {
+          errorData = { raw: errorText };
+        }
+        
+        // Handle specific error codes
+        if (response.status === 401) {
+          throw new Error("Invalid Together AI API key. Please check your TOGETHER_API_KEY setting.");
+        }
+        if (response.status === 402) {
+          throw new Error("Together AI credits depleted or not activated. Wait 10-30 mins if you just added credit, or check your balance at together.ai");
+        }
+        if (response.status === 429) {
+          throw new Error("Rate limit exceeded. Too many requests. Please wait a moment and try again.");
+        }
+        if (response.status === 400) {
+          throw new Error(`Bad request: ${errorData.error?.message || errorText}`);
+        }
+        
+        // For other errors, continue to next logo but log it
         continue;
       }
 
