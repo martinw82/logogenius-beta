@@ -51,6 +51,13 @@ export async function GET(
       details[detail.fieldName] = detail.fieldValue;
     });
 
+    // Debug: Log what mockup data we have
+    console.log('[Admin Order] Mockup data from OrderDetail:', {
+      mockup_letterhead: details.mockup_letterhead ? 'present' : 'missing',
+      mockup_tshirt: details.mockup_tshirt ? 'present' : 'missing',
+      mockup_businesscard: details.mockup_businesscard ? 'present' : 'missing',
+    });
+
     // Merge logo data: use logoVariants for structure, but get full data from OrderDetail
     const logos = order.logoVariants.map((variant: any) => {
       const logoUrlKey = `logoUrl_${variant.variantNum - 1}`;
@@ -64,14 +71,18 @@ export async function GET(
         if (details.mockup_businesscard) mockupPaths.businesscard = details.mockup_businesscard;
       }
       
+      const mergedMockupPaths = Object.keys(mockupPaths).length > 0 
+        ? JSON.stringify(mockupPaths) 
+        : variant.mockupPaths;
+      
+      console.log(`[Admin Order] Variant ${variant.variantNum}: mockupPaths =`, mergedMockupPaths ? 'present' : 'missing');
+      
       return {
         ...variant,
         // Use full image from OrderDetail if available, otherwise fall back to svgData
         svgData: fullImageData || variant.svgData,
         // Merge mockup paths from OrderDetail with existing mockupPaths
-        mockupPaths: Object.keys(mockupPaths).length > 0 
-          ? JSON.stringify(mockupPaths) 
-          : variant.mockupPaths,
+        mockupPaths: mergedMockupPaths,
       };
     });
 
