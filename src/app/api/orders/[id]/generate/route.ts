@@ -147,22 +147,30 @@ export async function POST(
       console.log("[Generate] Storing logos in LogoVariant...");
       try {
         for (let i = 0; i < logoResult.logoUrls.length; i++) {
-          await prisma.logoVariant.upsert({
+          // Check if logo variant exists
+          const existing = await prisma.logoVariant.findFirst({
             where: {
-              orderId_variantNum: {
-                orderId: orderId,
-                variantNum: i + 1,
-              },
-            },
-            create: {
               orderId: orderId,
               variantNum: i + 1,
-              svgData: logoResult.logoUrls[i],
-            },
-            update: {
-              svgData: logoResult.logoUrls[i],
             },
           });
+          
+          if (existing) {
+            // Update existing
+            await prisma.logoVariant.update({
+              where: { id: existing.id },
+              data: { svgData: logoResult.logoUrls[i] },
+            });
+          } else {
+            // Create new
+            await prisma.logoVariant.create({
+              data: {
+                orderId: orderId,
+                variantNum: i + 1,
+                svgData: logoResult.logoUrls[i],
+              },
+            });
+          }
         }
       } catch (dbError) {
         console.error("[Generate] Failed to store logos in LogoVariant:", dbError);
