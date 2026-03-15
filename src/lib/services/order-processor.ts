@@ -4,6 +4,13 @@ import { generateReadmeContent } from './readme-generator';
 import { createBrandAssetZip } from './zip-packager';
 import { saveFile, saveTextFile, generateFileName } from './file-manager';
 
+function hexToRgbSafe(hex: string): { r: number; g: number; b: number } {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
+    : { r: 37, g: 99, b: 235 };
+}
+
 export interface OrderProcessingInput {
   orderId: number;
   businessName: string;
@@ -282,11 +289,105 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
     let canvaDesigns: Record<string, any> | undefined;
     let mediaAssets: Record<string, any> | undefined;
 
-    // Note: Tier 3 templates (Figma, Canva, Media Assets) disabled for now
-    // They were causing "forEach" errors with undefined colorPalette
-    // TODO: Fix and re-enable after proper validation
+    // Tier 3 templates: Figma, Canva, Media Assets
     if (order.tier === 'premium') {
-      console.log(`[${input.orderId}] Tier 3 templates skipped (disabled for stability)`);
+      console.log(`[${input.orderId}] Processing Tier 3 premium templates...`);
+
+      // Build brandColors array from colorPalette with safe defaults
+      const allColors = [
+        ...(orderData.colorPalette?.primary || []),
+        ...(orderData.colorPalette?.secondary || []),
+        ...(orderData.colorPalette?.accent || []),
+      ].filter(Boolean);
+
+      // Use logo colors as fallback if no palette colors exist
+      const colorHexes = allColors.length > 0 ? allColors : ['#2563eb', '#1e40af', '#f59e0b'];
+
+      const brandColorsForGenerators = colorHexes.map((hex: string, idx: number) => {
+        const rgb = hexToRgbSafe(hex);
+        return {
+          name: idx === 0 ? 'Primary' : idx === 1 ? 'Secondary' : `Accent ${idx - 1}`,
+          hex,
+          rgb,
+        };
+      });
+
+      const selectedLogo = logoVariant?.svgData || '';
+      const selectedLogoBase64 = selectedLogo.startsWith('data:')
+        ? selectedLogo.split(',')[1] || ''
+        : '';
+
+      // Generate Figma templates (requires FIGMA_API_TOKEN)
+      if (process.env.FIGMA_API_TOKEN) {
+        try {
+          const { generateFigmaTemplates } = await import('./figma-generator');
+          const figmaResult = await generateFigmaTemplates({
+            businessName: input.businessName,
+            brandColors: brandColorsForGenerators,
+            typography: [
+              {
+                name: 'Heading',
+                fontFamily: orderData.fonts?.headings?.name || 'Inter',
+                fontSize: 32,
+                fontWeight: 700,
+                lineHeight: 40,
+              },
+              {
+                name: 'Body',
+                fontFamily: orderData.fonts?.body?.name || 'Inter',
+                fontSize: 16,
+                fontWeight: 400,
+                lineHeight: 24,
+              },
+            ],
+            logoUrl: selectedLogo,
+          });
+          figmaUrl = figmaResult.fileUrl;
+          console.log(`[${input.orderId}] Figma templates generated: ${figmaUrl}`);
+        } catch (figmaError) {
+          console.warn(`[${input.orderId}] Figma generation skipped:`, figmaError instanceof Error ? figmaError.message : figmaError);
+        }
+      } else {
+        console.log(`[${input.orderId}] Figma templates skipped (FIGMA_API_TOKEN not set)`);
+      }
+
+      // Generate Canva templates (requires CANVA_API_KEY)
+      if (process.env.CANVA_API_KEY) {
+        try {
+          const { generateCanvaTemplates } = await import('./canva-generator');
+          const canvaResult = await generateCanvaTemplates({
+            businessName: input.businessName,
+            brandColors: brandColorsForGenerators,
+            logoUrl: selectedLogo,
+          });
+          canvaDesigns = canvaResult as unknown as Record<string, any>;
+          console.log(`[${input.orderId}] Canva templates generated`);
+        } catch (canvaError) {
+          console.warn(`[${input.orderId}] Canva generation skipped:`, canvaError instanceof Error ? canvaError.message : canvaError);
+        }
+      } else {
+        console.log(`[${input.orderId}] Canva templates skipped (CANVA_API_KEY not set)`);
+      }
+
+      // Generate media assets (favicons, avatars, email signatures)
+      if (selectedLogoBase64) {
+        try {
+          const { generateMediaAssets } = await import('./media-assets-generator');
+          const mediaResult = await generateMediaAssets({
+            businessName: input.businessName,
+            logoSvg: selectedLogo,
+            logoBase64: selectedLogoBase64,
+            brandColors: brandColorsForGenerators.map((c: { name: string; hex: string }) => ({ name: c.name, hex: c.hex })),
+            tagline: orderData.tagline,
+          });
+          mediaAssets = mediaResult as unknown as Record<string, any>;
+          console.log(`[${input.orderId}] Media assets generated`);
+        } catch (mediaError) {
+          console.warn(`[${input.orderId}] Media assets generation skipped:`, mediaError instanceof Error ? mediaError.message : mediaError);
+        }
+      } else {
+        console.log(`[${input.orderId}] Media assets skipped (no logo base64 available)`);
+      }
     }
 
     // Update status to ready for review
