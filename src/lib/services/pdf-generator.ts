@@ -1,5 +1,4 @@
-import PDFDocument from 'pdfkit';
-import { Readable } from 'stream';
+import { jsPDF } from 'jspdf';
 
 export interface BrandGuideData {
   businessName: string;
@@ -9,14 +8,14 @@ export interface BrandGuideData {
     colors: string[];
   };
   mockups?: {
-    letterhead?: string; // base64 data URL
+    letterhead?: string;
     businesscard?: string;
     tshirt?: string;
   };
   fonts?: {
     headings?: {
       name: string;
-      filePath?: string; // Path to uploaded font file
+      filePath?: string;
     };
     body?: {
       name: string;
@@ -54,534 +53,548 @@ export interface BrandGuideData {
   authorEmail?: string;
 }
 
-/**
- * Convert a base64 data URL to a Buffer
- */
-function dataUrlToBuffer(dataUrl: string): Buffer | null {
+function dataUrlToBase64(dataUrl: string): string | null {
   try {
     const base64 = dataUrl.split(',')[1];
     if (!base64) return null;
-    return Buffer.from(base64, 'base64');
+    return base64;
   } catch {
     return null;
   }
 }
 
-/**
- * Get the appropriate font name for a given font type
- */
-function getFontName(data: BrandGuideData, fontType: 'headings' | 'body' | 'other'): string {
-  const customFontKey = `custom-${fontType}` as const;
-
-  // Check if custom font is registered
-  if (data.fonts?.[fontType]?.filePath) {
-    // In PDFKit, we can check if font is registered by trying to use it
-    return customFontKey;
-  }
-
-  // Fallback to system fonts
-  switch (fontType) {
-    case 'headings':
-      return data.fonts?.headings?.name || 'Helvetica-Bold';
-    case 'body':
-      return data.fonts?.body?.name || 'Helvetica';
-    case 'other':
-      return data.fonts?.other?.name || 'Helvetica';
-    default:
-      return 'Helvetica';
-  }
+function hexToRgb(hex: string): { r: number; g: number; b: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result ? {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16)
+  } : null;
 }
 
-/**
- * Draw a color swatch in the PDF
- */
-function drawColorSwatch(doc: PDFKit.PDFDocument, color: string, x: number, y: number): void {
-  // Remove # if present and validate hex
-  const hex = color.replace('#', '');
-  if (!/^[0-9A-Fa-f]{6}$/.test(hex)) return;
+function getFontFamily(data: BrandGuideData, fontType: 'headings' | 'body' | 'other'): string {
+  const fontName = data.fonts?.[fontType]?.name;
+  if (!fontName) {
+    return fontType === 'headings' ? 'helvetica' : 'helvetica';
+  }
   
-  // Draw color box
-  doc.save();
-  doc.fillColor(`#${hex}`);
-  doc.rect(x, y, 40, 30).fill();
-  doc.restore();
+  const fontMap: Record<string, string> = {
+    'Arial': 'helvetica',
+    'Helvetica': 'helvetica',
+    'Verdana': 'helvetica',
+    'Tahoma': 'helvetica',
+    'Trebuchet MS': 'helvetica',
+    'Times New Roman': 'times',
+    'Georgia': 'times',
+    'Garamond': 'times',
+    'Courier New': 'courier',
+    'Courier': 'courier',
+    'Inter': 'helvetica',
+    'Roboto': 'helvetica',
+    'Open Sans': 'helvetica',
+    'Lato': 'helvetica',
+    'Montserrat': 'helvetica',
+    'Oswald': 'helvetica',
+    'Raleway': 'helvetica',
+    'Poppins': 'helvetica',
+    'Noto Sans': 'helvetica',
+    'Playfair Display': 'times',
+    'Merriweather': 'times',
+    'Source Sans Pro': 'helvetica',
+    'Ubuntu': 'helvetica',
+  };
   
-  // Draw border
-  doc.strokeColor('#cccccc');
-  doc.lineWidth(0.5);
-  doc.rect(x, y, 40, 30).stroke();
-  
-  // Draw color code
-  doc.fillColor('#333333');
-  doc.fontSize(8);
-  doc.text(`#${hex.toUpperCase()}`, x, y + 35);
+  return fontMap[fontName] || 'helvetica';
+}
+
+function getFontStyle(fontType: 'headings' | 'body' | 'other'): string {
+  if (fontType === 'headings') return 'bold';
+  return 'normal';
 }
 
 export async function generateBrandGuidePDF(data: BrandGuideData): Promise<Buffer> {
-  return new Promise((resolve, reject) => {
-    try {
-      const doc = new PDFDocument({
-        size: 'A4',
-        margins: 50,
-      });
+  try {
+    const pdf = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4',
+    });
 
-      const chunks: Buffer[] = [];
+    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageHeight = pdf.internal.pageSize.getHeight();
+    const margin = 20;
+    const contentWidth = pageWidth - (margin * 2);
+    let yPos = 0;
 
-      doc.on('data', (chunk) => chunks.push(chunk));
-      doc.on('end', () => resolve(Buffer.concat(chunks)));
-      doc.on('error', reject);
+    const primaryColor = data.logo?.colors?.[0] || '#2563eb';
+    const primaryRgb = hexToRgb(primaryColor) || { r: 37, g: 99, b: 235 };
 
-      // Register custom fonts if provided
-      if (data.fonts) {
-        const fontDir = process.cwd();
+    // Cover Page
+    // Background accent bar
+    pdf.setFillColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+    pdf.rect(0, 0, pageWidth, 40, 'F');
 
-        if (data.fonts.headings?.filePath) {
-          try {
-            doc.registerFont(`custom-headings`, `${fontDir}${data.fonts.headings.filePath}`);
-          } catch (error) {
-            console.warn('Failed to register headings font:', error);
-          }
+    // Brand name on colored background
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(36);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text(data.businessName, pageWidth / 2, 25, { align: 'center' });
+
+    if (data.tagline) {
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(data.tagline, pageWidth / 2, 35, { align: 'center' });
+    }
+
+    // Reset text color
+    pdf.setTextColor(0, 0, 0);
+
+    // Add logo if provided
+    if (data.logo?.url) {
+      try {
+        const logoBase64 = dataUrlToBase64(data.logo.url);
+        if (logoBase64) {
+          const logoY = 55;
+          pdf.addImage(`data:image/png;base64,${logoBase64}`, 'PNG', pageWidth / 2 - 40, logoY, 80, 60);
+          yPos = logoY + 70;
         }
-
-        if (data.fonts.body?.filePath) {
-          try {
-            doc.registerFont(`custom-body`, `${fontDir}${data.fonts.body.filePath}`);
-          } catch (error) {
-            console.warn('Failed to register body font:', error);
-          }
-        }
-
-        if (data.fonts.other?.filePath) {
-          try {
-            doc.registerFont(`custom-other`, `${fontDir}${data.fonts.other.filePath}`);
-          } catch (error) {
-            console.warn('Failed to register other font:', error);
-          }
-        }
+      } catch (e) {
+        console.warn('Could not embed logo:', e);
+        yPos = 100;
       }
+    } else {
+      yPos = 100;
+    }
 
-      // Get brand colors for design
-      const primaryColor = data.logo?.colors?.[0] || '#2563eb';
-      
-      // Cover Page with professional design
-      // Background accent bar at top
-      doc.save();
-      doc.fillColor(primaryColor);
-      doc.rect(0, 0, doc.page.width, 120).fill();
-      doc.restore();
-      
-      // Brand name on colored background
-      doc.fillColor('#ffffff');
-      doc.fontSize(42).font('Helvetica-Bold').text(data.businessName, 50, 45, { align: 'center', width: doc.page.width - 100 });
-      
-      if (data.tagline) {
-        doc.fontSize(16).font('Helvetica').text(data.tagline, 50, 90, { align: 'center', width: doc.page.width - 100 });
+    // Document title
+    pdf.setFontSize(24);
+    pdf.setFont('helvetica', 'bold');
+    pdf.setTextColor(51, 51, 51);
+    pdf.text('Brand Guidelines', pageWidth / 2, yPos, { align: 'center' });
+
+    yPos += 8;
+    pdf.setFontSize(12);
+    pdf.setFont('helvetica', 'normal');
+    pdf.setTextColor(102, 102, 102);
+    pdf.text('Complete brand identity standards and usage guidelines', pageWidth / 2, yPos, { align: 'center' });
+
+    yPos += 20;
+    // Metadata
+    pdf.setFillColor(245, 245, 245);
+    pdf.roundedRect(margin, yPos, contentWidth, 25, 3, 3, 'F');
+    pdf.setFontSize(10);
+    pdf.setTextColor(51, 51, 51);
+    pdf.text(`Generated: ${new Date().toLocaleDateString()}`, pageWidth / 2, yPos + 10, { align: 'center' });
+    if (data.authorEmail) {
+      pdf.setTextColor(102, 102, 102);
+      pdf.text(`Prepared for: ${data.authorEmail}`, pageWidth / 2, yPos + 18, { align: 'center' });
+    }
+
+    // Add new page for content
+    pdf.addPage();
+    yPos = margin;
+
+    // Table of Contents header
+    pdf.setFillColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+    pdf.rect(0, 0, pageWidth, 25, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(20);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Table of Contents', margin, 17);
+
+    pdf.setTextColor(0, 0, 0);
+    pdf.setFontSize(11);
+    yPos = 40;
+
+    const sections = [
+      { num: 1, title: 'Project Overview', page: 2 },
+      { num: 2, title: 'Brand Identity & Voice', page: 2 },
+      { num: 3, title: 'Logo Philosophy', page: 2 },
+      { num: 4, title: 'Logo Mockups', page: 2 },
+      { num: 5, title: 'Color Palette', page: 3 },
+      { num: 6, title: 'Color Accessibility', page: 3 },
+      { num: 7, title: 'Typography Guide', page: 4 },
+      { num: 8, title: 'Imagery & Photography Style', page: 4 },
+      { num: 9, title: 'Graphic Elements', page: 4 },
+      { num: 10, title: 'Brand Voice & Tone', page: 4 },
+      { num: 11, title: 'Usage Rules & Don\'ts', page: 5 },
+    ];
+
+    sections.forEach((section) => {
+      // Draw section number
+      pdf.setFillColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+      pdf.circle(margin + 3, yPos - 2, 4, 'F');
+      pdf.setTextColor(255, 255, 255);
+      pdf.setFontSize(9);
+      pdf.setFont('helvetica', 'bold');
+      pdf.text(String(section.num), margin + 3, yPos - 1, { align: 'center' });
+
+      pdf.setTextColor(51, 51, 51);
+      pdf.setFontSize(11);
+      pdf.setFont('helvetica', 'normal');
+      pdf.text(section.title, margin + 15, yPos);
+      yPos += 8;
+    });
+
+    // Project Overview Section
+    if (data.sections.projectOverview) {
+      pdf.addPage();
+      yPos = addSectionHeader(pdf, 'Project Overview', primaryRgb, margin);
+      yPos = addSectionContent(pdf, data.sections.projectOverview, yPos, margin, contentWidth, data);
+    }
+
+    // Brand Identity Section
+    if (data.sections.brandIdentity) {
+      if (yPos > pageHeight - 60) {
+        pdf.addPage();
+        yPos = margin;
       }
-      
-      // Reset color
-      doc.fillColor('#000000');
-      
-      // Spacer
-      doc.moveDown(4);
-      
-      // Add logo if provided - centered below header
-      if (data.logo?.url) {
-        try {
-          const logoBuffer = dataUrlToBuffer(data.logo.url);
-          if (logoBuffer) {
-            // Center the logo, larger display
-            const pageWidth = doc.page.width - 100;
-            const logoY = doc.y;
-            doc.image(logoBuffer, 50 + (pageWidth - 250) / 2, logoY, { 
-              fit: [250, 200],
-              align: 'center'
-            });
-            doc.moveDown(12);
-          }
-        } catch (e) {
-          console.warn('Could not embed logo:', e);
-          doc.moveDown(8);
-        }
-      } else {
-        doc.moveDown(8);
+      yPos = addSectionHeader(pdf, 'Brand Identity & Voice', primaryRgb, margin);
+      yPos = addSectionContent(pdf, data.sections.brandIdentity, yPos, margin, contentWidth, data);
+    }
+
+    // Logo Philosophy Section
+    if (data.sections.logoPhilosophy) {
+      if (yPos > pageHeight - 60) {
+        pdf.addPage();
+        yPos = margin;
       }
+      yPos = addSectionHeader(pdf, 'Logo Philosophy', primaryRgb, margin);
+      yPos = addSectionContent(pdf, data.sections.logoPhilosophy, yPos, margin, contentWidth, data);
+    }
 
-      // Document title
-      doc.fontSize(28).font('Helvetica-Bold').fillColor('#333333').text('Brand Guidelines', { align: 'center' });
-      doc.moveDown(0.5);
-      doc.fontSize(14).font('Helvetica').fillColor('#666666').text('Complete brand identity standards and usage guidelines', { align: 'center' });
-      doc.moveDown(2);
+    // Logo Mockups Section
+    if (data.mockups && (data.mockups.letterhead || data.mockups.businesscard || data.mockups.tshirt)) {
+      pdf.addPage();
+      yPos = margin;
+      pdf.setFontSize(18);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(51, 51, 51);
+      pdf.text('Logo Mockups', margin, yPos);
+      yPos += 5;
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      pdf.setTextColor(102, 102, 102);
+      pdf.text('See how your logo looks in real-world applications.', margin, yPos);
+      yPos += 10;
 
-      // Metadata in a nice box
-      doc.save();
-      doc.fillColor('#f5f5f5');
-      doc.roundedRect(doc.page.width / 2 - 150, doc.y, 300, 60, 5, 5).fill();
-      doc.restore();
-      
-      doc.fontSize(11).font('Helvetica').fillColor('#333333');
-      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 0, doc.y + 15, { align: 'center' });
-      if (data.authorEmail) {
-        doc.fontSize(10).fillColor('#666666').text(`Prepared for: ${data.authorEmail}`, { align: 'center' });
-      }
+      const mockupLabels: Record<string, string> = {
+        businesscard: 'Business Card',
+        letterhead: 'Letterhead',
+        tshirt: 'T-Shirt'
+      };
 
-      // Add page break
-      doc.addPage();
+      const mockupOrder = ['businesscard', 'letterhead', 'tshirt'];
 
-      // Table of Contents with styled header
-      doc.save();
-      doc.fillColor(primaryColor);
-      doc.rect(0, 0, doc.page.width, 80).fill();
-      doc.restore();
-      
-      doc.fillColor('#ffffff');
-      doc.fontSize(28).font('Helvetica-Bold').text('Table of Contents', 50, 25);
-      doc.fillColor('#000000');
-      doc.moveDown(3);
-      
-      doc.fontSize(12);
-      const sections = [
-        'Project Overview',
-        'Brand Identity & Voice',
-        'Logo Philosophy',
-        'Logo Mockups',
-        'Color Palette',
-        'Color Accessibility',
-        'Typography Guide',
-        'Imagery & Photography Style',
-        'Graphic Elements',
-        'Brand Voice & Tone',
-        'Visual Style Guide',
-        'Usage Rules & Don\'ts',
-        data.sections.web3Section ? 'Web3 Specifications' : null,
-        'Appendix & Resources',
-      ].filter(Boolean);
+      for (const key of mockupOrder) {
+        const mockupUrl = data.mockups[key as keyof typeof data.mockups];
+        if (mockupUrl) {
+          const mockupBase64 = dataUrlToBase64(mockupUrl);
+          if (mockupBase64) {
+            if (yPos > pageHeight - 80) {
+              pdf.addPage();
+              yPos = margin;
+            }
 
-      sections.forEach((section, i) => {
-        // Draw section number in colored circle
-        const circleX = 70;
-        const circleY = doc.y + 3;
-        
-        doc.save();
-        doc.fillColor(primaryColor);
-        doc.circle(circleX, circleY, 12).fill();
-        doc.restore();
-        
-        doc.fillColor('#ffffff');
-        doc.fontSize(10).font('Helvetica-Bold');
-        doc.text(String(i + 1), circleX - 3, circleY - 4);
-        
-        doc.fillColor('#333333');
-        doc.fontSize(12).font('Helvetica');
-        doc.text(section, 100, doc.y - 12);
-        doc.moveDown(0.8);
-      });
+            pdf.setFontSize(12);
+            pdf.setFont('helvetica', 'bold');
+            pdf.setTextColor(51, 51, 51);
+            pdf.text(mockupLabels[key], margin, yPos);
+            yPos += 3;
 
-      // Project Overview Section
-      if (data.sections.projectOverview) {
-        doc.addPage();
-        addSection(doc, 'Project Overview', data.sections.projectOverview, primaryColor);
-      }
-
-      // Brand Identity Section
-      if (data.sections.brandIdentity) {
-        doc.addPage();
-        addSection(doc, 'Brand Identity & Voice', data.sections.brandIdentity, primaryColor);
-      }
-
-      // Logo Philosophy Section
-      if (data.sections.logoPhilosophy) {
-        doc.addPage();
-        addSection(doc, 'Logo Philosophy', data.sections.logoPhilosophy, primaryColor);
-      }
-
-      // Logo Mockups Section
-      if (data.mockups && (data.mockups.letterhead || data.mockups.businesscard || data.mockups.tshirt)) {
-        doc.addPage();
-        doc.fontSize(18).font('Helvetica-Bold').text('Logo Mockups', { underline: true });
-        doc.moveDown(0.5);
-        doc.fontSize(11).font('Helvetica').text(
-          'See how your logo looks in real-world applications across different mediums.',
-          { align: 'left' }
-        );
-        doc.moveDown(1);
-
-        const mockupLabels: Record<string, string> = {
-          letterhead: 'Letterhead',
-          businesscard: 'Business Card',
-          tshirt: 'T-Shirt'
-        };
-
-        const mockupOrder: (keyof typeof mockupLabels)[] = ['businesscard', 'letterhead', 'tshirt'];
-
-        for (const key of mockupOrder) {
-          const mockupUrl = data.mockups[key];
-          if (mockupUrl) {
-            const buffer = dataUrlToBuffer(mockupUrl);
-            if (buffer) {
-              // Check remaining space on page
-              if (doc.y > 650) {
-                doc.addPage();
-              }
-              
-              doc.fontSize(14).font('Helvetica-Bold').text(mockupLabels[key]);
-              doc.moveDown(0.3);
-              
-              // Embed image - fit to page width with margins
-              const pageWidth = doc.page.width - 100;
-              const imageHeight = key === 'tshirt' ? 250 : 180;
-              
-              doc.image(buffer, 50, doc.y, { 
-                fit: [pageWidth, imageHeight],
-                align: 'center'
-              });
-              
-              doc.moveDown(imageHeight / 12 + 1);
+            const imgHeight = key === 'tshirt' ? 70 : 50;
+            try {
+              pdf.addImage(`data:image/png;base64,${mockupBase64}`, 'PNG', margin, yPos, contentWidth, imgHeight);
+              yPos += imgHeight + 15;
+            } catch (e) {
+              console.warn(`Could not embed ${key} mockup:`, e);
+              yPos += 10;
             }
           }
         }
       }
-
-      // Color Palette Section
-      doc.addPage();
-      doc.save();
-      doc.fillColor(primaryColor);
-      doc.rect(0, 0, doc.page.width, 60).fill();
-      doc.restore();
-      
-      doc.fillColor('#ffffff');
-      doc.fontSize(22).font('Helvetica-Bold').text('Color Palette', 50, 20);
-      doc.fillColor('#000000');
-      doc.moveDown(3);
-      
-      // Extract colors from various possible sources
-      let primaryColors: string[] = [];
-      let secondaryColors: string[] = [];
-      let accentColors: string[] = [];
-      
-      // Try to parse from colorPalette object
-      if (data.sections.colorPalette) {
-        if (Array.isArray(data.sections.colorPalette.primary)) {
-          primaryColors = data.sections.colorPalette.primary;
-        }
-        if (Array.isArray(data.sections.colorPalette.secondary)) {
-          secondaryColors = data.sections.colorPalette.secondary;
-        }
-        if (Array.isArray(data.sections.colorPalette.accent)) {
-          accentColors = data.sections.colorPalette.accent;
-        }
-      }
-      
-      // Fallback: extract from logo colors
-      if (primaryColors.length === 0 && data.logo?.colors?.length) {
-        primaryColors = data.logo.colors.slice(0, 2);
-      }
-      
-      // Primary Colors
-      if (primaryColors.length > 0) {
-        doc.fontSize(16).font('Helvetica-Bold').text('Primary Colors', { underline: true });
-        doc.moveDown(0.5);
-        doc.fontSize(10).fillColor('#666666').text('These are the main colors that define your brand identity.');
-        doc.fillColor('#000000');
-        doc.moveDown(0.5);
-        
-        let x = 50;
-        let y = doc.y;
-        primaryColors.forEach((color, i) => {
-          if (x > 450) {
-            x = 50;
-            y += 60;
-          }
-          drawColorSwatch(doc, color, x, y);
-          x += 60;
-        });
-        doc.moveDown(4);
-      }
-
-      // Secondary Colors
-      if (secondaryColors.length > 0) {
-        doc.fontSize(16).font('Helvetica-Bold').text('Secondary Colors', { underline: true });
-        doc.moveDown(0.5);
-        doc.fontSize(10).fillColor('#666666').text('Supporting colors that complement your primary palette.');
-        doc.fillColor('#000000');
-        doc.moveDown(0.5);
-        
-        let x = 50;
-        let y = doc.y;
-        secondaryColors.forEach((color, i) => {
-          if (x > 450) {
-            x = 50;
-            y += 60;
-          }
-          drawColorSwatch(doc, color, x, y);
-          x += 60;
-        });
-        doc.moveDown(4);
-      }
-
-      // Accent Colors
-      if (accentColors.length > 0) {
-        doc.fontSize(16).font('Helvetica-Bold').text('Accent Colors', { underline: true });
-        doc.moveDown(0.5);
-        doc.fontSize(10).fillColor('#666666').text('Use these for calls-to-action and highlights.');
-        doc.fillColor('#000000');
-        doc.moveDown(0.5);
-        
-        let x = 50;
-        let y = doc.y;
-        accentColors.forEach((color, i) => {
-          if (x > 450) {
-            x = 50;
-            y += 60;
-          }
-          drawColorSwatch(doc, color, x, y);
-          x += 60;
-        });
-        doc.moveDown(2);
-      }
-      
-      // Color usage description if available
-      if (typeof data.sections.colorPalette === 'string') {
-        doc.moveDown(1);
-        doc.fontSize(11).font('Helvetica').text(data.sections.colorPalette, {
-          align: 'left',
-          lineGap: 5,
-        });
-      }
-
-      // Color Accessibility Section
-      if (data.sections.colorAccessibility) {
-        doc.addPage();
-        addSection(doc, 'Color Accessibility', data.sections.colorAccessibility, primaryColor);
-      }
-
-      // Typography Section
-      if (data.sections.typography || data.fonts) {
-        doc.addPage();
-        doc.fontSize(18).font('Helvetica-Bold').text('Typography Guide', { underline: true });
-        doc.moveDown(0.5);
-
-        // Font specifications
-        if (data.fonts) {
-          doc.fontSize(14).font('Helvetica-Bold').text('Font Specifications', { underline: true });
-          doc.moveDown(0.5);
-
-          if (data.fonts.headings) {
-            doc.fontSize(12).font('Helvetica-Bold').text('Headings:');
-            doc.fontSize(11).font('Helvetica').text(`${data.fonts.headings.name} - Primary font for all headings and titles`);
-            doc.moveDown(0.3);
-          }
-
-          if (data.fonts.body) {
-            doc.fontSize(12).font('Helvetica-Bold').text('Body Text:');
-            doc.fontSize(11).font('Helvetica').text(`${data.fonts.body.name} - Primary font for paragraphs and body content`);
-            doc.moveDown(0.3);
-          }
-
-          if (data.fonts.other) {
-            doc.fontSize(12).font('Helvetica-Bold').text('Accent/Other:');
-            doc.fontSize(11).font('Helvetica').text(`${data.fonts.other.name} - For captions, highlights, or special text elements`);
-            doc.moveDown(0.5);
-          }
-        }
-
-        // Typography content
-        if (data.sections.typography) {
-          if (data.sections.typography.headings) {
-            doc.fontSize(14).font('Helvetica-Bold').text('Headings Usage');
-            doc.fontSize(11).font('Helvetica').text(data.sections.typography.headings);
-            doc.moveDown(0.5);
-          }
-
-          if (data.sections.typography.body) {
-            doc.fontSize(14).font('Helvetica-Bold').text('Body Text Usage');
-            doc.fontSize(11).font('Helvetica').text(data.sections.typography.body);
-            doc.moveDown(0.5);
-          }
-
-          if (data.sections.typography.usage) {
-            doc.fontSize(14).font('Helvetica-Bold').text('Usage Guidelines');
-            doc.fontSize(11).font('Helvetica').text(data.sections.typography.usage);
-          }
-        }
-      }
-
-      // Imagery Style Section
-      if (data.sections.imageryStyle) {
-        doc.addPage();
-        addSection(doc, 'Imagery & Photography Style', data.sections.imageryStyle, primaryColor);
-      }
-
-      // Graphic Elements Section
-      if (data.sections.graphicElements) {
-        doc.addPage();
-        addSection(doc, 'Graphic Elements', data.sections.graphicElements, primaryColor);
-      }
-
-      // Brand Voice Section
-      if (data.sections.brandVoice) {
-        doc.addPage();
-        addSection(doc, 'Brand Voice & Tone', data.sections.brandVoice, primaryColor);
-      }
-
-      // Visual Style Guide Section
-      if (data.sections.visualStyleGuide) {
-        doc.addPage();
-        addSection(doc, 'Visual Style Guide', data.sections.visualStyleGuide, primaryColor);
-      }
-
-      // Usage Rules Section
-      if (data.sections.usageRulesAndDonts) {
-        doc.addPage();
-        addSection(doc, 'Usage Rules & Don\'ts', data.sections.usageRulesAndDonts, primaryColor);
-      }
-
-      // Web3 Section (if applicable)
-      if (data.sections.web3Section) {
-        doc.addPage();
-        addSection(doc, 'Web3 Specifications', data.sections.web3Section, primaryColor);
-      }
-
-      // Appendix
-      if (data.sections.appendix) {
-        doc.addPage();
-        addSection(doc, 'Appendix & Resources', data.sections.appendix, primaryColor);
-      }
-
-      // Footer page numbers
-      const pageCount = doc.bufferedPageRange().count;
-      for (let i = 0; i < pageCount; i++) {
-        doc.switchToPage(i);
-        doc.fontSize(10).fillColor('#999999').text(`Page ${i + 1} of ${pageCount}`, {
-          align: 'center',
-          y: doc.page.height - 30,
-        });
-      }
-
-      doc.end();
-    } catch (error) {
-      reject(error);
     }
-  });
+
+    // Color Palette Section
+    pdf.addPage();
+    yPos = margin;
+    pdf.setFillColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+    pdf.rect(0, 0, pageWidth, 20, 'F');
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFontSize(18);
+    pdf.setFont('helvetica', 'bold');
+    pdf.text('Color Palette', margin, 14);
+    yPos = 35;
+
+    let primaryColors: string[] = [];
+    let secondaryColors: string[] = [];
+    let accentColors: string[] = [];
+
+    if (data.sections.colorPalette) {
+      if (Array.isArray(data.sections.colorPalette.primary)) {
+        primaryColors = data.sections.colorPalette.primary;
+      }
+      if (Array.isArray(data.sections.colorPalette.secondary)) {
+        secondaryColors = data.sections.colorPalette.secondary;
+      }
+      if (Array.isArray(data.sections.colorPalette.accent)) {
+        accentColors = data.sections.colorPalette.accent;
+      }
+    }
+
+    if (primaryColors.length === 0 && data.logo?.colors?.length) {
+      primaryColors = data.logo.colors.slice(0, 2);
+    }
+
+    // Primary Colors
+    if (primaryColors.length > 0) {
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(51, 51, 51);
+      pdf.text('Primary Colors', margin, yPos);
+      yPos += 5;
+      pdf.setFontSize(9);
+      pdf.setTextColor(102, 102, 102);
+      pdf.text('Main colors that define your brand identity.', margin, yPos);
+      yPos += 8;
+
+      let xPos = margin;
+      primaryColors.forEach((color) => {
+        const rgb = hexToRgb(color);
+        if (rgb) {
+          pdf.setFillColor(rgb.r, rgb.g, rgb.b);
+          pdf.rect(xPos, yPos, 25, 18, 'F');
+          pdf.setDrawColor(200, 200, 200);
+          pdf.rect(xPos, yPos, 25, 18, 'S');
+          pdf.setTextColor(51, 51, 51);
+          pdf.setFontSize(7);
+          pdf.text(color.toUpperCase(), xPos, yPos + 24);
+          xPos += 32;
+        }
+      });
+      yPos += 35;
+    }
+
+    // Secondary Colors
+    if (secondaryColors.length > 0) {
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(51, 51, 51);
+      pdf.text('Secondary Colors', margin, yPos);
+      yPos += 5;
+      pdf.setFontSize(9);
+      pdf.setTextColor(102, 102, 102);
+      pdf.text('Supporting colors that complement your primary palette.', margin, yPos);
+      yPos += 8;
+
+      let xPos = margin;
+      secondaryColors.forEach((color) => {
+        const rgb = hexToRgb(color);
+        if (rgb) {
+          pdf.setFillColor(rgb.r, rgb.g, rgb.b);
+          pdf.rect(xPos, yPos, 25, 18, 'F');
+          pdf.setDrawColor(200, 200, 200);
+          pdf.rect(xPos, yPos, 25, 18, 'S');
+          pdf.setTextColor(51, 51, 51);
+          pdf.setFontSize(7);
+          pdf.text(color.toUpperCase(), xPos, yPos + 24);
+          xPos += 32;
+        }
+      });
+      yPos += 35;
+    }
+
+    // Accent Colors
+    if (accentColors.length > 0) {
+      pdf.setFontSize(14);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(51, 51, 51);
+      pdf.text('Accent Colors', margin, yPos);
+      yPos += 5;
+      pdf.setFontSize(9);
+      pdf.setTextColor(102, 102, 102);
+      pdf.text('Use these for calls-to-action and highlights.', margin, yPos);
+      yPos += 8;
+
+      let xPos = margin;
+      accentColors.forEach((color) => {
+        const rgb = hexToRgb(color);
+        if (rgb) {
+          pdf.setFillColor(rgb.r, rgb.g, rgb.b);
+          pdf.rect(xPos, yPos, 25, 18, 'F');
+          pdf.setDrawColor(200, 200, 200);
+          pdf.rect(xPos, yPos, 25, 18, 'S');
+          pdf.setTextColor(51, 51, 51);
+          pdf.setFontSize(7);
+          pdf.text(color.toUpperCase(), xPos, yPos + 24);
+          xPos += 32;
+        }
+      });
+      yPos += 35;
+    }
+
+    // Color Accessibility Section
+    if (data.sections.colorAccessibility) {
+      pdf.addPage();
+      yPos = addSectionHeader(pdf, 'Color Accessibility', primaryRgb, margin);
+      yPos = addSectionContent(pdf, data.sections.colorAccessibility, yPos, margin, contentWidth, data);
+    }
+
+    // Typography Section
+    if (data.sections.typography || data.fonts) {
+      pdf.addPage();
+      yPos = margin;
+      pdf.setFontSize(18);
+      pdf.setFont('helvetica', 'bold');
+      pdf.setTextColor(51, 51, 51);
+      pdf.text('Typography Guide', margin, yPos);
+      pdf.line(margin, yPos + 2, margin + contentWidth, yPos + 2);
+      yPos += 15;
+
+      // Font specifications
+      if (data.fonts) {
+        pdf.setFontSize(12);
+        pdf.setFont('helvetica', 'bold');
+        pdf.text('Font Specifications', margin, yPos);
+        yPos += 8;
+
+        if (data.fonts.headings) {
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('Headings:', margin, yPos);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(`${data.fonts.headings.name} - Primary font for all headings and titles`, margin + 25, yPos);
+          yPos += 7;
+        }
+
+        if (data.fonts.body) {
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('Body Text:', margin, yPos);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(`${data.fonts.body.name} - Primary font for paragraphs and body content`, margin + 25, yPos);
+          yPos += 7;
+        }
+
+        if (data.fonts.other) {
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('Accent/Other:', margin, yPos);
+          pdf.setFont('helvetica', 'normal');
+          pdf.text(`${data.fonts.other.name} - For captions, highlights, or special text`, margin + 25, yPos);
+          yPos += 10;
+        }
+      }
+
+      // Typography content
+      if (data.sections.typography) {
+        if (data.sections.typography.headings) {
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('Headings Usage', margin, yPos);
+          yPos += 6;
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          yPos = addWrappedText(pdf, data.sections.typography.headings, margin, yPos, contentWidth, 5);
+          yPos += 5;
+        }
+
+        if (data.sections.typography.body) {
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('Body Text Usage', margin, yPos);
+          yPos += 6;
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          yPos = addWrappedText(pdf, data.sections.typography.body, margin, yPos, contentWidth, 5);
+          yPos += 5;
+        }
+
+        if (data.sections.typography.usage) {
+          pdf.setFontSize(12);
+          pdf.setFont('helvetica', 'bold');
+          pdf.text('Usage Guidelines', margin, yPos);
+          yPos += 6;
+          pdf.setFontSize(10);
+          pdf.setFont('helvetica', 'normal');
+          yPos = addWrappedText(pdf, data.sections.typography.usage, margin, yPos, contentWidth, 5);
+        }
+      }
+    }
+
+    // Imagery Style Section
+    if (data.sections.imageryStyle) {
+      pdf.addPage();
+      yPos = addSectionHeader(pdf, 'Imagery & Photography Style', primaryRgb, margin);
+      yPos = addSectionContent(pdf, data.sections.imageryStyle, yPos, margin, contentWidth, data);
+    }
+
+    // Graphic Elements Section
+    if (data.sections.graphicElements) {
+      if (yPos > pageHeight - 60) {
+        pdf.addPage();
+        yPos = margin;
+      }
+      yPos = addSectionHeader(pdf, 'Graphic Elements', primaryRgb, margin);
+      yPos = addSectionContent(pdf, data.sections.graphicElements, yPos, margin, contentWidth, data);
+    }
+
+    // Brand Voice Section
+    if (data.sections.brandVoice) {
+      if (yPos > pageHeight - 60) {
+        pdf.addPage();
+        yPos = margin;
+      }
+      yPos = addSectionHeader(pdf, 'Brand Voice & Tone', primaryRgb, margin);
+      yPos = addSectionContent(pdf, data.sections.brandVoice, yPos, margin, contentWidth, data);
+    }
+
+    // Usage Rules Section
+    if (data.sections.usageRulesAndDonts) {
+      pdf.addPage();
+      yPos = addSectionHeader(pdf, 'Usage Rules & Don\'ts', primaryRgb, margin);
+      yPos = addSectionContent(pdf, data.sections.usageRulesAndDonts, yPos, margin, contentWidth, data);
+    }
+
+    // Return PDF as buffer
+    return pdf.output('buffer');
+  } catch (error) {
+    console.error('PDF generation error:', error);
+    throw error;
+  }
 }
 
-function addSection(doc: PDFKit.PDFDocument, title: string, content: string | undefined, accentColor: string): void {
-  if (!content) return;
-  // Section header with colored accent
-  doc.save();
-  doc.fillColor(accentColor);
-  doc.rect(0, 0, doc.page.width, 60).fill();
-  doc.restore();
+function addSectionHeader(pdf: jsPDF, title: string, primaryRgb: { r: number; g: number; b: number }, margin: number): number {
+  const pageWidth = pdf.internal.pageSize.getWidth();
   
-  doc.fillColor('#ffffff');
-  doc.fontSize(22).font('Helvetica-Bold').text(title, 50, 20);
-  doc.fillColor('#000000');
-  doc.moveDown(3);
+  pdf.setFillColor(primaryRgb.r, primaryRgb.g, primaryRgb.b);
+  pdf.rect(0, 0, pageWidth, 20, 'F');
   
-  // Content with better formatting
-  doc.fontSize(11).font('Helvetica').text(content, {
-    align: 'left',
-    lineGap: 6,
-    paragraphGap: 10,
+  pdf.setTextColor(255, 255, 255);
+  pdf.setFontSize(16);
+  pdf.setFont('helvetica', 'bold');
+  pdf.text(title, margin, 14);
+  
+  pdf.setTextColor(0, 0, 0);
+  return 35;
+}
+
+function addSectionContent(pdf: jsPDF, content: string, yPos: number, margin: number, contentWidth: number, data: BrandGuideData): number {
+  pdf.setFontSize(10);
+  pdf.setFont('helvetica', 'normal');
+  pdf.setTextColor(51, 51, 51);
+  
+  return addWrappedText(pdf, content, margin, yPos, contentWidth, 6);
+}
+
+function addWrappedText(pdf: jsPDF, text: string, x: number, y: number, maxWidth: number, lineHeight: number): number {
+  const lines = pdf.splitTextToSize(text, maxWidth);
+  let currentY = y;
+  
+  lines.forEach((line: string) => {
+    pdf.text(line, x, currentY);
+    currentY += lineHeight;
   });
-  doc.moveDown(1);
+  
+  return currentY;
 }
