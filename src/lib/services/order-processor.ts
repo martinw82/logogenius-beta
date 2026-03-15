@@ -114,6 +114,7 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
         businesscard: mockupData['businesscard'],
         tshirt: mockupData['tshirt'],
       },
+      fonts: orderData.fonts,
       sections: {
         projectOverview: orderData.projectOverview,
         brandIdentity: orderData.brandIdentity,
@@ -336,6 +337,7 @@ function extractOrderData(details: any[]) {
   // Parse complex fields
   let colorPalette = null;
   let typography = null;
+  let fonts = null;
 
   try {
     if (data['colorPalette']) {
@@ -348,6 +350,31 @@ function extractOrderData(details: any[]) {
   try {
     if (data['typography']) {
       typography = JSON.parse(data['typography']);
+    }
+  } catch {
+    /* ignore */
+  }
+
+  // Extract font information
+  try {
+    fonts = {};
+    if (data['fontHeadings']) {
+      fonts.headings = { name: data['fontHeadings'] };
+      if (data['fontHeadingsFile']) {
+        fonts.headings.filePath = data['fontHeadingsFile'];
+      }
+    }
+    if (data['fontBody']) {
+      fonts.body = { name: data['fontBody'] };
+      if (data['fontBodyFile']) {
+        fonts.body.filePath = data['fontBodyFile'];
+      }
+    }
+    if (data['fontOther']) {
+      fonts.other = { name: data['fontOther'] };
+      if (data['fontOtherFile']) {
+        fonts.other.filePath = data['fontOtherFile'];
+      }
     }
   } catch {
     /* ignore */
@@ -371,6 +398,7 @@ function extractOrderData(details: any[]) {
       body: 'Clean Sans-serif',
       usage: 'Consistent sizing',
     },
+    fonts: fonts,
     imageryStyle: data['guide_imageryStyle'] || data['imageryStyle'],
     graphicElements: data['guide_graphicElements'] || data['graphicElements'],
     brandVoice: data['guide_brandVoice'] || data['brandVoice'],

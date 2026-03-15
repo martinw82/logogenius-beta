@@ -13,6 +13,20 @@ export interface BrandGuideData {
     businesscard?: string;
     tshirt?: string;
   };
+  fonts?: {
+    headings?: {
+      name: string;
+      filePath?: string; // Path to uploaded font file
+    };
+    body?: {
+      name: string;
+      filePath?: string;
+    };
+    other?: {
+      name: string;
+      filePath?: string;
+    };
+  };
   sections: {
     projectOverview?: string;
     brandIdentity?: string;
@@ -54,6 +68,31 @@ function dataUrlToBuffer(dataUrl: string): Buffer | null {
 }
 
 /**
+ * Get the appropriate font name for a given font type
+ */
+function getFontName(data: BrandGuideData, fontType: 'headings' | 'body' | 'other'): string {
+  const customFontKey = `custom-${fontType}` as const;
+
+  // Check if custom font is registered
+  if (data.fonts?.[fontType]?.filePath) {
+    // In PDFKit, we can check if font is registered by trying to use it
+    return customFontKey;
+  }
+
+  // Fallback to system fonts
+  switch (fontType) {
+    case 'headings':
+      return data.fonts?.headings?.name || 'Helvetica-Bold';
+    case 'body':
+      return data.fonts?.body?.name || 'Helvetica';
+    case 'other':
+      return data.fonts?.other?.name || 'Helvetica';
+    default:
+      return 'Helvetica';
+  }
+}
+
+/**
  * Draw a color swatch in the PDF
  */
 function drawColorSwatch(doc: PDFKit.PDFDocument, color: string, x: number, y: number): void {
@@ -91,6 +130,35 @@ export async function generateBrandGuidePDF(data: BrandGuideData): Promise<Buffe
       doc.on('data', (chunk) => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
+
+      // Register custom fonts if provided
+      if (data.fonts) {
+        const fontDir = process.cwd();
+
+        if (data.fonts.headings?.filePath) {
+          try {
+            doc.registerFont(`custom-headings`, `${fontDir}${data.fonts.headings.filePath}`);
+          } catch (error) {
+            console.warn('Failed to register headings font:', error);
+          }
+        }
+
+        if (data.fonts.body?.filePath) {
+          try {
+            doc.registerFont(`custom-body`, `${fontDir}${data.fonts.body.filePath}`);
+          } catch (error) {
+            console.warn('Failed to register body font:', error);
+          }
+        }
+
+        if (data.fonts.other?.filePath) {
+          try {
+            doc.registerFont(`custom-other`, `${fontDir}${data.fonts.other.filePath}`);
+          } catch (error) {
+            console.warn('Failed to register other font:', error);
+          }
+        }
+      }
 
       // Get brand colors for design
       const primaryColor = data.logo?.colors?.[0] || '#2563eb';
@@ -387,26 +455,53 @@ export async function generateBrandGuidePDF(data: BrandGuideData): Promise<Buffe
       }
 
       // Typography Section
-      if (data.sections.typography) {
+      if (data.sections.typography || data.fonts) {
         doc.addPage();
         doc.fontSize(18).font('Helvetica-Bold').text('Typography Guide', { underline: true });
         doc.moveDown(0.5);
-        
-        if (data.sections.typography.headings) {
-          doc.fontSize(14).font('Helvetica-Bold').text('Headings');
-          doc.fontSize(11).font('Helvetica').text(data.sections.typography.headings);
+
+        // Font specifications
+        if (data.fonts) {
+          doc.fontSize(14).font('Helvetica-Bold').text('Font Specifications', { underline: true });
           doc.moveDown(0.5);
+
+          if (data.fonts.headings) {
+            doc.fontSize(12).font('Helvetica-Bold').text('Headings:');
+            doc.fontSize(11).font('Helvetica').text(`${data.fonts.headings.name} - Primary font for all headings and titles`);
+            doc.moveDown(0.3);
+          }
+
+          if (data.fonts.body) {
+            doc.fontSize(12).font('Helvetica-Bold').text('Body Text:');
+            doc.fontSize(11).font('Helvetica').text(`${data.fonts.body.name} - Primary font for paragraphs and body content`);
+            doc.moveDown(0.3);
+          }
+
+          if (data.fonts.other) {
+            doc.fontSize(12).font('Helvetica-Bold').text('Accent/Other:');
+            doc.fontSize(11).font('Helvetica').text(`${data.fonts.other.name} - For captions, highlights, or special text elements`);
+            doc.moveDown(0.5);
+          }
         }
-        
-        if (data.sections.typography.body) {
-          doc.fontSize(14).font('Helvetica-Bold').text('Body Text');
-          doc.fontSize(11).font('Helvetica').text(data.sections.typography.body);
-          doc.moveDown(0.5);
-        }
-        
-        if (data.sections.typography.usage) {
-          doc.fontSize(14).font('Helvetica-Bold').text('Usage Guidelines');
-          doc.fontSize(11).font('Helvetica').text(data.sections.typography.usage);
+
+        // Typography content
+        if (data.sections.typography) {
+          if (data.sections.typography.headings) {
+            doc.fontSize(14).font('Helvetica-Bold').text('Headings Usage');
+            doc.fontSize(11).font('Helvetica').text(data.sections.typography.headings);
+            doc.moveDown(0.5);
+          }
+
+          if (data.sections.typography.body) {
+            doc.fontSize(14).font('Helvetica-Bold').text('Body Text Usage');
+            doc.fontSize(11).font('Helvetica').text(data.sections.typography.body);
+            doc.moveDown(0.5);
+          }
+
+          if (data.sections.typography.usage) {
+            doc.fontSize(14).font('Helvetica-Bold').text('Usage Guidelines');
+            doc.fontSize(11).font('Helvetica').text(data.sections.typography.usage);
+          }
         }
       }
 

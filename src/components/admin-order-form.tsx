@@ -11,8 +11,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { Loader2, Sparkles, Wand2 } from 'lucide-react';
+import { Loader2, Sparkles, Wand2, Type } from 'lucide-react';
 import * as z from 'zod';
+import { typographySchema, commonFontList, NONE_VALUE } from '@/lib/types/typography';
 
 // Form schema
 const adminOrderSchema = z.object({
@@ -21,28 +22,30 @@ const adminOrderSchema = z.object({
   businessName: z.string().min(1, 'Business name required'),
   industry: z.string().min(1, 'Industry required'),
   industrySubcategory: z.string().optional(),
-  
+
   // Brand identity
   aestheticKeywords: z.string().optional(),
   emotionalKeywords: z.string().optional(),
   functionalKeywords: z.string().optional(),
-  
+
   // Colors
   primaryColors: z.string().optional(),
   secondaryColors: z.string().optional(),
   accentColors: z.string().optional(),
-  
+
   // Logo style
   preferredLogoStyle: z.string().optional(),
   composition: z.string().optional(),
-  
+
   // Brand details
   missionStatement: z.string().optional(),
   brandPillars: z.string().optional(),
   brandArchetype: z.string().optional(),
   keyTagline: z.string().optional(),
-  targetAudience: z.string().optional(),
-  
+
+  // Typography
+  ...typographySchema.shape,
+
   // Premium
   web3: z.boolean().optional(),
 });
@@ -173,6 +176,13 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
     defaultValues: {
       tier: 'basic',
       web3: false,
+      // Typography defaults
+      fontHeadings: '',
+      useHeadingsFontForLogo: false,
+      fontBody: '',
+      useBodyFontForLogo: false,
+      fontOther: '',
+      useOtherFontForLogo: false,
     },
   });
 
@@ -194,13 +204,14 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
       'aestheticKeywords', 'emotionalKeywords', 'functionalKeywords',
       'primaryColors', 'secondaryColors', 'accentColors',
       'preferredLogoStyle', 'brandArchetype', 'composition',
-      'targetAudience', 'keyTagline', 'missionStatement', 'brandPillars'
+      'targetAudience', 'keyTagline', 'missionStatement', 'brandPillars',
+      'fontHeadings', 'fontBody', 'fontOther'
     ];
-    
+
     const existing: Record<string, string> = {};
     fields.forEach(field => {
       const value = form.getValues(field as any);
-      if (value && value.trim() !== '') {
+      if (value && value.trim() !== '' && value !== NONE_VALUE) {
         existing[field] = value;
       }
     });
@@ -267,6 +278,9 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
         keyTagline: result.keyTagline,
         missionStatement: result.missionStatement,
         brandPillars: result.brandPillars,
+        fontHeadings: result.fontHeadings,
+        fontBody: result.fontBody,
+        fontOther: result.fontOther,
       };
 
       let filledCount = 0;
@@ -716,6 +730,170 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
             </CardContent>
           </Card>
         )}
+
+        {/* Typography */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Type className="h-5 w-5 text-primary" />
+              Typography
+            </CardTitle>
+            <CardDescription>
+              Define brand fonts for professional brand guides and logo consistency
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <FormDescription>
+              These fonts will be used in the brand guide PDF and can optionally override logo font preferences.
+            </FormDescription>
+
+            <div className="grid grid-cols-1 gap-6">
+              <FormField
+                control={form.control}
+                name="fontHeadings"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Brand Headings Font</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a font for headings" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={NONE_VALUE}>No specific font</SelectItem>
+                        {commonFontList.map(font => (
+                          <SelectItem key={font} value={font}>{font}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>Font for main headings and titles in brand materials.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="useHeadingsFontForLogo"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3 shadow-sm bg-muted/30">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm font-normal">
+                        Use Headings Font for Logo Style
+                      </FormLabel>
+                      <FormDescription className="text-xs">
+                        Override logo font preferences with this headings font
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="fontBody"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Brand Body Text Font</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select a font for body text" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={NONE_VALUE}>No specific font</SelectItem>
+                        {commonFontList.map(font => (
+                          <SelectItem key={font} value={font}>{font}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>Font for paragraphs and general text content.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="useBodyFontForLogo"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3 shadow-sm bg-muted/30">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm font-normal">
+                        Use Body Font for Logo Style
+                      </FormLabel>
+                      <FormDescription className="text-xs">
+                        Override logo font preferences with this body font
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="fontOther"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Other Brand Fonts</FormLabel>
+                    <Select onValueChange={field.onChange} value={field.value || ""}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select another font" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value={NONE_VALUE}>No specific font</SelectItem>
+                        {commonFontList.map(font => (
+                          <SelectItem key={font} value={font}>{font}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormDescription>Additional font for captions, accents, or special uses.</FormDescription>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="useOtherFontForLogo"
+                render={({ field }) => (
+                  <FormItem className="flex flex-row items-center space-x-3 space-y-0 rounded-md border p-3 shadow-sm bg-muted/30">
+                    <FormControl>
+                      <Checkbox
+                        checked={field.value}
+                        onCheckedChange={field.onChange}
+                      />
+                    </FormControl>
+                    <div className="space-y-1 leading-none">
+                      <FormLabel className="text-sm font-normal">
+                        Use "Other" Font for Logo Style
+                      </FormLabel>
+                      <FormDescription className="text-xs">
+                        Override logo font preferences with this additional font
+                      </FormDescription>
+                    </div>
+                  </FormItem>
+                )}
+              />
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Premium Features */}
         {watchTier === 'premium' && (

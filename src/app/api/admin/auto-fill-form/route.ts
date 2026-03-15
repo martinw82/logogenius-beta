@@ -122,6 +122,7 @@ AVAILABLE OPTIONS:
 Logo Styles: Modern Minimalist, Vintage/Retro, Hand-drawn/Organic, Geometric, Typography-focused, Mascot/Character, Abstract, Emblem/Badge
 Brand Archetypes: The Innovator, The Caregiver, The Hero, The Explorer, The Creator, The Ruler, The Magician, The Lover, The Jester, The Sage, The Outlaw, The Innocent
 Compositions: Icon left text right, Icon above text below, Icon only, Text only, Icon right text left, Integrated icon in text
+Typography Fonts: Arial, Helvetica, Times New Roman, Georgia, Inter, Roboto, Open Sans, Montserrat, Playfair Display, Source Sans Pro
 
 INSTRUCTIONS:
 1. Generate ONLY the fields that are NOT already defined above
@@ -131,7 +132,7 @@ INSTRUCTIONS:
 REQUIRED OUTPUT - Return ONLY this JSON structure:
 {
   "aestheticKeywords": "3 visual descriptors",
-  "emotionalKeywords": "3 emotional descriptors", 
+  "emotionalKeywords": "3 emotional descriptors",
   "functionalKeywords": "3 functional descriptors",
   "primaryColors": "1-2 primary colors with hex codes",
   "secondaryColors": "1-2 secondary colors with hex codes",
@@ -142,7 +143,10 @@ REQUIRED OUTPUT - Return ONLY this JSON structure:
   "targetAudience": "Brief target audience description",
   "keyTagline": "Catchy tagline (5-8 words)",
   "missionStatement": "Mission statement (1-2 sentences)",
-  "brandPillars": "3-5 comma-separated values"
+  "brandPillars": "3-5 comma-separated values",
+  "fontHeadings": "ONE typography font for headings",
+  "fontBody": "ONE typography font for body text",
+  "fontOther": "ONE typography font for other uses"
 }
 
 IMPORTANT: Return ONLY valid JSON. No markdown, no explanations.`;
@@ -173,6 +177,9 @@ function parseResponse(content: string): Record<string, string> {
       keyTagline: parsed.keyTagline || `Innovative solutions by ${parsed.businessName || 'us'}`,
       missionStatement: parsed.missionStatement || `To provide exceptional products and services that solve real problems for our customers.`,
       brandPillars: parsed.brandPillars || 'Quality, Innovation, Customer-First',
+      fontHeadings: parsed.fontHeadings || 'Montserrat',
+      fontBody: parsed.fontBody || 'Inter',
+      fontOther: parsed.fontOther || 'Playfair Display',
     };
   } catch (error) {
     console.error('[AutoFill] Parse error:', error);
@@ -193,6 +200,9 @@ function parseResponse(content: string): Record<string, string> {
       keyTagline: 'Innovative solutions that drive results',
       missionStatement: 'To provide exceptional products and services that solve real problems for our customers.',
       brandPillars: 'Quality, Innovation, Customer-First',
+      fontHeadings: 'Montserrat',
+      fontBody: 'Inter',
+      fontOther: 'Playfair Display',
     };
   }
 }
