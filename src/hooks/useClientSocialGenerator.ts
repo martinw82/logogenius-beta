@@ -233,58 +233,77 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
   ) => {
     const { width: W, height: H } = spec;
 
-    // Multi-stop vertical gradient
-    const grad = ctx.createLinearGradient(0, 0, 0, H);
+    // Rich multi-stop gradient background
+    const grad = ctx.createLinearGradient(0, 0, W * 0.3, H);
     grad.addColorStop(0, primary);
-    grad.addColorStop(0.4, secondary);
-    grad.addColorStop(0.7, primary);
-    grad.addColorStop(1, lightenHex(primary, 0.2));
+    grad.addColorStop(0.35, secondary);
+    grad.addColorStop(0.65, primary);
+    grad.addColorStop(1, lightenHex(primary, 0.15));
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
+    // Soft radial glow behind logo area
+    const { r, g, b } = hexToRgb(secondary);
+    const glow = ctx.createRadialGradient(W / 2, 460, 60, W / 2, 460, 350);
+    glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.2)`);
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+
     // Subtle diagonal lines
-    drawDiagonalLines(ctx, W, H, '#ffffff', 0.04, 60, 1);
+    drawDiagonalLines(ctx, W, H, '#ffffff', 0.03, 70, 1);
 
-    // Logo in upper third
-    await drawLogo(ctx, options.logoUrl, (W - 360) / 2, 280, 360, 360, options.businessName, accent);
+    // Decorative top bar
+    ctx.fillStyle = `rgba(255,255,255,0.08)`;
+    ctx.fillRect(0, 0, W, 80);
 
-    // Business name
+    // Logo in upper third — slightly larger
+    await drawLogo(ctx, options.logoUrl, (W - 380) / 2, 260, 380, 380, options.businessName, accent);
+
+    // Business name with slight letter spacing effect
     ctx.fillStyle = accent;
-    ctx.font = 'bold 60px sans-serif';
+    ctx.font = 'bold 58px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(options.businessName, W / 2, 760);
+    ctx.fillText(options.businessName, W / 2, 770);
 
-    // Tagline in a branded pill
+    // Tagline in a frosted glass pill
     if (options.tagline) {
-      const tagWidth = ctx.measureText(options.tagline).width + 60;
+      ctx.font = '26px sans-serif';
+      const tagWidth = ctx.measureText(options.tagline).width + 70;
       const pillX = (W - tagWidth) / 2;
 
-      ctx.fillStyle = 'rgba(255,255,255,0.15)';
-      roundedRect(ctx, pillX, 790, tagWidth, 50, 25);
+      // Frosted pill background
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      roundedRect(ctx, pillX, 800, tagWidth, 54, 27);
       ctx.fill();
+      // Pill border
+      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      ctx.lineWidth = 1;
+      roundedRect(ctx, pillX, 800, tagWidth, 54, 27);
+      ctx.stroke();
 
-      ctx.font = '26px sans-serif';
       ctx.fillStyle = accent;
-      ctx.fillText(options.tagline, W / 2, 823);
+      ctx.fillText(options.tagline, W / 2, 835);
     }
 
-    // Swipe-up CTA pill at bottom
-    const ctaWidth = 260;
+    // CTA pill at bottom — frosted glass style
+    const ctaWidth = 280;
     const ctaX = (W - ctaWidth) / 2;
     ctx.fillStyle = secondary;
-    roundedRect(ctx, ctaX, H - 200, ctaWidth, 60, 30);
+    roundedRect(ctx, ctaX, H - 220, ctaWidth, 64, 32);
     ctx.fill();
     ctx.fillStyle = isLightColor(secondary) ? '#111' : '#fff';
     ctx.font = 'bold 24px sans-serif';
-    ctx.fillText('Learn More', W / 2, H - 162);
+    ctx.fillText('Learn More', W / 2, H - 180);
 
-    // Swipe indicator arrow
+    // Chevron arrow
     ctx.strokeStyle = 'rgba(255,255,255,0.5)';
-    ctx.lineWidth = 3;
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
     ctx.beginPath();
-    ctx.moveTo(W / 2 - 15, H - 110);
-    ctx.lineTo(W / 2, H - 125);
-    ctx.lineTo(W / 2 + 15, H - 110);
+    ctx.moveTo(W / 2 - 12, H - 130);
+    ctx.lineTo(W / 2, H - 142);
+    ctx.lineTo(W / 2 + 12, H - 130);
     ctx.stroke();
 
     ctx.textAlign = 'left';
@@ -298,34 +317,48 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
   ) => {
     const { width: W, height: H } = spec;
 
-    // Gradient background
+    // Horizontal gradient with smooth midpoint
     const grad = ctx.createLinearGradient(0, 0, W, 0);
     grad.addColorStop(0, primary);
-    grad.addColorStop(0.7, primary);
-    grad.addColorStop(1, secondary);
+    grad.addColorStop(0.55, primary);
+    grad.addColorStop(0.85, secondary);
+    grad.addColorStop(1, lightenHex(secondary, 0.15));
     ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
-    // Dot pattern overlay
-    drawDotPattern(ctx, W, H, '#ffffff', 0.04, 30, 2);
+    // Subtle geometric shape (angled divider)
+    const { r, g, b } = hexToRgb(secondary);
+    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.08)`;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.5, 0);
+    ctx.lineTo(W * 0.7, 0);
+    ctx.lineTo(W * 0.55, H);
+    ctx.lineTo(W * 0.35, H);
+    ctx.closePath();
+    ctx.fill();
 
-    // Profile photo safe zone indicator (left 170px) — leave space
-    // Logo positioned after safe zone
-    await drawLogo(ctx, options.logoUrl, 190, (H - 140) / 2, 140, 140, options.businessName, accent);
+    // Dot pattern — very subtle
+    drawDotPattern(ctx, W, H, '#ffffff', 0.03, 35, 1.5);
 
-    // Text right of logo
+    // Profile photo safe zone (left 170px) — logo after it
+    await drawLogo(ctx, options.logoUrl, 200, (H - 150) / 2, 150, 150, options.businessName, accent);
+
+    // Business name with proper vertical centering
     ctx.fillStyle = accent;
-    ctx.font = 'bold 34px sans-serif';
-    ctx.fillText(options.businessName, 360, H / 2 - 10);
+    ctx.font = 'bold 36px sans-serif';
+    ctx.fillText(options.businessName, 380, H / 2 - 8);
 
     if (options.tagline) {
-      ctx.font = '18px sans-serif';
-      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)';
-      ctx.fillText(options.tagline, 360, H / 2 + 20);
+      ctx.font = '17px sans-serif';
+      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.6)';
+      ctx.fillText(options.tagline, 380, H / 2 + 22);
     }
 
-    // Accent bar at bottom
-    ctx.fillStyle = secondary;
+    // Bottom accent — gradient bar instead of flat
+    const barGrad = ctx.createLinearGradient(0, H - 5, W, H - 5);
+    barGrad.addColorStop(0, secondary);
+    barGrad.addColorStop(1, lightenHex(secondary, 0.3));
+    ctx.fillStyle = barGrad;
     ctx.fillRect(0, H - 5, W, 5);
   };
 
@@ -388,33 +421,75 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
   ) => {
     const { width: W, height: H } = spec;
 
-    // Solid professional background
-    ctx.fillStyle = primary;
+    // Professional gradient — primary to slightly darker
+    const grad = ctx.createLinearGradient(0, 0, W, H);
+    grad.addColorStop(0, primary);
+    grad.addColorStop(1, lightenHex(primary, -0.1));
+    ctx.fillStyle = grad;
     ctx.fillRect(0, 0, W, H);
 
-    // Subtle dot grid
-    drawDotPattern(ctx, W, H, '#ffffff', 0.03, 40, 2);
+    // Subtle grid lines (corporate feel)
+    const { r, g, b } = hexToRgb('#ffffff');
+    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.04)`;
+    ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 60) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, H);
+      ctx.stroke();
+    }
+    for (let y = 0; y < H; y += 60) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y);
+      ctx.stroke();
+    }
 
-    // Logo left
+    // Right-side accent shape (subtle branded triangle)
+    const sr = hexToRgb(secondary);
+    ctx.fillStyle = `rgba(${sr.r}, ${sr.g}, ${sr.b}, 0.1)`;
+    ctx.beginPath();
+    ctx.moveTo(W - 400, 0);
+    ctx.lineTo(W, 0);
+    ctx.lineTo(W, H);
+    ctx.lineTo(W - 200, H);
+    ctx.closePath();
+    ctx.fill();
+
+    // Logo left with subtle glow
+    const glowGrad = ctx.createRadialGradient(170, H / 2, 30, 170, H / 2, 120);
+    glowGrad.addColorStop(0, `rgba(${sr.r}, ${sr.g}, ${sr.b}, 0.08)`);
+    glowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glowGrad;
+    ctx.fillRect(50, 0, 240, H);
+
     await drawLogo(ctx, options.logoUrl, 80, (H - 180) / 2, 180, 180, options.businessName, accent);
 
-    // Name left-aligned next to logo
+    // Name next to logo
     ctx.fillStyle = accent;
-    ctx.font = 'bold 38px sans-serif';
+    ctx.font = 'bold 40px sans-serif';
     ctx.fillText(options.businessName, 290, H / 2 - 5);
+
+    // Thin divider line
+    ctx.fillStyle = `rgba(${sr.r}, ${sr.g}, ${sr.b}, 0.4)`;
+    ctx.fillRect(290, H / 2 + 10, 100, 2);
 
     // Tagline right-aligned
     if (options.tagline) {
       ctx.font = '20px sans-serif';
-      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.6)';
+      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.55)';
       ctx.textAlign = 'right';
-      ctx.fillText(options.tagline, W - 80, H / 2 + 5);
+      ctx.fillText(options.tagline, W - 90, H / 2 + 5);
       ctx.textAlign = 'left';
     }
 
-    // Bottom accent line
-    ctx.fillStyle = secondary;
-    ctx.fillRect(0, H - 6, W, 6);
+    // Bottom accent — gradient bar
+    const barGrad = ctx.createLinearGradient(0, 0, W, 0);
+    barGrad.addColorStop(0, secondary);
+    barGrad.addColorStop(0.5, lightenHex(secondary, 0.2));
+    barGrad.addColorStop(1, secondary);
+    ctx.fillStyle = barGrad;
+    ctx.fillRect(0, H - 5, W, 5);
   };
 
   const drawPinterestPin = async (
@@ -425,47 +500,69 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
   ) => {
     const { width: W, height: H } = spec;
 
-    // Upper section — light gradient
-    const upperGrad = ctx.createLinearGradient(0, 0, 0, H * 0.65);
-    upperGrad.addColorStop(0, lightenHex(primary, 0.85));
-    upperGrad.addColorStop(1, lightenHex(primary, 0.7));
+    // Upper section — soft warm gradient
+    const upperGrad = ctx.createLinearGradient(0, 0, W * 0.3, H * 0.65);
+    upperGrad.addColorStop(0, lightenHex(primary, 0.88));
+    upperGrad.addColorStop(0.5, lightenHex(secondary, 0.85));
+    upperGrad.addColorStop(1, lightenHex(primary, 0.75));
     ctx.fillStyle = upperGrad;
     ctx.fillRect(0, 0, W, H * 0.65);
 
-    // Subtle pattern on upper
-    drawDotPattern(ctx, W, Math.round(H * 0.65), primary, 0.04, 35, 3);
+    // Subtle pattern — small cross/plus marks instead of dots
+    const pr = hexToRgb(primary);
+    ctx.strokeStyle = `rgba(${pr.r}, ${pr.g}, ${pr.b}, 0.06)`;
+    ctx.lineWidth = 1.5;
+    for (let x = 30; x < W; x += 50) {
+      for (let y = 30; y < H * 0.65; y += 50) {
+        ctx.beginPath();
+        ctx.moveTo(x - 5, y); ctx.lineTo(x + 5, y);
+        ctx.moveTo(x, y - 5); ctx.lineTo(x, y + 5);
+        ctx.stroke();
+      }
+    }
 
     // Large logo centered in upper half
-    await drawLogo(ctx, options.logoUrl, (W - 450) / 2, 180, 450, 450, options.businessName, primary);
+    await drawLogo(ctx, options.logoUrl, (W - 420) / 2, 150, 420, 420, options.businessName, primary);
+
+    // Decorative divider between sections — wavy accent line
+    const cardY = Math.round(H * 0.65);
+    ctx.fillStyle = secondary;
+    ctx.fillRect((W - 80) / 2, cardY - 15, 80, 3);
 
     // Bottom card with brand color
-    const cardY = Math.round(H * 0.65);
-    ctx.fillStyle = primary;
+    const cardGrad = ctx.createLinearGradient(0, cardY, 0, H);
+    cardGrad.addColorStop(0, primary);
+    cardGrad.addColorStop(1, lightenHex(primary, -0.1));
+    ctx.fillStyle = cardGrad;
     ctx.fillRect(0, cardY, W, H - cardY);
 
     // Business name on card
     const textColor = isLightColor(primary) ? '#111' : '#fff';
     ctx.fillStyle = textColor;
-    ctx.font = 'bold 52px sans-serif';
+    ctx.font = 'bold 50px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(options.businessName, W / 2, cardY + 100);
+    ctx.fillText(options.businessName, W / 2, cardY + 90);
 
     // Tagline
     if (options.tagline) {
-      ctx.font = '28px sans-serif';
-      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)';
-      ctx.fillText(options.tagline, W / 2, cardY + 150);
+      ctx.font = '26px sans-serif';
+      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.65)';
+      ctx.fillText(options.tagline, W / 2, cardY + 140);
     }
 
-    // CTA pill
-    const ctaText = 'Visit Us';
-    ctx.font = 'bold 24px sans-serif';
-    const ctaW = ctx.measureText(ctaText).width + 60;
+    // CTA pill — rounded with border
+    const ctaText = 'Learn More';
+    ctx.font = 'bold 22px sans-serif';
+    const ctaW = ctx.measureText(ctaText).width + 64;
+    const ctaH = 52;
+    const ctaX = (W - ctaW) / 2;
+    const ctaY = cardY + 180;
+
     ctx.fillStyle = secondary;
-    roundedRect(ctx, (W - ctaW) / 2, cardY + 190, ctaW, 55, 28);
+    roundedRect(ctx, ctaX, ctaY, ctaW, ctaH, 26);
     ctx.fill();
     ctx.fillStyle = isLightColor(secondary) ? '#111' : '#fff';
-    ctx.fillText(ctaText, W / 2, cardY + 225);
+    ctx.fillText(ctaText, W / 2, ctaY + 34);
 
     ctx.textAlign = 'left';
   };
@@ -478,45 +575,77 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
   ) => {
     const { width: W, height: H } = spec;
 
-    // Dark base
-    ctx.fillStyle = '#0a0a0a';
+    // Dark gradient base — not pure black, has brand tint
+    const pr = hexToRgb(primary);
+    const baseGrad = ctx.createLinearGradient(0, 0, 0, H);
+    baseGrad.addColorStop(0, '#0a0a0a');
+    baseGrad.addColorStop(0.5, `rgba(${Math.min(pr.r, 30)}, ${Math.min(pr.g, 30)}, ${Math.min(pr.b, 30)}, 1)`);
+    baseGrad.addColorStop(1, '#050505');
+    ctx.fillStyle = baseGrad;
     ctx.fillRect(0, 0, W, H);
 
-    // Neon glow effect — radial gradient behind logo area
+    // Primary neon glow — main ring behind logo
     const { r, g, b } = hexToRgb(secondary);
-    const glow = ctx.createRadialGradient(W / 2, H * 0.38, 50, W / 2, H * 0.38, 400);
-    glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.3)`);
-    glow.addColorStop(0.5, `rgba(${r}, ${g}, ${b}, 0.1)`);
-    glow.addColorStop(1, 'rgba(0,0,0,0)');
-    ctx.fillStyle = glow;
+    const glow1 = ctx.createRadialGradient(W / 2, H * 0.38, 80, W / 2, H * 0.38, 380);
+    glow1.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.35)`);
+    glow1.addColorStop(0.4, `rgba(${r}, ${g}, ${b}, 0.12)`);
+    glow1.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow1;
     ctx.fillRect(0, 0, W, H);
 
-    // Corner accents (TikTok style)
-    ctx.fillStyle = secondary;
-    ctx.fillRect(50, 50, 80, 4);
-    ctx.fillRect(50, 50, 4, 80);
-    ctx.fillRect(W - 130, H - 134, 80, 4);
-    ctx.fillRect(W - 54, H - 134, 4, 80);
+    // Secondary glow — offset for depth
+    const glow2 = ctx.createRadialGradient(W * 0.45, H * 0.35, 40, W * 0.45, H * 0.35, 250);
+    glow2.addColorStop(0, `rgba(${pr.r}, ${pr.g}, ${pr.b}, 0.2)`);
+    glow2.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow2;
+    ctx.fillRect(0, 0, W, H);
 
-    // Logo with glow
-    await drawLogo(ctx, options.logoUrl, (W - 400) / 2, 350, 400, 400, options.businessName, accent);
+    // Neon corner brackets (TikTok creator aesthetic)
+    ctx.strokeStyle = secondary;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    // Top-left
+    ctx.beginPath();
+    ctx.moveTo(60, 130); ctx.lineTo(60, 60); ctx.lineTo(130, 60);
+    ctx.stroke();
+    // Top-right
+    ctx.beginPath();
+    ctx.moveTo(W - 130, 60); ctx.lineTo(W - 60, 60); ctx.lineTo(W - 60, 130);
+    ctx.stroke();
+    // Bottom-left
+    ctx.beginPath();
+    ctx.moveTo(60, H - 130); ctx.lineTo(60, H - 60); ctx.lineTo(130, H - 60);
+    ctx.stroke();
+    // Bottom-right
+    ctx.beginPath();
+    ctx.moveTo(W - 130, H - 60); ctx.lineTo(W - 60, H - 60); ctx.lineTo(W - 60, H - 130);
+    ctx.stroke();
 
-    // Business name — bold creator style
+    // Logo centered
+    await drawLogo(ctx, options.logoUrl, (W - 400) / 2, 340, 400, 400, options.businessName, accent);
+
+    // Business name — bold with subtle text shadow
+    ctx.save();
+    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
+    ctx.shadowBlur = 20;
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 68px sans-serif';
+    ctx.font = 'bold 66px sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(options.businessName, W / 2, 880);
+    ctx.restore();
 
-    // Tagline with neon tint
+    // Tagline with neon color
     if (options.tagline) {
       ctx.fillStyle = secondary;
-      ctx.font = '30px sans-serif';
+      ctx.font = '28px sans-serif';
+      ctx.textAlign = 'center';
       ctx.fillText(options.tagline, W / 2, 930);
     }
 
-    // Bottom handles/hashtags style text
-    ctx.fillStyle = 'rgba(255,255,255,0.4)';
+    // Handle text at bottom
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.font = '22px sans-serif';
+    ctx.textAlign = 'center';
     ctx.fillText(`@${options.businessName.toLowerCase().replace(/\s+/g, '')}`, W / 2, H - 200);
 
     ctx.textAlign = 'left';
@@ -530,32 +659,44 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
   ) => {
     const { width: W, height: H } = spec;
 
-    // Clean white/light background
+    // Clean white background
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, W, H);
 
-    // Logo left
-    await drawLogo(ctx, options.logoUrl, 20, (H - 80) / 2, 80, 80, options.businessName, primary);
+    // Very subtle top tint bar using primary at low opacity
+    const { r, g, b } = hexToRgb(primary);
+    const topGrad = ctx.createLinearGradient(0, 0, 0, 8);
+    topGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.08)`);
+    topGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = topGrad;
+    ctx.fillRect(0, 0, W, 40);
+
+    // Logo left with proper spacing
+    await drawLogo(ctx, options.logoUrl, 24, (H - 70) / 2, 70, 70, options.businessName, primary);
+
+    // Thin vertical divider
+    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.12)`;
+    ctx.fillRect(108, H * 0.25, 1, H * 0.5);
 
     // Company name
     ctx.fillStyle = primary;
-    ctx.font = 'bold 24px sans-serif';
-    ctx.fillText(options.businessName, 120, H / 2 - 5);
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillText(options.businessName, 124, H / 2 - 4);
 
-    // Tagline below name
+    // Tagline
     if (options.tagline) {
-      ctx.font = '13px sans-serif';
-      ctx.fillStyle = '#888888';
-      ctx.fillText(options.tagline, 120, H / 2 + 16);
+      ctx.font = '12px sans-serif';
+      ctx.fillStyle = '#999999';
+      ctx.fillText(options.tagline, 124, H / 2 + 14);
     }
 
-    // Bottom border in brand color
-    ctx.fillStyle = primary;
+    // Bottom border — two-tone gradient
+    const barGrad = ctx.createLinearGradient(0, 0, W, 0);
+    barGrad.addColorStop(0, secondary);
+    barGrad.addColorStop(0.3, primary);
+    barGrad.addColorStop(1, primary);
+    ctx.fillStyle = barGrad;
     ctx.fillRect(0, H - 4, W, 4);
-
-    // Thin secondary accent stripe
-    ctx.fillStyle = secondary;
-    ctx.fillRect(0, H - 4, W * 0.3, 4);
   };
 
   /**
