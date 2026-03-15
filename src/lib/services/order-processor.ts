@@ -3,9 +3,6 @@ import { generateBrandGuidePDF } from './pdf-generator';
 import { generateReadmeContent } from './readme-generator';
 import { createBrandAssetZip } from './zip-packager';
 import { saveFile, saveTextFile, generateFileName } from './file-manager';
-import { generateFigmaTemplates } from './figma-generator';
-import { generateCanvaTemplates } from './canva-generator';
-import { generateMediaAssets } from './media-assets-generator';
 
 export interface OrderProcessingInput {
   orderId: number;
