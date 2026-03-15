@@ -45,7 +45,7 @@ docs/
 |------|---------|
 | `src/lib/services/image-generation.ts` | AI provider abstraction (Together, Replicate, Fal, Google, Laozhang) |
 | `src/lib/services/mockup-generator.ts` | Mockup generator (client-side placeholder) |
-| `src/lib/services/social-media-generator.ts` | Social media generator (client-side placeholder) |
+| `src/lib/services/social-media-generator.ts` | Social media generator (server-side placeholder - DEPRECATED) |
 | `src/hooks/useClientMockupGenerator.ts` | **NEW: Client-side mockup renderer** |
 | `src/hooks/useClientSocialGenerator.ts` | **NEW: Client-side social renderer** |
 | `src/lib/services/pdf-generator.ts` | PDF brand guide generator |
@@ -58,7 +58,7 @@ docs/
 | File | Purpose |
 |------|---------|
 | `prisma/schema.prisma` | Database schema |
-| `src/lib/database.ts` | Database client |
+| `src/lib/database.ts` | Custom MySQL client (Prisma-compatible API) |
 
 ---
 
@@ -211,7 +211,10 @@ See `docs/ENVIRONMENT_VARIABLES.md` for complete reference.
 | Mockups not generating | Check browser console for canvas errors |
 | Social assets missing | Verify order tier is "premium" |
 | PDF not showing mockups | Check mockups saved as base64 in OrderDetail |
+| PDF font errors | **FIXED** - Typography system will embed fonts (Helvetica.afm missing in Vercel) |
 | Logo generation fails | Check TOGETHER_API_KEY |
+
+**Note:** Typography system planned (~11 days) - will add font selection, uploads, and PDF embedding.
 
 ---
 
