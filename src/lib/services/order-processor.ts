@@ -74,8 +74,13 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
     });
 
     // Generate PDF
-    console.log(`[${input.orderId}] Generating PDF...`);
-    const pdfBuffer = await generateBrandGuidePDF({
+    console.log(`[${input.orderId}] Generating PDF with logo variant ${selectedVariantNum}...`);
+    console.log(`[${input.orderId}] Logo data present: ${!!logoVariant?.svgData}`);
+    console.log(`[${input.orderId}] Mockups present:`, Object.keys(mockupData).filter(k => !!mockupData[k]));
+    
+    let pdfBuffer;
+    try {
+      pdfBuffer = await generateBrandGuidePDF({
       businessName: input.businessName,
       tagline: orderData.tagline,
       logo: logoVariant?.svgData ? {
@@ -105,9 +110,24 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
       createdAt: new Date(),
       authorEmail: order.customerEmail,
     });
+    } catch (pdfGenError) {
+      console.error(`[${input.orderId}] PDF generation error:`, pdfGenError);
+      throw pdfGenError;
+    }
+
+    console.log(`[${input.orderId}] PDF buffer generated, size: ${pdfBuffer?.length || 0} bytes`);
 
     const pdfFileName = generateFileName('pdf', input.orderId, input.businessName);
-    const pdfPath = await saveFile(pdfFileName, pdfBuffer);
+    console.log(`[${input.orderId}] Saving PDF as: ${pdfFileName}`);
+    
+    let pdfPath;
+    try {
+      pdfPath = await saveFile(pdfFileName, pdfBuffer);
+      console.log(`[${input.orderId}] PDF saved to: ${pdfPath}`);
+    } catch (saveError) {
+      console.error(`[${input.orderId}] Failed to save PDF:`, saveError);
+      throw saveError;
+    }
 
     // Save PDF path to database
     await prisma.orderDetail.upsert({
