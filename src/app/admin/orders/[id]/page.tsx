@@ -316,7 +316,21 @@ export default function AdminOrderDetail() {
       }
       
       setClientGenStep('complete');
-      setSuccessMessage('All assets generated successfully!');
+      setSuccessMessage('All assets generated successfully! Refreshing...');
+      
+      // Final refresh to ensure all data is displayed
+      const finalRefreshResponse = await fetch(`/api/admin/orders/${orderId}`, {
+        credentials: 'include',
+      });
+      if (finalRefreshResponse.ok) {
+        const finalRefreshData = await finalRefreshResponse.json();
+        console.log('[Generate] Final refresh - logos:', finalRefreshData.logos.map((l: { variantNum: number; mockupPaths: string | null }) => ({ 
+          variant: l.variantNum, 
+          hasMockups: !!l.mockupPaths 
+        })));
+        setOrder(finalRefreshData);
+      }
+      
       setTimeout(() => {
         setSuccessMessage('');
         setClientGenStep('idle');

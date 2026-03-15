@@ -635,7 +635,8 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
   };
 
   /**
-   * Generate all social assets and upload to server
+   * Generate all social assets and upload to server in batches
+   * (to avoid 413 Payload Too Large errors)
    */
   const generateAndUploadSocialAssets = useCallback(async (
     orderId: number,
@@ -646,48 +647,67 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     error?: string;
   }> => {
     setIsGenerating(true);
-    const assets: Record<string, string> = {};
+    const allAssets: Record<string, string> = {};
 
     try {
-      // Generate each platform
-      for (let i = 0; i < ALL_PLATFORMS.length; i++) {
-        const platform = ALL_PLATFORMS[i];
+      // Split platforms into batches of 3 to avoid payload size limits
+      const BATCH_SIZE = 3;
+      const batches: SocialPlatform[][] = [];
+      for (let i = 0; i < ALL_PLATFORMS.length; i += BATCH_SIZE) {
+        batches.push(ALL_PLATFORMS.slice(i, i + BATCH_SIZE));
+      }
+
+      // Generate and upload each batch
+      for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
+        const batch = batches[batchIndex];
+        const batchAssets: Record<string, string> = {};
+
+        // Generate assets for this batch
+        for (let i = 0; i < batch.length; i++) {
+          const platform = batch[i];
+          const overallIndex = batchIndex * BATCH_SIZE + i;
+          
+          setProgress({
+            current: overallIndex + 1,
+            total: ALL_PLATFORMS.length,
+            step: `Generating ${PLATFORM_SPECS[platform].name} (${overallIndex + 1}/${ALL_PLATFORMS.length})...`,
+          });
+
+          const imageData = await renderSocialAsset(platform, options);
+          // Use underscore key for storage (matches UI expectations)
+          const storageKey = PLATFORM_KEY_MAP[platform];
+          batchAssets[storageKey] = imageData;
+          allAssets[storageKey] = imageData;
+        }
+
+        // Upload this batch
         setProgress({
-          current: i + 1,
+          current: (batchIndex + 1) * BATCH_SIZE > ALL_PLATFORMS.length 
+            ? ALL_PLATFORMS.length 
+            : (batchIndex + 1) * BATCH_SIZE,
           total: ALL_PLATFORMS.length,
-          step: `Generating ${PLATFORM_SPECS[platform].name}...`,
+          step: `Uploading batch ${batchIndex + 1}/${batches.length}...`,
         });
 
-        const imageData = await renderSocialAsset(platform, options);
-        // Use underscore key for storage (matches UI expectations)
-        assets[PLATFORM_KEY_MAP[platform]] = imageData;
+        const response = await fetch(`/api/orders/${orderId}/upload-mockups`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('adminToken') || ''}`,
+          },
+          body: JSON.stringify({
+            socialAssets: batchAssets,
+          }),
+        });
+
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to upload batch ${batchIndex + 1}: ${errorText}`);
+        }
+
+        const result = await response.json();
+        console.log(`[Social Generator] Batch ${batchIndex + 1} upload result:`, result);
       }
-
-      // Upload to server
-      setProgress({
-        current: ALL_PLATFORMS.length,
-        total: ALL_PLATFORMS.length,
-        step: 'Uploading to server...',
-      });
-
-      const response = await fetch(`/api/orders/${orderId}/upload-mockups`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken') || ''}`,
-        },
-        body: JSON.stringify({
-          socialAssets: assets,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to upload social assets');
-      }
-
-      const result = await response.json();
-      console.log('[Social Generator] Upload result:', result);
 
       setProgress({
         current: ALL_PLATFORMS.length,
@@ -697,7 +717,7 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
 
       return {
         success: true,
-        assets,
+        assets: allAssets,
       };
 
     } catch (error) {
