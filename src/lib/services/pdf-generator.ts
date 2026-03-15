@@ -11,6 +11,8 @@ export interface BrandGuideData {
     letterhead?: string;
     businesscard?: string;
     tshirt?: string;
+    coffeeMug?: string;
+    toteBag?: string;
   };
   fonts?: {
     headings?: {

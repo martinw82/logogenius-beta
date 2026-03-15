@@ -3,6 +3,8 @@ import { generateBrandGuidePDF } from './pdf-generator';
 import { generateReadmeContent } from './readme-generator';
 import { createBrandAssetZip } from './zip-packager';
 import { saveFile, saveTextFile, generateFileName } from './file-manager';
+import { generateAIMockups } from './ai-mockup-generator';
+import { generateAISocialAssets } from './ai-social-generator';
 
 function hexToRgbSafe(hex: string): { r: number; g: number; b: number } {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -102,6 +104,89 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
       where: { orderId: input.orderId, variantNum: selectedVariantNum },
     });
 
+    // === AI Photorealistic Mockups (t-shirt, coffee mug, tote bag) ===
+    console.log(`[${input.orderId}] Generating AI photorealistic mockups...`);
+    try {
+      const aiMockupColors = [
+        ...(orderData.colorPalette?.primary || []),
+        ...(orderData.colorPalette?.secondary || []),
+        ...(orderData.colorPalette?.accent || []),
+      ].filter(Boolean);
+
+      const aiMockups = await generateAIMockups({
+        businessName: input.businessName,
+        brandColors: aiMockupColors.length > 0 ? aiMockupColors : ['#2563eb', '#1e40af', '#f59e0b'],
+        industry: orderData.industry || 'business',
+        logoStyle: orderData.logoStyle,
+        keywords: orderData.keywords,
+      });
+
+      // Save AI mockups to OrderDetail
+      const aiMockupEntries = [
+        { fieldName: 'ai_mockup_tshirt', fieldValue: aiMockups.tshirt },
+        { fieldName: 'ai_mockup_mug', fieldValue: aiMockups.coffeeMug },
+        { fieldName: 'ai_mockup_tote', fieldValue: aiMockups.toteBag },
+      ];
+
+      for (const entry of aiMockupEntries) {
+        await prisma.orderDetail.upsert({
+          where: {
+            orderId_fieldName: { orderId: input.orderId, fieldName: entry.fieldName },
+          },
+          update: { fieldValue: entry.fieldValue },
+          create: { orderId: input.orderId, ...entry },
+        });
+      }
+
+      // Add AI mockups to mockupData for PDF inclusion
+      mockupData['ai_tshirt'] = aiMockups.tshirt;
+      mockupData['ai_mug'] = aiMockups.coffeeMug;
+      mockupData['ai_tote'] = aiMockups.toteBag;
+
+      console.log(`[${input.orderId}] AI mockups generated and saved`);
+    } catch (aiMockupError) {
+      console.warn(`[${input.orderId}] AI mockup generation failed (non-fatal):`, aiMockupError instanceof Error ? aiMockupError.message : aiMockupError);
+    }
+
+    // === AI Social Media Assets (Instagram Post, YouTube Thumbnail, Website Hero) ===
+    console.log(`[${input.orderId}] Generating AI social media assets...`);
+    try {
+      const aiSocialColors = [
+        ...(orderData.colorPalette?.primary || []),
+        ...(orderData.colorPalette?.secondary || []),
+        ...(orderData.colorPalette?.accent || []),
+      ].filter(Boolean);
+
+      const aiSocial = await generateAISocialAssets({
+        businessName: input.businessName,
+        brandColors: aiSocialColors.length > 0 ? aiSocialColors : ['#2563eb', '#1e40af', '#f59e0b'],
+        industry: orderData.industry || 'business',
+        tagline: orderData.tagline,
+        logoStyle: orderData.logoStyle,
+      });
+
+      // Save AI social assets to OrderDetail
+      const aiSocialEntries = [
+        { fieldName: 'social_instagram_post', fieldValue: aiSocial.instagramPost },
+        { fieldName: 'social_youtube_thumbnail', fieldValue: aiSocial.youtubeThumbnail },
+        { fieldName: 'social_website_hero', fieldValue: aiSocial.websiteHero },
+      ];
+
+      for (const entry of aiSocialEntries) {
+        await prisma.orderDetail.upsert({
+          where: {
+            orderId_fieldName: { orderId: input.orderId, fieldName: entry.fieldName },
+          },
+          update: { fieldValue: entry.fieldValue },
+          create: { orderId: input.orderId, ...entry },
+        });
+      }
+
+      console.log(`[${input.orderId}] AI social assets generated and saved`);
+    } catch (aiSocialError) {
+      console.warn(`[${input.orderId}] AI social generation failed (non-fatal):`, aiSocialError instanceof Error ? aiSocialError.message : aiSocialError);
+    }
+
     // Generate PDF
     console.log(`[${input.orderId}] Generating PDF with logo variant ${selectedVariantNum}...`);
     console.log(`[${input.orderId}] Logo data present: ${!!logoVariant?.svgData}`);
@@ -119,7 +204,9 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
       mockups: {
         letterhead: mockupData['letterhead'],
         businesscard: mockupData['businesscard'],
-        tshirt: mockupData['tshirt'],
+        tshirt: mockupData['ai_tshirt'] || mockupData['tshirt'],
+        coffeeMug: mockupData['ai_mug'],
+        toteBag: mockupData['ai_tote'],
       },
       fonts: orderData.fonts,
       sections: {
@@ -508,6 +595,9 @@ function extractOrderData(details: any[]) {
     web3Section: data['guide_web3Section'] || data['web3Section'],
     appendix: data['guide_appendix'] || data['appendix'],
     logoUsageRules: data['logoUsageRules'],
+    industry: data['industry'],
+    keywords: data['keywords'],
+    logoStyle: data['preferredLogoStyle'] || data['logoStyle'],
   };
 }
 

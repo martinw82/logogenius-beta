@@ -36,10 +36,14 @@ interface OrderData {
   updatedAt: string;
   selectedLogoId: number | null;
   data: Record<string, any> & {
-    // Mockups
+    // Canvas Mockups
     mockup_businesscard?: string;
     mockup_letterhead?: string;
     mockup_tshirt?: string;
+    // AI Photorealistic Mockups
+    ai_mockup_tshirt?: string;
+    ai_mockup_mug?: string;
+    ai_mockup_tote?: string;
     // Social Media
     social_instagram_post?: string;
     social_instagram_story?: string;
@@ -665,12 +669,12 @@ export default function AdminOrderDetail() {
         </Card>
       )}
 
-      {/* Mockup Preview Grid - 12 mockups (4 variants x 3 templates) */}
+      {/* Canvas Mockup Preview Grid - 4 variants × 2 templates */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-lg">Mockup Preview (4 variants × 3 templates)</CardTitle>
+          <CardTitle className="text-lg">Canvas Mockups (4 variants × 2 templates)</CardTitle>
           <CardDescription>
-            Review how logos look on different mockup templates
+            Business card and letterhead mockups for each logo variant
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -684,78 +688,8 @@ export default function AdminOrderDetail() {
               ))}
             </div>
 
-            {/* Row 1: Letterhead mockups */}
+            {/* Row 1: Business Card mockups */}
             <div className="col-span-4 grid grid-cols-4 gap-4 mb-6">
-              {[1, 2, 3, 4].map((variant) => {
-                const logo = order.logos.find(l => l.variantNum === variant);
-                const mockups = logo?.mockupPaths ? JSON.parse(logo.mockupPaths) : {};
-                return (
-                  <div
-                    key={`letterhead-${variant}`}
-                    className="border rounded-lg bg-gray-50 aspect-video flex flex-col items-center justify-center p-4"
-                  >
-                    <div className="text-xs text-gray-400 mb-2">Letterhead</div>
-                    {mockups.letterhead ? (
-                      <img
-                        src={mockups.letterhead}
-                        alt={`Letterhead Mockup V${variant}`}
-                        className="w-full h-24 object-contain cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() => openLightbox(mockups.letterhead, `Letterhead Mockup - Variant ${variant}`)}
-                      />
-                    ) : (
-                      <div className="text-gray-300 text-sm">
-                        [Mockup V{variant}]
-                      </div>
-                    )}
-                    {mockups.letterhead && (
-                      <Button variant="ghost" size="sm" className="mt-2" asChild>
-                        <a href={mockups.letterhead} download={`letterhead-v${variant}.png`}>
-                          <Download className="h-3 w-3" />
-                        </a>
-                      </Button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Row 2: T-Shirt mockups */}
-            <div className="col-span-4 grid grid-cols-4 gap-4 mb-6">
-              {[1, 2, 3, 4].map((variant) => {
-                const logo = order.logos.find(l => l.variantNum === variant);
-                const mockups = logo?.mockupPaths ? JSON.parse(logo.mockupPaths) : {};
-                return (
-                  <div
-                    key={`tshirt-${variant}`}
-                    className="border rounded-lg bg-gray-50 aspect-video flex flex-col items-center justify-center p-4"
-                  >
-                    <div className="text-xs text-gray-400 mb-2">T-Shirt</div>
-                    {mockups.tshirt ? (
-                      <img
-                        src={mockups.tshirt}
-                        alt={`T-Shirt Mockup V${variant}`}
-                        className="w-full h-24 object-contain cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() => openLightbox(mockups.tshirt, `T-Shirt Mockup - Variant ${variant}`)}
-                      />
-                    ) : (
-                      <div className="text-gray-300 text-sm">
-                        [Mockup V{variant}]
-                      </div>
-                    )}
-                    {mockups.tshirt && (
-                      <Button variant="ghost" size="sm" className="mt-2" asChild>
-                        <a href={mockups.tshirt} download={`tshirt-v${variant}.png`}>
-                          <Download className="h-3 w-3" />
-                        </a>
-                      </Button>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-
-            {/* Row 3: Business Card mockups */}
-            <div className="col-span-4 grid grid-cols-4 gap-4">
               {[1, 2, 3, 4].map((variant) => {
                 const logo = order.logos.find(l => l.variantNum === variant);
                 const mockups = logo?.mockupPaths ? JSON.parse(logo.mockupPaths) : {};
@@ -768,18 +702,49 @@ export default function AdminOrderDetail() {
                     {mockups.businesscard ? (
                       <img
                         src={mockups.businesscard}
-                        alt={`Business Card Mockup V${variant}`}
+                        alt={`Business Card V${variant}`}
                         className="w-full h-24 object-contain cursor-pointer hover:opacity-80 transition-opacity"
-                        onClick={() => openLightbox(mockups.businesscard, `Business Card Mockup - Variant ${variant}`)}
+                        onClick={() => openLightbox(mockups.businesscard, `Business Card - Variant ${variant}`)}
                       />
                     ) : (
-                      <div className="text-gray-300 text-sm">
-                        [Mockup V{variant}]
-                      </div>
+                      <div className="text-gray-300 text-sm">[Not generated]</div>
                     )}
                     {mockups.businesscard && (
                       <Button variant="ghost" size="sm" className="mt-2" asChild>
                         <a href={mockups.businesscard} download={`businesscard-v${variant}.png`}>
+                          <Download className="h-3 w-3" />
+                        </a>
+                      </Button>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+
+            {/* Row 2: Letterhead mockups */}
+            <div className="col-span-4 grid grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((variant) => {
+                const logo = order.logos.find(l => l.variantNum === variant);
+                const mockups = logo?.mockupPaths ? JSON.parse(logo.mockupPaths) : {};
+                return (
+                  <div
+                    key={`letterhead-${variant}`}
+                    className="border rounded-lg bg-gray-50 aspect-video flex flex-col items-center justify-center p-4"
+                  >
+                    <div className="text-xs text-gray-400 mb-2">Letterhead</div>
+                    {mockups.letterhead ? (
+                      <img
+                        src={mockups.letterhead}
+                        alt={`Letterhead V${variant}`}
+                        className="w-full h-24 object-contain cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => openLightbox(mockups.letterhead, `Letterhead - Variant ${variant}`)}
+                      />
+                    ) : (
+                      <div className="text-gray-300 text-sm">[Not generated]</div>
+                    )}
+                    {mockups.letterhead && (
+                      <Button variant="ghost" size="sm" className="mt-2" asChild>
+                        <a href={mockups.letterhead} download={`letterhead-v${variant}.png`}>
                           <Download className="h-3 w-3" />
                         </a>
                       </Button>
@@ -800,6 +765,57 @@ export default function AdminOrderDetail() {
           )}
         </CardContent>
       </Card>
+
+      {/* AI Photorealistic Mockups (generated after logo selection) */}
+      {(order.data.ai_mockup_tshirt || order.data.ai_mockup_mug || order.data.ai_mockup_tote) && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">AI Product Mockups</CardTitle>
+            <CardDescription>
+              Photorealistic mockups generated for the selected logo
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-3 gap-6">
+              {[
+                { key: 'ai_mockup_tshirt', label: 'T-Shirt', filename: 'tshirt-mockup.png' },
+                { key: 'ai_mockup_mug', label: 'Coffee Mug', filename: 'mug-mockup.png' },
+                { key: 'ai_mockup_tote', label: 'Tote Bag', filename: 'tote-mockup.png' },
+              ].map(({ key, label, filename }) => {
+                const imageUrl = order.data[key];
+                return (
+                  <div
+                    key={key}
+                    className="border rounded-lg bg-gray-50 flex flex-col items-center justify-center p-4"
+                  >
+                    <div className="text-sm font-medium text-gray-700 mb-3">{label}</div>
+                    {imageUrl ? (
+                      <>
+                        <img
+                          src={imageUrl}
+                          alt={`${label} Mockup`}
+                          className="w-full h-48 object-contain mb-3 cursor-pointer hover:opacity-80 transition-opacity rounded"
+                          onClick={() => openLightbox(imageUrl, `${label} Mockup`)}
+                        />
+                        <Button variant="ghost" size="sm" asChild>
+                          <a href={imageUrl} download={filename}>
+                            <Download className="h-3 w-3 mr-1" />
+                            Download
+                          </a>
+                        </Button>
+                      </>
+                    ) : (
+                      <div className="text-gray-300 text-sm h-48 flex items-center">
+                        Not generated
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Social Media Assets (Tier 3 Only) */}
       {(order.tier === 'premium' || order.tier === '3' || String(order.tier).toLowerCase().includes('premium') || String(order.tier).toLowerCase().includes('tier 3')) && (
@@ -933,6 +949,7 @@ export default function AdminOrderDetail() {
                 ([key]) =>
                   !key.startsWith('pdf_') &&
                   !key.startsWith('mockup_') &&
+                  !key.startsWith('ai_mockup_') &&
                   !key.startsWith('zip_') &&
                   !key.startsWith('readme_') &&
                   !key.startsWith('social_') &&
