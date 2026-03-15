@@ -96,6 +96,7 @@ export async function POST(
     console.log(`[Finalize] Order ${orderId} - Selected variant ${selectedVariant}`);
 
     // Save the selected logo to order
+    const prisma = getPrisma();
     await prisma.order.update({
       where: { id: orderId },
       data: { 
@@ -180,7 +181,6 @@ export async function POST(
     
     // Verify PDF was saved
     try {
-      const prisma = getPrisma();
       const pdfDetail = await prisma.orderDetail.findUnique({
         where: {
           orderId_fieldName: {
