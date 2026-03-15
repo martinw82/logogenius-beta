@@ -744,6 +744,46 @@ export default function AdminOrderDetail() {
         </Card>
       )}
 
+      {/* Downloads Section */}
+      {(order.data.pdf_path || order.data.zip_path || order.data.readme_path) && (
+        <Card className="bg-green-50 border-green-200">
+          <CardHeader>
+            <CardTitle className="text-lg text-green-900">Downloads</CardTitle>
+            <CardDescription className="text-green-700">
+              Generated brand assets ready for download
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex flex-wrap gap-3">
+              {order.data.pdf_path && (
+                <Button variant="outline" className="bg-white border-green-300 hover:bg-green-100" asChild>
+                  <a href={order.data.pdf_path} download>
+                    <Download className="h-4 w-4 mr-2" />
+                    Brand Guide PDF
+                  </a>
+                </Button>
+              )}
+              {order.data.zip_path && (
+                <Button variant="outline" className="bg-white border-green-300 hover:bg-green-100" asChild>
+                  <a href={order.data.zip_path} download>
+                    <Download className="h-4 w-4 mr-2" />
+                    All Assets (ZIP)
+                  </a>
+                </Button>
+              )}
+              {order.data.readme_path && (
+                <Button variant="outline" className="bg-white border-green-300 hover:bg-green-100" asChild>
+                  <a href={order.data.readme_path} download>
+                    <Download className="h-4 w-4 mr-2" />
+                    README
+                  </a>
+                </Button>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Order Data */}
       <Card>
         <CardHeader>
@@ -756,6 +796,10 @@ export default function AdminOrderDetail() {
                 ([key]) =>
                   !key.startsWith('pdf_') &&
                   !key.startsWith('mockup_') &&
+                  !key.startsWith('zip_') &&
+                  !key.startsWith('readme_') &&
+                  !key.startsWith('social_') &&
+                  !key.startsWith('logoUrl') &&
                   key !== 'admin_notes' &&
                   key !== 'businessName' &&
                   key !== 'industry'

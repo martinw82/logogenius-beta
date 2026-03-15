@@ -12,6 +12,7 @@ import { generateComprehensiveBrandGuide } from "@/ai/flows/generate-comprehensi
 // Import FREE mockup and social media generators
 import { generateAllMockups, MockupTemplate } from "@/lib/services/mockup-generator";
 import { generateAllSocialAssets, SocialPlatform } from "@/lib/services/social-media-generator";
+import { processOrderAssets } from "@/lib/services/order-processor";
 
 export async function POST(
   request: NextRequest,
@@ -451,6 +452,20 @@ export async function POST(
           console.error("[Generate] Social media generation failed:", socialError);
           // Non-critical - continue without social assets
         }
+      }
+
+      // Step 6: Generate PDF and ZIP package
+      console.log(`[Generate] Starting PDF and ZIP generation`);
+      try {
+        await processOrderAssets({
+          orderId: orderId,
+          businessName: formData.businessName,
+          userApiKey: apiKey,
+        });
+        console.log(`[Generate] PDF and ZIP generated successfully`);
+      } catch (pdfError) {
+        console.error("[Generate] PDF generation failed:", pdfError);
+        // Non-critical - order is still ready but without PDF
       }
 
       // Update order status to "ready_for_review"
