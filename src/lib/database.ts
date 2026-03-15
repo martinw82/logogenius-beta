@@ -227,6 +227,15 @@ export const prisma = {
       return toCamelCase(rows);
     },
 
+    async findUnique(options: { where: { orderId: number; fieldName: string } }): Promise<OrderDetail | null> {
+      return this.findFirst({
+        where: {
+          orderId: options.where.orderId,
+          fieldName: options.where.fieldName,
+        },
+      });
+    },
+
     async findFirst(options?: { where?: { orderId?: number; fieldName?: string } }): Promise<OrderDetail | null> {
       let query = 'SELECT * FROM order_details';
       const conditions: string[] = [];
