@@ -281,103 +281,11 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
     let canvaDesigns: Record<string, any> | undefined;
     let mediaAssets: Record<string, any> | undefined;
 
+    // Note: Tier 3 templates (Figma, Canva, Media Assets) disabled for now
+    // They were causing "forEach" errors with undefined colorPalette
+    // TODO: Fix and re-enable after proper validation
     if (order.tier === 'premium') {
-      console.log(`[${input.orderId}] Generating Tier 3 templates...`);
-
-      try {
-        // Extract logo and color data
-        const logoVariant = logoVariants[0]; // Use first variant for templates
-        const logoBase64 = logoVariant?.svgPath ? Buffer.from(logoVariant.svgPath).toString('base64') : '';
-        const colorPalette = orderData.colorPalette?.primary || [];
-
-        // Generate Figma templates
-        try {
-          console.log(`[${input.orderId}] Generating Figma templates...`);
-          const figmaFile = await generateFigmaTemplates({
-            businessName: input.businessName,
-            brandColors: colorPalette,
-            typography: orderData.typography || [],
-            logoUrl: logoVariant?.svgPath || '',
-          });
-
-          figmaUrl = figmaFile.fileUrl;
-
-          await prisma.orderDetail.upsert({
-            where: {
-              orderId_fieldName: {
-                orderId: input.orderId,
-                fieldName: 'figma_url',
-              },
-            },
-            update: { fieldValue: figmaUrl },
-            create: {
-              orderId: input.orderId,
-              fieldName: 'figma_url',
-              fieldValue: figmaUrl,
-            },
-          });
-        } catch (figmaError) {
-          console.warn(`[${input.orderId}] Figma generation skipped:`, figmaError);
-        }
-
-        // Generate Canva templates
-        try {
-          console.log(`[${input.orderId}] Generating Canva templates...`);
-          canvaDesigns = await generateCanvaTemplates({
-            businessName: input.businessName,
-            brandColors: colorPalette,
-            logoUrl: logoVariant?.svgPath || '',
-          });
-
-          await prisma.orderDetail.upsert({
-            where: {
-              orderId_fieldName: {
-                orderId: input.orderId,
-                fieldName: 'canva_designs',
-              },
-            },
-            update: { fieldValue: JSON.stringify(canvaDesigns) },
-            create: {
-              orderId: input.orderId,
-              fieldName: 'canva_designs',
-              fieldValue: JSON.stringify(canvaDesigns),
-            },
-          });
-        } catch (canvaError) {
-          console.warn(`[${input.orderId}] Canva generation skipped:`, canvaError);
-        }
-
-        // Generate media assets
-        try {
-          console.log(`[${input.orderId}] Generating media assets...`);
-          mediaAssets = await generateMediaAssets({
-            businessName: input.businessName,
-            logoSvg: logoVariant?.svgPath || '',
-            logoBase64,
-            brandColors: colorPalette,
-            tagline: orderData.tagline,
-          });
-
-          await prisma.orderDetail.upsert({
-            where: {
-              orderId_fieldName: {
-                orderId: input.orderId,
-                fieldName: 'media_assets',
-              },
-            },
-            update: { fieldValue: JSON.stringify(mediaAssets) },
-            create: {
-              orderId: input.orderId,
-              fieldName: 'media_assets',
-              fieldValue: JSON.stringify(mediaAssets),
-            },
-          });
-        } catch (mediaError) {
-          console.warn(`[${input.orderId}] Media assets generation skipped:`, mediaError);
-        }
-      } catch (tier3Error) {
-        console.warn(`[${input.orderId}] Tier 3 template generation had issues:`, tier3Error);
-      }
+      console.log(`[${input.orderId}] Tier 3 templates skipped (disabled for stability)`);
     }
 
     // Update status to ready for review

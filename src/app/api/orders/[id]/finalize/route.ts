@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { getOrderById, updateOrder, prisma } from "@/lib/database";
+import { getOrderById, updateOrder, getPrisma } from "@/lib/database";
 import { verifyAdminToken, getTokenFromRequest } from "@/lib/auth";
 import { generateAllSocialAssets } from "@/lib/services/social-media-generator";
 import { processOrderAssets } from "@/lib/services/order-processor";
@@ -179,15 +179,20 @@ export async function POST(
     }
     
     // Verify PDF was saved
-    const pdfDetail = await prisma.orderDetail.findUnique({
-      where: {
-        orderId_fieldName: {
-          orderId: orderId,
-          fieldName: 'pdf_path',
+    try {
+      const prisma = getPrisma();
+      const pdfDetail = await prisma.orderDetail.findUnique({
+        where: {
+          orderId_fieldName: {
+            orderId: orderId,
+            fieldName: 'pdf_path',
+          },
         },
-      },
-    });
-    console.log(`[Finalize] PDF in database: ${pdfDetail?.fieldValue || 'NOT FOUND'}`);
+      });
+      console.log(`[Finalize] PDF in database: ${pdfDetail?.fieldValue || 'NOT FOUND'}`);
+    } catch (verifyError) {
+      console.error(`[Finalize] Error verifying PDF:`, verifyError);
+    }
 
     // Update order status to ready for review
     await updateOrder(orderId, { status: "ready_for_review" });
