@@ -859,8 +859,8 @@ export default function AdminOrderDetail() {
         </Card>
       )}
 
-      {/* Downloads Section */}
-      {(order.data.pdf_path || order.data.zip_path || order.data.readme_path) && (
+      {/* Downloads Section - Show if files exist OR if we're in finalizing state */}
+      {(order.data.pdf_path || order.data.zip_path || order.data.readme_path || order.status === 'finalizing') ? (
         <Card className="bg-green-50 border-green-200">
           <CardHeader>
             <CardTitle className="text-lg text-green-900">Downloads</CardTitle>
@@ -870,22 +870,34 @@ export default function AdminOrderDetail() {
           </CardHeader>
           <CardContent>
             <div className="flex flex-wrap gap-3">
-              {order.data.pdf_path && (
+              {order.data.pdf_path ? (
                 <Button variant="outline" className="bg-white border-green-300 hover:bg-green-100" asChild>
                   <a href={order.data.pdf_path} download>
                     <Download className="h-4 w-4 mr-2" />
                     Brand Guide PDF
                   </a>
                 </Button>
-              )}
-              {order.data.zip_path && (
+              ) : order.status === 'finalizing' ? (
+                <Button variant="outline" disabled className="bg-white border-green-300">
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Generating PDF...
+                </Button>
+              ) : null}
+              
+              {order.data.zip_path ? (
                 <Button variant="outline" className="bg-white border-green-300 hover:bg-green-100" asChild>
                   <a href={order.data.zip_path} download>
                     <Download className="h-4 w-4 mr-2" />
                     All Assets (ZIP)
                   </a>
                 </Button>
-              )}
+              ) : order.status === 'finalizing' ? (
+                <Button variant="outline" disabled className="bg-white border-green-300">
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Generating ZIP...
+                </Button>
+              ) : null}
+              
               {order.data.readme_path && (
                 <Button variant="outline" className="bg-white border-green-300 hover:bg-green-100" asChild>
                   <a href={order.data.readme_path} download>
@@ -897,7 +909,17 @@ export default function AdminOrderDetail() {
             </div>
           </CardContent>
         </Card>
-      )}
+      ) : order.status === 'ready_for_review' && !order.data.pdf_path ? (
+        /* Show message if status is ready but no PDF (edge case) */
+        <Card className="bg-amber-50 border-amber-200">
+          <CardHeader>
+            <CardTitle className="text-lg text-amber-900">Downloads Not Available</CardTitle>
+            <CardDescription className="text-amber-700">
+              PDF and ZIP generation may have failed. Try regenerating.
+            </CardDescription>
+          </CardHeader>
+        </Card>
+      ) : null}
 
       {/* Order Data */}
       <Card>
