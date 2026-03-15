@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { verifyAdminToken, getTokenFromRequest } from '@/lib/auth';
+import { generateText } from '@/lib/services/text-generation';
 
 export const dynamic = 'force-dynamic';
 
@@ -38,61 +39,32 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get Google API key from environment
-    const apiKey = process.env.GOOGLE_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json(
-        { error: 'Google API key not configured' },
-        { status: 500 }
-      );
-    }
+    // Text generation will use multi-provider (Google, Together, Groq, Mistral)
+    // At least one provider must be configured
 
     console.log(`[AutoFill] Generating brand details for: ${businessName} (${industry})`);
     console.log(`[AutoFill] Existing fields:`, Object.keys(existingFields).filter(k => existingFields[k]));
 
-    // Call Google Gemini API
+    // Call multi-provider text generation
     const prompt = buildPrompt(businessName, industry, subcategory, existingFields);
     
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: prompt }],
-            },
-          ],
-          generationConfig: {
-            temperature: 0.7,
-            maxOutputTokens: 1024,
-          },
-        }),
-      }
-    );
-
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error('[AutoFill] Gemini API error:', errorText);
+    let result;
+    try {
+      result = await generateText({
+        prompt,
+        temperature: 0.7,
+        maxTokens: 1024,
+      });
+      console.log(`[AutoFill] Generated with ${result.provider} (cost: $${result.cost})`);
+    } catch (error) {
+      console.error('[AutoFill] All providers failed:', error);
       return NextResponse.json(
-        { error: 'Failed to generate brand details' },
+        { error: 'Failed to generate brand details - all providers unavailable' },
         { status: 500 }
       );
     }
 
-    const data = await response.json();
-    const content = data.candidates?.[0]?.content?.parts?.[0]?.text;
-
-    if (!content) {
-      return NextResponse.json(
-        { error: 'No content generated' },
-        { status: 500 }
-      );
-    }
+    const content = result.content;
 
     // Parse the JSON response
     const result = parseResponse(content);
