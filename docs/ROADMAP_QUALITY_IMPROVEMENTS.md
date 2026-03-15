@@ -12,7 +12,7 @@
 |---------|--------|-------|
 | Logo Generation (4 variants) | ✅ Working | Together AI - basic quality |
 | Mockup Generation (12 total) | ✅ Working | All 4 variants × 3 templates |
-| Social Media Assets (10) | ✅ Working | Generated AFTER logo selection |
+| Social Media Assets (10) | ✅ Fixed | Generated AFTER logo selection (was bug: always variant 1) |
 | PDF Generation | ✅ Working | Generated AFTER logo selection |
 | Order Management | ✅ Working | Full admin dashboard |
 | Logo Selection | ✅ Working | Admin picks variant 1-4 |
