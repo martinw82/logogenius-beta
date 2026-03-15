@@ -114,6 +114,10 @@ function getFontStyle(fontType: 'headings' | 'body' | 'other'): string {
 
 export async function generateBrandGuidePDF(data: BrandGuideData): Promise<Buffer> {
   try {
+    // Enable filesystem access for Vercel serverless
+    const jsPDF = require('jspdf');
+    jsPDF.allowFsRead = true;
+    
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
@@ -556,8 +560,9 @@ export async function generateBrandGuidePDF(data: BrandGuideData): Promise<Buffe
       yPos = addSectionContent(pdf, data.sections.usageRulesAndDonts, yPos, margin, contentWidth, data);
     }
 
-    // Return PDF as buffer
-    return pdf.output('buffer');
+    // Return PDF as buffer - use output('arraybuffer') then convert to Buffer
+    const pdfArrayBuffer = pdf.output('arraybuffer');
+    return Buffer.from(pdfArrayBuffer);
   } catch (error) {
     console.error('PDF generation error:', error);
     throw error;
