@@ -2,8 +2,8 @@
 
 **Date:** 2026-03-15
 **Branch:** typography-system
-**Status:** ✅ Typography System Implemented - Ready for Testing
-**Last Commit:** Fixed social assets generation + PDF font issues
+**Status:** 🔧 PDF Fixed - Output Quality Phase
+**Last Commit:** PDF generation fixed (jsPDF + /tmp storage)
 
 ---
 
@@ -159,60 +159,86 @@ MODE=testing                           # testing | production
 
 ---
 
-## 🚀 Next Steps
+## 🚀 Production Launch Plan
 
-### Immediate (Testing & Deployment)
-1. **Test Typography System**
-    - Create order with font selections in admin
-    - Upload custom fonts via `/admin/fonts`
-    - Generate PDF and verify font embedding
-    - Test all tiers (Basic/Pro/Premium)
+### Phase 1: PDF Quality (This Week) - PRIORITY
+1. **Fix PDF Layout**
+   - Redesign cover page with proper spacing
+   - Fix color swatch rendering
+   - Improve typography section
+   - Add proper page breaks
+   - Fix mockup image positioning
+   - Professional footer with page numbers
 
-2. **Deploy Typography Features**
-    - Deploy to beta branch
-    - Test font previews and uploads on Vercel
-    - Verify PDF generation works in production
+2. **Vercel File Storage** ✅ DONE
+   - Files save to `/tmp/downloads`
+   - Served via `/api/serve-file` route
 
-### Short Term (Next Sprint)
-3. **Production AI Provider**
-    - Switch to Replicate for higher quality logos
-    - Set `IMAGE_GEN_PROVIDER=replicate`
-    - Cost: ~$0.20/order (vs $0.004 now)
+### Phase 2: Prompt Optimization (Next 2 Weeks)
+1. **Improve Logo Prompts**
+   - Analyze successful logo patterns
+   - Create style-specific templates
+   - Add negative prompts
+   - Professional brand direction
+   - "Super tight, super clean" prompts
 
-4. **Payment Integration**
-    - Stripe for order payments
-    - Webhook for order creation
-    - Customer dashboard for downloads
+2. **Enhance Mockups**
+   - More sophisticated templates
+   - Better lighting/shadows
+   - Perspective transformations
+   - 10+ template types
 
-5. **Font Preview in Customer Form**
-    - Add Canvas font previews to LogoForm
-    - Improve user experience for font selection
+3. **Polish Social Assets**
+   - Platform-native formatting
+   - Professional graphic elements
+   - Better composition
 
-6. **Payment Integration**
-   - Stripe for order payments
-   - Webhook for order creation
+### Phase 3: Keep Current AI Provider
+- **Together AI** - $0.004/order (ultra cheap)
+- Stay with current provider for MVP
+- Upgrade to Google/Replicate when revenue supports
 
-### Medium Term (Next Month)
-7. **Customer Dashboard** - Token-based asset downloads
-8. **Email Notifications** - SendGrid/Resend integration
-9. **File Storage** - S3 for scalability
-10. **Revision System** - Request brand guide changes
+### Phase 4: Payments & Launch (Later)
+1. **Payment Integration**
+   - Stripe checkout
+   - 3-tier pricing ($29/$49/$99)
+   - Webhook for confirmations
+
+2. **Customer Dashboard**
+   - Order history
+   - Download center
+   - Re-download capability
+
+3. **Launch**
+   - Soft launch (beta paid)
+   - Hard launch (marketing)
 
 ---
 
-## 🐛 Known Issues
+## 🎯 Immediate Next Steps
+1. Fix PDF layout (this session)
+2. Optimize prompt synthesis (next session)
+3. Keep Together AI provider
+4. Payment integration (TBD)
+
+---
+
+## 🐛 Known Issues & Fixes
 
 | Issue | Status | Solution |
 |-------|--------|----------|
-| PDF Font Files Missing | 🔧 **FIXED** - Typography system will embed fonts | Helvetica.afm files not available in Vercel serverless |
-| Form Coordination | 📋 **PLANNED** - Typography system will sync admin/frontend forms | Admin form missing font selections from frontend |
+| PDF Helvetica.afm Missing | ✅ **FIXED** | Replaced PDFKit with jsPDF (no external fonts needed) |
+| Vercel /tmp Storage | ✅ **FIXED** | Changed from `public/downloads` to `/tmp/downloads` + API route |
+| PDF Layout Quality | 🔧 **IN PROGRESS** | Needs redesign for professional output |
+| Prompt Optimization | 📋 **PLANNED** | Make prompts "super tight" for professional logos |
 
 **Previous Issues (RESOLVED):**
 - ~~Mockups are placeholders~~ → Now uses real Canvas rendering
 - ~~Social media are placeholders~~ → Now uses real Canvas rendering
 - ~~Social assets display as text overlays~~ → Now shows real logos with proper rendering
 - ~~Vercel compatibility~~ → Client-side rendering works on Vercel
-- ~~PDF generation fails~~ → Font embedding solution planned
+- ~~PDF Helvetica.afm missing~~ → Fixed with jsPDF (no external fonts)
+- ~~/var/task/public/downloads error~~ → Fixed with /tmp + API route
 
 ---
 
@@ -233,6 +259,14 @@ npm run build
 
 ## 📝 Session History
 
+### March 15, 2026 (Today) - PDF Fix & Production Plan
+- ✅ **PDF Generation Fixed** - Replaced PDFKit with jsPDF (no Helvetica.afm needed)
+- ✅ **Vercel Storage Fixed** - Changed from public/downloads to /tmp + API route
+- ✅ **PDF Downloads Working** - Files served via /api/serve-file route
+- ✅ **PDF Layout Needs Polish** - Next: redesign for professional output
+- ✅ **Production Plan Created** - PDF → Prompts → Payments → Launch
+- ✅ **AI Provider Decision** - Stick with Together ($0.004/order) for MVP
+
 ### March 15, 2026 Session (Typography Implementation)
 - ✅ **Typography System Complete** - Full font selection, upload, and PDF embedding implemented
 - ✅ **Shared Typography Schema** - Unified types for admin and customer forms
@@ -241,7 +275,6 @@ npm run build
 - ✅ **PDF Font Integration** - Custom fonts registered and embedded in brand guides
 - ✅ **Admin Font Management** - Dedicated page for font upload and management
 - ✅ **Form Synchronization** - Both admin and customer forms support typography
-- ✅ **Branch: typography-system** - Ready for testing and deployment
 
 ### March 14, 2026 Session (Previous)
 - ✅ **Client-side mockup generation** - Canvas renders real mockups
