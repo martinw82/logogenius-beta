@@ -138,6 +138,32 @@ interface AdminOrderFormProps {
   isSubmitting: boolean;
 }
 
+// Extract hex codes from color string and display preview
+function ColorPreview({ colorString }: { colorString?: string }) {
+  if (!colorString) return null;
+  
+  // Extract hex codes from string
+  const hexCodes = colorString.match(/#[0-9A-Fa-f]{6}/g) || [];
+  
+  if (hexCodes.length === 0) return null;
+  
+  return (
+    <div className="flex gap-1 items-center">
+      {hexCodes.slice(0, 3).map((hex, i) => (
+        <div
+          key={i}
+          className="w-8 h-8 rounded border border-gray-200 shadow-sm"
+          style={{ backgroundColor: hex }}
+          title={hex}
+        />
+      ))}
+      {hexCodes.length > 3 && (
+        <span className="text-xs text-gray-500">+{hexCodes.length - 3}</span>
+      )}
+    </div>
+  );
+}
+
 export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) {
   const [isAiFilling, setIsAiFilling] = useState(false);
   const [aiError, setAiError] = useState('');
@@ -492,45 +518,61 @@ export function AdminOrderForm({ onSubmit, isSubmitting }: AdminOrderFormProps) 
               />
             </div>
 
-            <div className="grid grid-cols-3 gap-4">
-              <FormField
-                control={form.control}
-                name="primaryColors"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Primary Colors</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Deep Blue #00008B" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+            {/* Color Palette with Visual Previews */}
+            <div className="space-y-4">
+              <FormLabel className="text-base font-medium">Color Palette</FormLabel>
+              <div className="grid grid-cols-3 gap-4">
+                <FormField
+                  control={form.control}
+                  name="primaryColors"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm">Primary Colors</FormLabel>
+                      <div className="flex gap-2">
+                        <FormControl>
+                          <Input placeholder="Deep Blue #00008B" {...field} />
+                        </FormControl>
+                        <ColorPreview colorString={field.value} />
+                      </div>
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="secondaryColors"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Secondary Colors</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Light Grey" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="secondaryColors"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm">Secondary Colors</FormLabel>
+                      <div className="flex gap-2">
+                        <FormControl>
+                          <Input placeholder="Light Grey #CCCCCC" {...field} />
+                        </FormControl>
+                        <ColorPreview colorString={field.value} />
+                      </div>
+                    </FormItem>
+                  )}
+                />
 
-              <FormField
-                control={form.control}
-                name="accentColors"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Accent Colors</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Bright Yellow" {...field} />
-                    </FormControl>
-                  </FormItem>
-                )}
-              />
+                <FormField
+                  control={form.control}
+                  name="accentColors"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel className="text-sm">Accent Colors</FormLabel>
+                      <div className="flex gap-2">
+                        <FormControl>
+                          <Input placeholder="Bright Yellow #FFD700" {...field} />
+                        </FormControl>
+                        <ColorPreview colorString={field.value} />
+                      </div>
+                    </FormItem>
+                  )}
+                />
+              </div>
+              <p className="text-xs text-gray-500">
+                Enter colors with hex codes (e.g., "Blue #2563eb") for best results
+              </p>
             </div>
           </CardContent>
         </Card>

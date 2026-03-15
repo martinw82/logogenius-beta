@@ -274,49 +274,110 @@ export async function generateBrandGuidePDF(data: BrandGuideData): Promise<Buffe
       }
 
       // Color Palette Section
+      doc.addPage();
+      doc.save();
+      doc.fillColor(primaryColor);
+      doc.rect(0, 0, doc.page.width, 60).fill();
+      doc.restore();
+      
+      doc.fillColor('#ffffff');
+      doc.fontSize(22).font('Helvetica-Bold').text('Color Palette', 50, 20);
+      doc.fillColor('#000000');
+      doc.moveDown(3);
+      
+      // Extract colors from various possible sources
+      let primaryColors: string[] = [];
+      let secondaryColors: string[] = [];
+      let accentColors: string[] = [];
+      
+      // Try to parse from colorPalette object
       if (data.sections.colorPalette) {
-        doc.addPage();
-        doc.fontSize(18).font('Helvetica-Bold').text('Color Palette', { underline: true });
+        if (Array.isArray(data.sections.colorPalette.primary)) {
+          primaryColors = data.sections.colorPalette.primary;
+        }
+        if (Array.isArray(data.sections.colorPalette.secondary)) {
+          secondaryColors = data.sections.colorPalette.secondary;
+        }
+        if (Array.isArray(data.sections.colorPalette.accent)) {
+          accentColors = data.sections.colorPalette.accent;
+        }
+      }
+      
+      // Fallback: extract from logo colors
+      if (primaryColors.length === 0 && data.logo?.colors?.length) {
+        primaryColors = data.logo.colors.slice(0, 2);
+      }
+      
+      // Primary Colors
+      if (primaryColors.length > 0) {
+        doc.fontSize(16).font('Helvetica-Bold').text('Primary Colors', { underline: true });
         doc.moveDown(0.5);
+        doc.fontSize(10).fillColor('#666666').text('These are the main colors that define your brand identity.');
+        doc.fillColor('#000000');
+        doc.moveDown(0.5);
+        
+        let x = 50;
+        let y = doc.y;
+        primaryColors.forEach((color, i) => {
+          if (x > 450) {
+            x = 50;
+            y += 60;
+          }
+          drawColorSwatch(doc, color, x, y);
+          x += 60;
+        });
+        doc.moveDown(4);
+      }
 
-        // Primary Colors
-        if (data.sections.colorPalette.primary?.length) {
-          doc.fontSize(14).font('Helvetica-Bold').text('Primary Colors');
-          doc.moveDown(0.3);
-          
-          let x = 50;
-          data.sections.colorPalette.primary.forEach((color) => {
-            drawColorSwatch(doc, color, x, doc.y);
-            x += 60;
-          });
-          doc.moveDown(3);
-        }
+      // Secondary Colors
+      if (secondaryColors.length > 0) {
+        doc.fontSize(16).font('Helvetica-Bold').text('Secondary Colors', { underline: true });
+        doc.moveDown(0.5);
+        doc.fontSize(10).fillColor('#666666').text('Supporting colors that complement your primary palette.');
+        doc.fillColor('#000000');
+        doc.moveDown(0.5);
+        
+        let x = 50;
+        let y = doc.y;
+        secondaryColors.forEach((color, i) => {
+          if (x > 450) {
+            x = 50;
+            y += 60;
+          }
+          drawColorSwatch(doc, color, x, y);
+          x += 60;
+        });
+        doc.moveDown(4);
+      }
 
-        // Secondary Colors
-        if (data.sections.colorPalette.secondary?.length) {
-          doc.fontSize(14).font('Helvetica-Bold').text('Secondary Colors');
-          doc.moveDown(0.3);
-          
-          let x = 50;
-          data.sections.colorPalette.secondary.forEach((color) => {
-            drawColorSwatch(doc, color, x, doc.y);
-            x += 60;
-          });
-          doc.moveDown(3);
-        }
-
-        // Accent Colors
-        if (data.sections.colorPalette.accent?.length) {
-          doc.fontSize(14).font('Helvetica-Bold').text('Accent Colors');
-          doc.moveDown(0.3);
-          
-          let x = 50;
-          data.sections.colorPalette.accent.forEach((color) => {
-            drawColorSwatch(doc, color, x, doc.y);
-            x += 60;
-          });
-          doc.moveDown(1);
-        }
+      // Accent Colors
+      if (accentColors.length > 0) {
+        doc.fontSize(16).font('Helvetica-Bold').text('Accent Colors', { underline: true });
+        doc.moveDown(0.5);
+        doc.fontSize(10).fillColor('#666666').text('Use these for calls-to-action and highlights.');
+        doc.fillColor('#000000');
+        doc.moveDown(0.5);
+        
+        let x = 50;
+        let y = doc.y;
+        accentColors.forEach((color, i) => {
+          if (x > 450) {
+            x = 50;
+            y += 60;
+          }
+          drawColorSwatch(doc, color, x, y);
+          x += 60;
+        });
+        doc.moveDown(2);
+      }
+      
+      // Color usage description if available
+      if (typeof data.sections.colorPalette === 'string') {
+        doc.moveDown(1);
+        doc.fontSize(11).font('Helvetica').text(data.sections.colorPalette, {
+          align: 'left',
+          lineGap: 5,
+        });
       }
 
       // Color Accessibility Section
