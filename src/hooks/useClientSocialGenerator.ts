@@ -64,6 +64,20 @@ const PLATFORM_SPECS: Record<SocialPlatform, {
 };
 
 // All platforms to generate
+// Platform key mapping (UI uses underscores, internal uses hyphens)
+const PLATFORM_KEY_MAP: Record<SocialPlatform, string> = {
+  'instagram-post': 'social_instagram_post',
+  'instagram-story': 'social_instagram_story',
+  'facebook-cover': 'social_facebook_cover',
+  'twitter-header': 'social_twitter_header',
+  'linkedin-banner': 'social_linkedin_banner',
+  'youtube-thumbnail': 'social_youtube_thumbnail',
+  'pinterest-pin': 'social_pinterest_pin',
+  'tiktok-cover': 'social_tiktok_cover',
+  'email-header': 'social_email_header',
+  'website-hero': 'social_website_hero',
+};
+
 const ALL_PLATFORMS: SocialPlatform[] = [
   'instagram-post',
   'instagram-story',
@@ -645,7 +659,8 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
         });
 
         const imageData = await renderSocialAsset(platform, options);
-        assets[platform] = imageData;
+        // Use underscore key for storage (matches UI expectations)
+        assets[PLATFORM_KEY_MAP[platform]] = imageData;
       }
 
       // Upload to server

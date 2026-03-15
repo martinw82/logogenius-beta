@@ -261,7 +261,9 @@ npm run build
 - [x] Can generate logos
 - [x] Logos display correctly
 - [x] **Mockups are REAL (not placeholders)** ✅ NEW
+- [x] **Mockups for ALL 4 variants** ✅ FIXED
 - [x] **Social assets are REAL (not placeholders)** ✅ NEW
+- [x] **Social assets display correctly** ✅ FIXED
 - [x] PDF includes real mockups ✅ NEW
 - [x] Order status updates
 - [x] Build succeeds on Vercel

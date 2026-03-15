@@ -247,26 +247,29 @@ export default function AdminOrderDetail() {
       setOrder(orderData);
       setNewStatus(orderData.status);
       
-      // Step 2: Generate mockups client-side
+      // Step 2: Generate mockups client-side for ALL variants
       if (orderData.logos.length > 0 && orderData.data.businessName) {
         setClientGenStep('mockups');
         
-        const firstLogo = orderData.logos[0].svgData;
         const primaryColor = orderData.data.primaryColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#0a192f';
         const secondaryColor = orderData.data.secondaryColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#f4a261';
         
-        const mockupResult = await generateAndUploadMockups(parseInt(orderId), {
-          logoUrl: firstLogo,
-          businessName: orderData.data.businessName,
-          tagline: orderData.data.keyTagline,
-          primaryColor,
-          secondaryColor,
-        });
+        // Generate mockups for all 4 variants
+        const mockupResult = await generateAndUploadMockups(
+          parseInt(orderId),
+          orderData.logos.map((l: { variantNum: number; svgData: string }) => ({ variantNum: l.variantNum, svgData: l.svgData })),
+          {
+            businessName: orderData.data.businessName,
+            tagline: orderData.data.keyTagline,
+            primaryColor,
+            secondaryColor,
+          }
+        );
         
         if (!mockupResult.success) {
           console.warn('Mockup generation failed:', mockupResult.error);
         } else {
-          console.log('Mockups generated:', mockupResult.mockups);
+          console.log('Mockups generated for all variants:', mockupResult.mockups);
         }
         
         // Refresh to show mockups
@@ -280,10 +283,12 @@ export default function AdminOrderDetail() {
         
         // Step 3: Generate social media assets for Tier 3
         console.log('[Generate] Checking tier for social:', orderData.tier, typeof orderData.tier);
-        if (orderData.tier === 'premium' || orderData.tier === '3' || String(orderData.tier).toLowerCase() === 'premium') {
+        const tierStr = String(orderData.tier).toLowerCase();
+        if (tierStr === 'premium' || tierStr === '3' || tierStr === 'tier 3' || tierStr === 'tier3') {
           setClientGenStep('social');
           setSuccessMessage('Creating social media assets...');
           
+          const firstLogo = orderData.logos[0].svgData;
           const socialResult = await generateAndUploadSocialAssets(parseInt(orderId), {
             logoUrl: firstLogo,
             businessName: orderData.data.businessName,
@@ -647,7 +652,7 @@ export default function AdminOrderDetail() {
       </Card>
 
       {/* Social Media Assets (Tier 3 Only) */}
-      {order.tier === 'premium' && (
+      {(order.tier === 'premium' || order.tier === '3' || String(order.tier).toLowerCase().includes('premium') || String(order.tier).toLowerCase().includes('tier 3')) && (
         <Card>
           <CardHeader>
             <CardTitle className="text-lg">Social Media Assets (Tier 3)</CardTitle>

@@ -17,6 +17,11 @@ interface MockupOptions {
   secondaryColor?: string;
 }
 
+interface LogoVariant {
+  variantNum: number;
+  svgData: string;
+}
+
 interface UseClientMockupGeneratorReturn {
   isGenerating: boolean;
   progress: {
@@ -26,10 +31,16 @@ interface UseClientMockupGeneratorReturn {
   };
   generateAndUploadMockups: (
     orderId: number,
-    options: MockupOptions
+    logos: LogoVariant[],
+    brandData: {
+      businessName: string;
+      tagline?: string;
+      primaryColor?: string;
+      secondaryColor?: string;
+    }
   ) => Promise<{
     success: boolean;
-    mockups?: Record<string, string>;
+    mockups?: Record<string, Record<string, string>>;
     error?: string;
   }>;
 }
@@ -298,70 +309,90 @@ export function useClientMockupGenerator(): UseClientMockupGeneratorReturn {
   };
 
   /**
-   * Generate all mockups and upload to server
+   * Generate all mockups for all variants and upload to server
    */
   const generateAndUploadMockups = useCallback(async (
     orderId: number,
-    options: MockupOptions
+    logos: LogoVariant[],
+    brandData: {
+      businessName: string;
+      tagline?: string;
+      primaryColor?: string;
+      secondaryColor?: string;
+    }
   ): Promise<{
     success: boolean;
-    mockups?: Record<string, string>;
+    mockups?: Record<string, Record<string, string>>;
     error?: string;
   }> => {
     setIsGenerating(true);
     const templates: MockupTemplate[] = ['businesscard', 'letterhead', 'tshirt'];
-    const mockups: Record<string, string> = {};
+    const allMockups: Record<string, Record<string, string>> = {};
 
     try {
-      // Generate each mockup
-      for (let i = 0; i < templates.length; i++) {
-        const template = templates[i];
+      // Generate mockups for each variant
+      for (let v = 0; v < logos.length; v++) {
+        const logo = logos[v];
+        const variantNum = logo.variantNum;
+        const mockups: Record<string, string> = {};
+        
+        const options: MockupOptions = {
+          logoUrl: logo.svgData,
+          businessName: brandData.businessName,
+          tagline: brandData.tagline,
+          primaryColor: brandData.primaryColor,
+          secondaryColor: brandData.secondaryColor,
+        };
+
+        // Generate each template for this variant
+        for (let i = 0; i < templates.length; i++) {
+          const template = templates[i];
+          setProgress({
+            current: v * templates.length + i + 1,
+            total: logos.length * templates.length,
+            step: `Generating ${template} for Variant ${variantNum}...`,
+          });
+
+          const imageData = await renderMockup(template, options);
+          mockups[template] = imageData;
+        }
+
+        // Upload this variant's mockups to server
         setProgress({
-          current: i + 1,
-          total: templates.length,
-          step: `Generating ${template}...`,
+          current: v * templates.length + templates.length,
+          total: logos.length * templates.length,
+          step: `Uploading Variant ${variantNum}...`,
         });
 
-        const imageData = await renderMockup(template, options);
-        mockups[template] = imageData;
+        const response = await fetch(`/api/orders/${orderId}/upload-mockups`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('adminToken') || ''}`,
+          },
+          body: JSON.stringify({
+            mockups,
+            variantNum: variantNum,
+          }),
+        });
+
+        if (!response.ok) {
+          const error = await response.json();
+          throw new Error(error.error || `Failed to upload mockups for variant ${variantNum}`);
+        }
+
+        allMockups[`variant${variantNum}`] = mockups;
       }
 
-      // Upload to server
       setProgress({
-        current: templates.length,
-        total: templates.length,
-        step: 'Uploading to server...',
-      });
-
-      const response = await fetch(`/api/orders/${orderId}/upload-mockups`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('adminToken') || ''}`,
-        },
-        body: JSON.stringify({
-          mockups,
-          variantNum: 1,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to upload mockups');
-      }
-
-      const result = await response.json();
-      console.log('[Mockup Generator] Upload result:', result);
-
-      setProgress({
-        current: templates.length,
-        total: templates.length,
+        current: logos.length * templates.length,
+        total: logos.length * templates.length,
         step: 'Complete!',
       });
 
       return {
         success: true,
-        mockups,
+        mockups: allMockups,
       };
 
     } catch (error) {

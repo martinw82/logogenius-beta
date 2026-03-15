@@ -63,17 +63,8 @@ export async function GET(
       const logoUrlKey = `logoUrl_${variant.variantNum - 1}`;
       const fullImageData = details[logoUrlKey];
       
-      // Build mockup paths from OrderDetail (only variant 1 has mockups generated)
-      const mockupPaths: Record<string, string> = {};
-      if (variant.variantNum === 1) {
-        if (details.mockup_letterhead) mockupPaths.letterhead = details.mockup_letterhead;
-        if (details.mockup_tshirt) mockupPaths.tshirt = details.mockup_tshirt;
-        if (details.mockup_businesscard) mockupPaths.businesscard = details.mockup_businesscard;
-      }
-      
-      const mergedMockupPaths = Object.keys(mockupPaths).length > 0 
-        ? JSON.stringify(mockupPaths) 
-        : variant.mockupPaths;
+      // Use the variant's stored mockupPaths (each variant now has its own mockups)
+      const mergedMockupPaths = variant.mockupPaths;
       
       console.log(`[Admin Order] Variant ${variant.variantNum}: mockupPaths =`, mergedMockupPaths ? 'present' : 'missing');
       
@@ -81,7 +72,7 @@ export async function GET(
         ...variant,
         // Use full image from OrderDetail if available, otherwise fall back to svgData
         svgData: fullImageData || variant.svgData,
-        // Merge mockup paths from OrderDetail with existing mockupPaths
+        // Use the variant's stored mockupPaths
         mockupPaths: mergedMockupPaths,
       };
     });
