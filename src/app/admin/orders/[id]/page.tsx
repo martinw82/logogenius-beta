@@ -18,7 +18,12 @@ import {
   AlertDialogDescription,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { ChevronLeft, Download, AlertCircle, Loader2 } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { ChevronLeft, Download, AlertCircle, Loader2, X } from 'lucide-react';
 import { useClientMockupGenerator } from '@/hooks/useClientMockupGenerator';
 import { useClientSocialGenerator } from '@/hooks/useClientSocialGenerator';
 
@@ -82,6 +87,11 @@ export default function AdminOrderDetail() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState('');
   const [clientGenStep, setClientGenStep] = useState<'idle' | 'logos' | 'mockups' | 'social' | 'complete'>('idle');
+  
+  // Lightbox state
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [lightboxImage, setLightboxImage] = useState('');
+  const [lightboxTitle, setLightboxTitle] = useState('');
   
   // Client-side generators
   const { 
@@ -345,6 +355,13 @@ export default function AdminOrderDetail() {
     }
   };
 
+  // Lightbox handler
+  const openLightbox = (imageUrl: string, title: string) => {
+    setLightboxImage(imageUrl);
+    setLightboxTitle(title);
+    setLightboxOpen(true);
+  };
+
   if (isLoading) {
     return (
       <div className="text-center py-12">
@@ -513,7 +530,8 @@ export default function AdminOrderDetail() {
               {order.logos.map((logo) => (
                 <div
                   key={logo.id}
-                  className="border rounded-lg p-4 bg-gray-50 flex flex-col items-center justify-center min-h-48"
+                  className="border rounded-lg p-4 bg-gray-50 flex flex-col items-center justify-center min-h-48 cursor-pointer hover:bg-gray-100 transition-colors"
+                  onClick={() => logo.svgData && openLightbox(logo.svgData, `Logo Variant ${logo.variantNum}`)}
                 >
                   {logo.svgData ? (
                     <img
@@ -566,7 +584,8 @@ export default function AdminOrderDetail() {
                       <img
                         src={mockups.letterhead}
                         alt={`Letterhead Mockup V${variant}`}
-                        className="w-full h-24 object-contain"
+                        className="w-full h-24 object-contain cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => openLightbox(mockups.letterhead, `Letterhead Mockup - Variant ${variant}`)}
                       />
                     ) : (
                       <div className="text-gray-300 text-sm">
@@ -600,7 +619,8 @@ export default function AdminOrderDetail() {
                       <img
                         src={mockups.tshirt}
                         alt={`T-Shirt Mockup V${variant}`}
-                        className="w-full h-24 object-contain"
+                        className="w-full h-24 object-contain cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => openLightbox(mockups.tshirt, `T-Shirt Mockup - Variant ${variant}`)}
                       />
                     ) : (
                       <div className="text-gray-300 text-sm">
@@ -634,7 +654,8 @@ export default function AdminOrderDetail() {
                       <img
                         src={mockups.businesscard}
                         alt={`Business Card Mockup V${variant}`}
-                        className="w-full h-24 object-contain"
+                        className="w-full h-24 object-contain cursor-pointer hover:opacity-80 transition-opacity"
+                        onClick={() => openLightbox(mockups.businesscard, `Business Card Mockup - Variant ${variant}`)}
                       />
                     ) : (
                       <div className="text-gray-300 text-sm">
@@ -701,7 +722,8 @@ export default function AdminOrderDetail() {
                         <img
                           src={imageUrl}
                           alt={label}
-                          className="w-full h-20 object-contain mb-2"
+                          className="w-full h-20 object-contain mb-2 cursor-pointer hover:opacity-80 transition-opacity"
+                          onClick={() => openLightbox(imageUrl, `${label} (${size})`)}
                         />
                         <Button variant="ghost" size="sm" className="mt-auto" asChild>
                           <a href={imageUrl} download={`${key.replace('social_', '')}.png`}>
@@ -824,6 +846,29 @@ export default function AdminOrderDetail() {
           </div>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Image Lightbox */}
+      <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+        <DialogContent className="max-w-5xl max-h-[90vh] overflow-auto">
+          <DialogTitle className="sr-only">{lightboxTitle}</DialogTitle>
+          <div className="flex flex-col items-center gap-4">
+            <img
+              src={lightboxImage}
+              alt={lightboxTitle}
+              className="max-w-full max-h-[70vh] object-contain"
+            />
+            <div className="flex items-center gap-4">
+              <p className="text-lg font-medium">{lightboxTitle}</p>
+              <Button variant="outline" size="sm" asChild>
+                <a href={lightboxImage} download>
+                  <Download className="h-4 w-4 mr-2" />
+                  Download
+                </a>
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
