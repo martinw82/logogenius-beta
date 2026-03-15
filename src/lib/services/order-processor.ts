@@ -60,9 +60,17 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
       mockupData[key] = detail.fieldValue;
     }
 
-    // Get logo for PDF cover
+    // Get the SELECTED logo for PDF cover (or default to variant 1)
+    // Check if order has a selected logo
+    const orderRecord = await prisma.order.findUnique({
+      where: { id: input.orderId },
+      select: { selectedLogoId: true },
+    });
+    
+    const selectedVariantNum = orderRecord?.selectedLogoId || 1;
+    
     const logoVariant = await prisma.logoVariant.findFirst({
-      where: { orderId: input.orderId, variantNum: 1 },
+      where: { orderId: input.orderId, variantNum: selectedVariantNum },
     });
 
     // Generate PDF

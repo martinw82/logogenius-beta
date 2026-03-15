@@ -1,0 +1,181 @@
+import { NextRequest, NextResponse } from "next/server";
+import { getOrderById, updateOrder, prisma } from "@/lib/database";
+import { verifyAdminToken, getTokenFromRequest } from "@/lib/auth";
+import { generateAllSocialAssets } from "@/lib/services/social-media-generator";
+import { processOrderAssets } from "@/lib/services/order-processor";
+
+export const dynamic = 'force-dynamic';
+
+/**
+ * POST /api/orders/[id]/finalize
+ * 
+ * Phase 2: Generate social assets and PDF with the SELECTED logo variant
+ * This should be called AFTER admin picks their preferred logo
+ */
+export async function POST(
+  request: NextRequest,
+  { params }: { params: { id: string } }
+) {
+  try {
+    // Verify admin authentication
+    const token = getTokenFromRequest(request);
+    if (!token) {
+      return NextResponse.json(
+        { error: "Unauthorized - No token provided" },
+        { status: 401 }
+      );
+    }
+
+    const admin = await verifyAdminToken(token);
+    if (!admin) {
+      return NextResponse.json(
+        { error: "Unauthorized - Invalid token" },
+        { status: 401 }
+      );
+    }
+
+    const orderId = parseInt(params.id);
+    if (isNaN(orderId)) {
+      return NextResponse.json({ error: "Invalid order ID" }, { status: 400 });
+    }
+
+    // Parse request body
+    const body = await request.json();
+    const { selectedVariant } = body;
+
+    if (!selectedVariant || selectedVariant < 1 || selectedVariant > 4) {
+      return NextResponse.json(
+        { error: "Invalid logo variant. Must be 1-4." },
+        { status: 400 }
+      );
+    }
+
+    // Get order data
+    const order = await getOrderById(orderId);
+    if (!order) {
+      return NextResponse.json({ error: "Order not found" }, { status: 404 });
+    }
+
+    // Check order status
+    if (order.status !== 'awaiting_selection' && order.status !== 'ready_for_review') {
+      return NextResponse.json(
+        { error: `Order status is ${order.status}. Cannot finalize.` },
+        { status: 400 }
+      );
+    }
+
+    // Convert order details to form data object
+    const formData: Record<string, string> = {};
+    for (const detail of order.details) {
+      formData[detail.fieldName] = detail.fieldValue;
+    }
+
+    // Get API key
+    const apiKey = process.env.TOGETHER_API_KEY;
+    if (!apiKey) {
+      return NextResponse.json(
+        { error: "Together AI API key not configured" },
+        { status: 500 }
+      );
+    }
+
+    // Get the selected logo URL
+    const logoUrlKey = `logoUrl_${selectedVariant - 1}`;
+    const selectedLogoUrl = formData[logoUrlKey];
+
+    if (!selectedLogoUrl) {
+      return NextResponse.json(
+        { error: `Logo variant ${selectedVariant} not found` },
+        { status: 404 }
+      );
+    }
+
+    console.log(`[Finalize] Order ${orderId} - Selected variant ${selectedVariant}`);
+
+    // Save the selected logo to order
+    await prisma.order.update({
+      where: { id: orderId },
+      data: { 
+        selectedLogoId: selectedVariant,
+        status: 'finalizing',
+      },
+    });
+
+    // Generate social media assets for Tier 3
+    if (order.tier === 'premium') {
+      console.log(`[Finalize] Generating social assets for variant ${selectedVariant}`);
+      
+      try {
+        const primaryColor = formData.primaryColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#0a192f';
+        const secondaryColor = formData.secondaryColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#f4a261';
+        const accentColor = formData.accentColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#ffffff';
+        
+        const socialResults = await generateAllSocialAssets({
+          logoUrl: selectedLogoUrl,
+          businessName: formData.businessName,
+          tagline: formData.keyTagline,
+          primaryColor,
+          secondaryColor,
+          accentColor,
+        });
+        
+        console.log(`[Finalize] Social assets generated:`, Object.keys(socialResults).length);
+        
+        // Store social assets
+        for (const [platform, imageUrl] of Object.entries(socialResults)) {
+          if (imageUrl) {
+            await prisma.orderDetail.upsert({
+              where: {
+                orderId_fieldName: {
+                  orderId: orderId,
+                  fieldName: `social_${platform}`,
+                },
+              },
+              create: {
+                orderId: orderId,
+                fieldName: `social_${platform}`,
+                fieldValue: imageUrl,
+              },
+              update: {
+                fieldValue: imageUrl,
+              },
+            });
+          }
+        }
+      } catch (socialError) {
+        console.error("[Finalize] Social generation failed:", socialError);
+      }
+    }
+
+    // Generate PDF and ZIP with selected logo
+    console.log(`[Finalize] Generating PDF with variant ${selectedVariant}`);
+    try {
+      await processOrderAssets({
+        orderId: orderId,
+        businessName: formData.businessName,
+        userApiKey: apiKey,
+      });
+      console.log(`[Finalize] PDF and ZIP generated successfully`);
+    } catch (pdfError) {
+      console.error("[Finalize] PDF generation failed:", pdfError);
+    }
+
+    // Update order status to ready for review
+    await updateOrder(orderId, { status: "ready_for_review" });
+
+    return NextResponse.json({
+      success: true,
+      orderId,
+      selectedVariant,
+      status: "ready_for_review",
+      message: "Order finalized with selected logo",
+    });
+
+  } catch (error) {
+    console.error("[Finalize] Error:", error);
+    return NextResponse.json(
+      { error: "Failed to finalize order" },
+      { status: 500 }
+    );
+  }
+}

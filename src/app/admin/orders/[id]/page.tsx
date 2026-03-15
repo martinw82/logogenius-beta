@@ -23,7 +23,7 @@ import {
   DialogContent,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { ChevronLeft, Download, AlertCircle, Loader2, X } from 'lucide-react';
+import { ChevronLeft, Download, AlertCircle, Loader2, X, Sparkles } from 'lucide-react';
 import { useClientMockupGenerator } from '@/hooks/useClientMockupGenerator';
 import { useClientSocialGenerator } from '@/hooks/useClientSocialGenerator';
 
@@ -34,6 +34,7 @@ interface OrderData {
   customerEmail: string;
   createdAt: string;
   updatedAt: string;
+  selectedLogoId: number | null;
   data: Record<string, any> & {
     // Mockups
     mockup_businesscard?: string;
@@ -65,6 +66,8 @@ interface OrderData {
 const statusColors: Record<string, string> = {
   pending: 'bg-yellow-100 text-yellow-800',
   generating: 'bg-blue-100 text-blue-800',
+  awaiting_selection: 'bg-amber-100 text-amber-800',
+  finalizing: 'bg-indigo-100 text-indigo-800',
   approved: 'bg-green-100 text-green-800',
   completed: 'bg-purple-100 text-purple-800',
   rejected: 'bg-red-100 text-red-800',
@@ -87,6 +90,7 @@ export default function AdminOrderDetail() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [generationError, setGenerationError] = useState('');
   const [clientGenStep, setClientGenStep] = useState<'idle' | 'logos' | 'mockups' | 'social' | 'complete'>('idle');
+  const [isFinalizing, setIsFinalizing] = useState(false);
   
   // Lightbox state
   const [lightboxOpen, setLightboxOpen] = useState(false);
@@ -362,6 +366,55 @@ export default function AdminOrderDetail() {
     setLightboxOpen(true);
   };
 
+  // Logo selection handler
+  const handleSelectLogo = (variantNum: number) => {
+    setOrder(prev => prev ? { ...prev, selectedLogoId: variantNum } : null);
+  };
+
+  // Finalize order handler - generates socials + PDF with selected logo
+  const handleFinalizeOrder = async () => {
+    if (!order?.selectedLogoId) return;
+    
+    setIsFinalizing(true);
+    setSuccessMessage('Generating final assets with selected logo...');
+    
+    try {
+      const response = await fetch(`/api/orders/${orderId}/finalize`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          selectedVariant: order.selectedLogoId,
+        }),
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Finalization failed');
+      }
+
+      const data = await response.json();
+      setSuccessMessage('Order finalized! Social assets and PDF generated.');
+      
+      // Refresh order data
+      const orderResponse = await fetch(`/api/admin/orders/${orderId}`, {
+        credentials: 'include',
+      });
+      if (orderResponse.ok) {
+        const orderData = await orderResponse.json();
+        setOrder(orderData);
+        setNewStatus(orderData.status);
+      }
+    } catch (error) {
+      console.error('Finalize error:', error);
+      setGenerationError(error instanceof Error ? error.message : 'Finalization failed');
+    } finally {
+      setIsFinalizing(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <div className="text-center py-12">
@@ -530,7 +583,11 @@ export default function AdminOrderDetail() {
               {order.logos.map((logo) => (
                 <div
                   key={logo.id}
-                  className="border rounded-lg p-4 bg-gray-50 flex flex-col items-center justify-center min-h-48 cursor-pointer hover:bg-gray-100 transition-colors"
+                  className={`border-2 rounded-lg p-4 flex flex-col items-center justify-center min-h-48 cursor-pointer hover:bg-gray-100 transition-colors ${
+                    order.selectedLogoId === logo.variantNum 
+                      ? 'border-green-500 bg-green-50' 
+                      : 'border-gray-200 bg-gray-50'
+                  }`}
                   onClick={() => logo.svgData && openLightbox(logo.svgData, `Logo Variant ${logo.variantNum}`)}
                 >
                   {logo.svgData ? (
@@ -542,13 +599,71 @@ export default function AdminOrderDetail() {
                   ) : (
                     <p className="text-gray-400 text-sm">Logo not available</p>
                   )}
-                  <p className="mt-2 text-xs text-gray-600">Variant {logo.variantNum}</p>
+                  <div className="mt-2 flex items-center gap-2">
+                    <p className="text-xs text-gray-600">Variant {logo.variantNum}</p>
+                    {order.selectedLogoId === logo.variantNum && (
+                      <Badge className="bg-green-500 text-white text-[10px]">Selected</Badge>
+                    )}
+                  </div>
                 </div>
               ))}
             </div>
           </CardContent>
         </Card>
       </div>
+
+      {/* Logo Selection - Show when awaiting_selection */}
+      {order.status === 'awaiting_selection' && order.logos.length > 0 && (
+        <Card className="bg-amber-50 border-amber-200">
+          <CardHeader>
+            <CardTitle className="text-amber-900">Select Preferred Logo</CardTitle>
+            <CardDescription className="text-amber-700">
+              Choose which logo variant to use for social media assets and PDF
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-4">
+              <Select 
+                value={String(order.selectedLogoId || '')} 
+                onValueChange={(value) => handleSelectLogo(parseInt(value))}
+              >
+                <SelectTrigger className="w-64">
+                  <SelectValue placeholder="Select logo variant" />
+                </SelectTrigger>
+                <SelectContent>
+                  {[1, 2, 3, 4].map((num) => (
+                    <SelectItem key={num} value={String(num)}>
+                      Variant {num}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <Button 
+                onClick={() => handleFinalizeOrder()}
+                disabled={!order.selectedLogoId || isFinalizing}
+                className="bg-amber-600 hover:bg-amber-700"
+              >
+                {isFinalizing ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Finalizing...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Generate Socials & PDF
+                  </>
+                )}
+              </Button>
+            </div>
+            <p className="mt-3 text-sm text-amber-600">
+              {!order.selectedLogoId 
+                ? 'Select a logo variant above to continue' 
+                : `Variant ${order.selectedLogoId} selected. Click to generate final assets.`}
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Mockup Preview Grid - 12 mockups (4 variants x 3 templates) */}
       <Card>

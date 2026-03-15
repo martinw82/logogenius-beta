@@ -399,78 +399,12 @@ export async function POST(
         // Non-critical - continue without mockups
       }
 
-      // Step 5: Generate FREE social media assets (Tier 3 only)
-      let socialResults: Partial<Record<SocialPlatform, string>> = {};
-      
-      if (order.tier === 'premium') {
-        console.log(`[Generate] Starting social media generation (Tier 3 - FREE templates)`);
-        
-        try {
-          const primaryColor = formData.primaryColors?.includes('#') 
-            ? formData.primaryColors.match(/#[0-9A-Fa-f]{6}/)?.[0] 
-            : '#0a192f';
-          const secondaryColor = formData.secondaryColors?.includes('#')
-            ? formData.secondaryColors.match(/#[0-9A-Fa-f]{6}/)?.[0]
-            : '#f4a261';
-          const accentColor = formData.accentColors?.includes('#')
-            ? formData.accentColors.match(/#[0-9A-Fa-f]{6}/)?.[0]
-            : '#ffffff';
-          
-          socialResults = await generateAllSocialAssets({
-            logoUrl: logoResult.logoUrls[0],
-            businessName: formData.businessName,
-            tagline: formData.keyTagline,
-            primaryColor: primaryColor || '#0a192f',
-            secondaryColor: secondaryColor || '#f4a261',
-            accentColor: accentColor || '#ffffff',
-          });
-          
-          console.log(`[Generate] Social assets generated:`, Object.keys(socialResults).length);
-          
-          // Store social assets in OrderDetail
-          for (const [platform, imageUrl] of Object.entries(socialResults)) {
-            if (imageUrl) {
-              await prisma.orderDetail.upsert({
-                where: {
-                  orderId_fieldName: {
-                    orderId: orderId,
-                    fieldName: `social_${platform}`,
-                  },
-                },
-                create: {
-                  orderId: orderId,
-                  fieldName: `social_${platform}`,
-                  fieldValue: imageUrl,
-                },
-                update: {
-                  fieldValue: imageUrl,
-                },
-              });
-            }
-          }
-        } catch (socialError) {
-          console.error("[Generate] Social media generation failed:", socialError);
-          // Non-critical - continue without social assets
-        }
-      }
+      // Note: Social media assets and PDF will be generated AFTER admin selects preferred logo
+      // This ensures all assets use the correct logo variant
 
-      // Step 6: Generate PDF and ZIP package
-      console.log(`[Generate] Starting PDF and ZIP generation`);
-      try {
-        await processOrderAssets({
-          orderId: orderId,
-          businessName: formData.businessName,
-          userApiKey: apiKey,
-        });
-        console.log(`[Generate] PDF and ZIP generated successfully`);
-      } catch (pdfError) {
-        console.error("[Generate] PDF generation failed:", pdfError);
-        // Non-critical - order is still ready but without PDF
-      }
-
-      // Update order status to "ready_for_review"
-      await updateOrder(orderId, { status: "ready_for_review" });
-      console.log(`[Generate] Complete! Order ${orderId} ready for review`);
+      // Update order status to "awaiting_selection" - waiting for admin to pick logo
+      await updateOrder(orderId, { status: "awaiting_selection" });
+      console.log(`[Generate] Phase 1 Complete! Order ${orderId} awaiting logo selection`);
 
       return NextResponse.json({
         success: true,
@@ -482,8 +416,8 @@ export async function POST(
             acc[key] = true;
             return acc;
           }, {} as Record<string, boolean>),
-          socialAssetsGenerated: order.tier === 'premium' ? Object.keys(socialResults).length : 0,
-          brandGuideGenerated: true,
+          awaitingSelection: true,
+          message: "Please select a preferred logo variant to generate social assets and PDF",
         },
       });
 

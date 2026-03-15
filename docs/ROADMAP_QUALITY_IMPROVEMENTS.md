@@ -12,11 +12,21 @@
 |---------|--------|-------|
 | Logo Generation (4 variants) | ✅ Working | Together AI - basic quality |
 | Mockup Generation (12 total) | ✅ Working | All 4 variants × 3 templates |
-| Social Media Assets (10) | ✅ Working | All platforms displaying |
-| PDF Generation | ✅ Working | Basic layout with embedded images |
+| Social Media Assets (10) | ✅ Working | Generated AFTER logo selection |
+| PDF Generation | ✅ Working | Generated AFTER logo selection |
 | Order Management | ✅ Working | Full admin dashboard |
+| Logo Selection | ✅ Working | Admin picks variant 1-4 |
+| Two-Phase Generation | ✅ Working | Phase 1: Logos+Mockups, Phase 2: Socials+PDF |
 
 **Cost per order:** $0.004 (Together AI) + $0 (Canvas rendering)
+
+### Workflow Fix (Critical)
+**Problem:** Social assets were generated for Variant 1 only, even if admin selected Variant 4.
+
+**Solution:** Two-phase generation:
+1. **Phase 1**: Generate 4 logos + 12 mockups (all variants)
+2. **Selection**: Admin picks preferred logo variant (1-4)
+3. **Phase 2**: Generate social assets + PDF using SELECTED logo only
 
 ---
 
