@@ -54,7 +54,7 @@ export async function POST(request: NextRequest) {
     const prompt = buildPrompt(businessName, industry, subcategory, existingFields);
     
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}`,
       {
         method: 'POST',
         headers: {
