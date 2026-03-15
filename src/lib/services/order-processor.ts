@@ -172,21 +172,27 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
 
     // Generate README
     console.log(`[${input.orderId}] Generating README...`);
-    const readmeContent = generateReadmeContent({
-      businessName: input.businessName,
-      tagline: orderData.tagline,
-      missionStatement: orderData.missionStatement,
-      brandStory: orderData.projectOverview,
-      colorPalette: orderData.colorPalette,
-      typography: orderData.typography,
-      logoUsageRules: orderData.logoUsageRules,
-      usageRulesAndDonts: orderData.usageRulesAndDonts,
-      brandVoice: orderData.brandVoice,
-      imageryStyle: orderData.imageryStyle,
-      web3Section: orderData.web3Section,
-      contactEmail: order.customerEmail,
-      version: '1.0',
-    });
+    let readmeContent;
+    try {
+      readmeContent = generateReadmeContent({
+        businessName: input.businessName,
+        tagline: orderData.tagline,
+        missionStatement: orderData.missionStatement,
+        brandStory: orderData.projectOverview,
+        colorPalette: orderData.colorPalette,
+        typography: orderData.typography,
+        logoUsageRules: orderData.logoUsageRules,
+        usageRulesAndDonts: orderData.usageRulesAndDonts,
+        brandVoice: orderData.brandVoice,
+        imageryStyle: orderData.imageryStyle,
+        web3Section: orderData.web3Section,
+        contactEmail: order.customerEmail,
+        version: '1.0',
+      });
+    } catch (readmeError) {
+      console.error(`[${input.orderId}] README generation failed:`, readmeError);
+      readmeContent = `# ${input.businessName} Brand Guide\n\nBrand guidelines for ${input.businessName}.`;
+    }
 
     const readmeFileName = generateFileName('readme', input.orderId, input.businessName);
     const readmePath = await saveTextFile(readmeFileName, readmeContent);

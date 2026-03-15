@@ -131,11 +131,12 @@ export async function POST(
         console.log(`[Finalize] Social assets generated:`, Object.keys(socialResults).length);
         
         // Store social assets - convert platform names from hyphen to underscore
+        const prismaClient = getPrisma();
         for (const [platform, imageUrl] of Object.entries(socialResults)) {
           if (imageUrl) {
             // Convert 'instagram-post' to 'instagram_post' to match UI expectations
             const fieldName = `social_${platform.replace(/-/g, '_')}`;
-            await prisma.orderDetail.upsert({
+            await prismaClient.orderDetail.upsert({
               where: {
                 orderId_fieldName: {
                   orderId: orderId,
@@ -185,7 +186,8 @@ export async function POST(
     
     // Verify PDF was saved by checking database
     try {
-      const pdfDetail = await prisma.orderDetail.findUnique({
+      const prismaClient = getPrisma();
+      const pdfDetail = await prismaClient.orderDetail.findUnique({
         where: {
           orderId_fieldName: {
             orderId: orderId,

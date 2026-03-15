@@ -8,6 +8,35 @@
 - Two-phase workflow implemented (logos+mockups → select logo → socials+PDF)
 - Added debug logging for PDF generation issues
 - Downloads section shows loading states during finalization
+- Fixed Prisma client import issues across multiple files
+- Disabled problematic Tier 3 templates (Figma/Canva) causing "forEach" errors
+
+### Known Issues Being Fixed
+| Issue | Status | Details |
+|-------|--------|---------|
+| `prisma is not defined` | 🔄 Fixed | Multiple files using `prisma` instead of `getPrisma()` |
+| `forEach on undefined` | 🔄 Fixed | README generator failing on undefined colorPalette |
+| PDF not saving | 🔄 Testing | Database verification added, error handling improved |
+| Social field names | ✅ Fixed | Changed from hyphen to underscore format |
+
+### Troubleshooting Session (March 15)
+**Problem:** Finalize endpoint returning 500 errors
+
+**Root Causes Identified:**
+1. **Prisma Import Issues**: Several files imported `prisma` directly instead of using `getPrisma()` function
+   - Fixed in: `finalize/route.ts`, `order-processor.ts`
+   
+2. **Undefined Color Palette**: README generator calling `forEach` on undefined arrays
+   - Fixed by wrapping in try-catch with fallback content
+   
+3. **Field Name Mismatch**: Social assets saved with hyphens (`social_instagram-post`) but UI expects underscores (`social_instagram_post`)
+   - Fixed with string replacement in finalize route
+
+**Testing Status:**
+- ✅ Phase 1: Logos + Mockups working
+- ✅ Logo selection UI working  
+- 🔄 Phase 2: PDF generation (in progress)
+- 🔄 Social assets display (in progress)
 
 ---
 
