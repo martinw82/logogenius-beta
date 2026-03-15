@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { getOrderById, updateOrder, getPrisma } from "@/lib/database";
 import { verifyAdminToken, getTokenFromRequest } from "@/lib/auth";
-import { generateAllSocialAssets } from "@/lib/services/social-media-generator";
 import { processOrderAssets } from "@/lib/services/order-processor";
 
 export const dynamic = 'force-dynamic';
@@ -105,62 +104,8 @@ export async function POST(
       },
     });
 
-    // Generate social media assets for Tier 3
-    console.log(`[Finalize] Checking tier: ${order.tier}`);
-    if (order.tier === 'premium') {
-      console.log(`[Finalize] Generating social assets for variant ${selectedVariant}`);
-      console.log(`[Finalize] Logo URL length: ${selectedLogoUrl?.length || 0}`);
-      console.log(`[Finalize] Business name: ${formData.businessName}`);
-      
-      try {
-        const primaryColor = formData.primaryColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#0a192f';
-        const secondaryColor = formData.secondaryColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#f4a261';
-        const accentColor = formData.accentColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#ffffff';
-        
-        console.log(`[Finalize] Colors: primary=${primaryColor}, secondary=${secondaryColor}, accent=${accentColor}`);
-        
-        const socialResults = await generateAllSocialAssets({
-          logoUrl: selectedLogoUrl,
-          businessName: formData.businessName,
-          tagline: formData.keyTagline,
-          primaryColor,
-          secondaryColor,
-          accentColor,
-        });
-        
-        console.log(`[Finalize] Social assets generated:`, Object.keys(socialResults).length);
-        
-        // Store social assets - convert platform names from hyphen to underscore
-        const prismaClient = getPrisma();
-        for (const [platform, imageUrl] of Object.entries(socialResults)) {
-          if (imageUrl) {
-            // Convert 'instagram-post' to 'instagram_post' to match UI expectations
-            const fieldName = `social_${platform.replace(/-/g, '_')}`;
-            await prismaClient.orderDetail.upsert({
-              where: {
-                orderId_fieldName: {
-                  orderId: orderId,
-                  fieldName: fieldName,
-                },
-              },
-              create: {
-                orderId: orderId,
-                fieldName: fieldName,
-                fieldValue: imageUrl,
-              },
-              update: {
-                fieldValue: imageUrl,
-              },
-            });
-          }
-        }
-      } catch (socialError) {
-        console.error("[Finalize] Social generation failed:", socialError);
-        // Continue even if social fails - we still want to generate PDF
-      }
-    } else {
-      console.log(`[Finalize] Skipping social assets - tier is ${order.tier}, not premium`);
-    }
+    // Note: Social assets are now generated client-side before this API call
+    console.log(`[Finalize] Social assets should already be generated client-side`);
 
     // Generate PDF and ZIP with selected logo
     console.log(`[Finalize] Generating PDF with variant ${selectedVariant}`);
