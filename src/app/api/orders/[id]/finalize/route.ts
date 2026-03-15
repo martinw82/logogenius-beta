@@ -16,9 +16,12 @@ export async function POST(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
+  console.log(`[Finalize] Request received for order ${params.id}`);
+  
   try {
     // Verify admin authentication
     const token = getTokenFromRequest(request);
+    console.log(`[Finalize] Token present: ${!!token}`);
     if (!token) {
       return NextResponse.json(
         { error: "Unauthorized - No token provided" },
@@ -102,13 +105,18 @@ export async function POST(
     });
 
     // Generate social media assets for Tier 3
+    console.log(`[Finalize] Checking tier: ${order.tier}`);
     if (order.tier === 'premium') {
       console.log(`[Finalize] Generating social assets for variant ${selectedVariant}`);
+      console.log(`[Finalize] Logo URL length: ${selectedLogoUrl?.length || 0}`);
+      console.log(`[Finalize] Business name: ${formData.businessName}`);
       
       try {
         const primaryColor = formData.primaryColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#0a192f';
         const secondaryColor = formData.secondaryColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#f4a261';
         const accentColor = formData.accentColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#ffffff';
+        
+        console.log(`[Finalize] Colors: primary=${primaryColor}, secondary=${secondaryColor}, accent=${accentColor}`);
         
         const socialResults = await generateAllSocialAssets({
           logoUrl: selectedLogoUrl,
@@ -144,7 +152,10 @@ export async function POST(
         }
       } catch (socialError) {
         console.error("[Finalize] Social generation failed:", socialError);
+        // Continue even if social fails - we still want to generate PDF
       }
+    } else {
+      console.log(`[Finalize] Skipping social assets - tier is ${order.tier}, not premium`);
     }
 
     // Generate PDF and ZIP with selected logo
