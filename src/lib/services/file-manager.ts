@@ -1,14 +1,16 @@
 import { promises as fs } from 'fs';
 import path from 'path';
 
-const DOWNLOADS_DIR = path.join(process.cwd(), 'public', 'downloads');
+// Use /tmp for Vercel serverless compatibility (writable)
+// Files stored here will be temporary and need to be served via API or uploaded to persistent storage
+const DOWNLOADS_DIR = '/tmp/downloads';
 
 export async function ensureDownloadsDir(): Promise<void> {
   try {
     await fs.mkdir(DOWNLOADS_DIR, { recursive: true });
   } catch (error) {
-    console.error('Failed to create downloads directory:', error);
-    throw error;
+    // Directory might already exist
+    console.log('Downloads dir ready');
   }
 }
 
@@ -17,7 +19,8 @@ export async function saveFile(fileName: string, content: Buffer): Promise<strin
     await ensureDownloadsDir();
     const filePath = path.join(DOWNLOADS_DIR, fileName);
     await fs.writeFile(filePath, content);
-    return `/downloads/${fileName}`;
+    // Return a path that can be used to serve via API
+    return `/api/serve-file?file=${encodeURIComponent(fileName)}`;
   } catch (error) {
     console.error('Failed to save file:', error);
     throw error;
@@ -29,7 +32,7 @@ export async function saveTextFile(fileName: string, content: string): Promise<s
     await ensureDownloadsDir();
     const filePath = path.join(DOWNLOADS_DIR, fileName);
     await fs.writeFile(filePath, content, 'utf-8');
-    return `/downloads/${fileName}`;
+    return `/api/serve-file?file=${encodeURIComponent(fileName)}`;
   } catch (error) {
     console.error('Failed to save text file:', error);
     throw error;
@@ -38,7 +41,9 @@ export async function saveTextFile(fileName: string, content: string): Promise<s
 
 export async function deleteFile(filePath: string): Promise<void> {
   try {
-    const fullPath = path.join(process.cwd(), 'public', filePath);
+    // Extract filename from path if it's a URL
+    const fileName = filePath.split('/').pop() || filePath;
+    const fullPath = path.join(DOWNLOADS_DIR, fileName);
     await fs.unlink(fullPath);
   } catch (error) {
     console.error('Failed to delete file:', error);
@@ -48,11 +53,21 @@ export async function deleteFile(filePath: string): Promise<void> {
 
 export async function fileExists(filePath: string): Promise<boolean> {
   try {
-    const fullPath = path.join(process.cwd(), 'public', filePath);
+    const fileName = filePath.split('/').pop() || filePath;
+    const fullPath = path.join(DOWNLOADS_DIR, fileName);
     await fs.stat(fullPath);
     return true;
   } catch {
     return false;
+  }
+}
+
+export async function getFileContents(fileName: string): Promise<Buffer | null> {
+  try {
+    const fullPath = path.join(DOWNLOADS_DIR, fileName);
+    return await fs.readFile(fullPath);
+  } catch {
+    return null;
   }
 }
 
