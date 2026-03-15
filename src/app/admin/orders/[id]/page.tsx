@@ -341,14 +341,44 @@ export default function AdminOrderDetail() {
     setOrder(prev => prev ? { ...prev, selectedLogoId: variantNum } : null);
   };
 
-  // Finalize order handler - generates socials + PDF with selected logo
+  // Finalize order handler - generates socials client-side, then PDF server-side
   const handleFinalizeOrder = async () => {
     if (!order?.selectedLogoId) return;
-    
+
     setIsFinalizing(true);
-    setSuccessMessage('Generating final assets with selected logo...');
-    
+    setSuccessMessage('Generating social assets with selected logo...');
+
     try {
+      // Find the selected logo
+      const selectedLogo = order.logos.find(l => l.variantNum === order.selectedLogoId);
+      if (!selectedLogo?.svgData) {
+        throw new Error('Selected logo variant not found');
+      }
+
+      // Generate social assets client-side first
+      const primaryColor = order.data.primaryColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#0a192f';
+      const secondaryColor = order.data.secondaryColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#f4a261';
+      const accentColor = order.data.accentColors?.match(/#[0-9A-Fa-f]{6}/)?.[0] || '#ffffff';
+
+      const socialResult = await generateAndUploadSocialAssets(
+        parseInt(orderId),
+        {
+          logoUrl: selectedLogo.svgData,
+          businessName: order.data.businessName,
+          tagline: order.data.keyTagline,
+          primaryColor,
+          secondaryColor,
+          accentColor,
+        }
+      );
+
+      if (!socialResult.success) {
+        throw new Error(socialResult.error || 'Social asset generation failed');
+      }
+
+      setSuccessMessage('Social assets generated! Creating PDF...');
+
+      // Now generate PDF server-side
       const response = await fetch(`/api/orders/${orderId}/finalize`, {
         method: 'POST',
         headers: {
@@ -362,12 +392,12 @@ export default function AdminOrderDetail() {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.error || 'Finalization failed');
+        throw new Error(errorData.error || 'PDF generation failed');
       }
 
       const data = await response.json();
       setSuccessMessage('Order finalized! Social assets and PDF generated.');
-      
+
       // Refresh order data
       const orderResponse = await fetch(`/api/admin/orders/${orderId}`, {
         credentials: 'include',
