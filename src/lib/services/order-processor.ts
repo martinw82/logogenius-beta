@@ -1,4 +1,4 @@
-import { getPrisma } from '../database';
+import { getPrisma, getOrderById } from '../database';
 import { generateBrandGuidePDF } from './pdf-generator';
 import { generateReadmeContent } from './readme-generator';
 import { createBrandAssetZip } from './zip-packager';
@@ -33,10 +33,7 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
     });
 
     // Fetch order data
-    const order = await prisma.order.findUnique({
-      where: { id: input.orderId },
-      include: { details: true },
-    });
+    const order = await getOrderById(input.orderId);
 
     if (!order) {
       throw new Error(`Order ${input.orderId} not found`);
