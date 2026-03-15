@@ -67,10 +67,10 @@ export async function POST(request: NextRequest) {
     const content = result.content;
 
     // Parse the JSON response
-    const result = parseResponse(content);
+    const parsedResult = parseResponse(content);
     
     // Merge with existing fields - don't overwrite
-    const mergedResult = { ...result };
+    const mergedResult = { ...parsedResult };
     for (const [key, value] of Object.entries(existingFields)) {
       if (value && value.trim() !== '') {
         // Keep existing value, don't overwrite
