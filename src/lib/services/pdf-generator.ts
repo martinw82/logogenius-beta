@@ -92,83 +92,138 @@ export async function generateBrandGuidePDF(data: BrandGuideData): Promise<Buffe
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 
-      // Cover Page
-      doc.fontSize(48).font('Helvetica-Bold').text(data.businessName, { align: 'center' });
-      doc.moveDown(0.5);
+      // Get brand colors for design
+      const primaryColor = data.logo?.colors?.[0] || '#2563eb';
+      
+      // Cover Page with professional design
+      // Background accent bar at top
+      doc.save();
+      doc.fillColor(primaryColor);
+      doc.rect(0, 0, doc.page.width, 120).fill();
+      doc.restore();
+      
+      // Brand name on colored background
+      doc.fillColor('#ffffff');
+      doc.fontSize(42).font('Helvetica-Bold').text(data.businessName, 50, 45, { align: 'center', width: doc.page.width - 100 });
+      
       if (data.tagline) {
-        doc.fontSize(20).font('Helvetica').fillColor('#666666').text(data.tagline, { align: 'center' });
-        doc.fillColor('#000000');
+        doc.fontSize(16).font('Helvetica').text(data.tagline, 50, 90, { align: 'center', width: doc.page.width - 100 });
       }
-      doc.moveDown(2);
-
-      // Add logo if provided
+      
+      // Reset color
+      doc.fillColor('#000000');
+      
+      // Spacer
+      doc.moveDown(4);
+      
+      // Add logo if provided - centered below header
       if (data.logo?.url) {
         try {
           const logoBuffer = dataUrlToBuffer(data.logo.url);
           if (logoBuffer) {
-            // Center the logo, max width 200
+            // Center the logo, larger display
             const pageWidth = doc.page.width - 100;
-            doc.image(logoBuffer, 50 + (pageWidth - 200) / 2, doc.y, { 
-              fit: [200, 150],
+            const logoY = doc.y;
+            doc.image(logoBuffer, 50 + (pageWidth - 250) / 2, logoY, { 
+              fit: [250, 200],
               align: 'center'
             });
-            doc.moveDown(8);
+            doc.moveDown(12);
           }
         } catch (e) {
           console.warn('Could not embed logo:', e);
+          doc.moveDown(8);
         }
+      } else {
+        doc.moveDown(8);
       }
 
-      // Metadata
-      doc.fontSize(11).font('Helvetica').fillColor('#000000').text(`Generated: ${new Date().toLocaleDateString()}`, { align: 'center' });
+      // Document title
+      doc.fontSize(28).font('Helvetica-Bold').fillColor('#333333').text('Brand Guidelines', { align: 'center' });
+      doc.moveDown(0.5);
+      doc.fontSize(14).font('Helvetica').fillColor('#666666').text('Complete brand identity standards and usage guidelines', { align: 'center' });
+      doc.moveDown(2);
+
+      // Metadata in a nice box
+      doc.save();
+      doc.fillColor('#f5f5f5');
+      doc.roundedRect(doc.page.width / 2 - 150, doc.y, 300, 60, 5, 5).fill();
+      doc.restore();
+      
+      doc.fontSize(11).font('Helvetica').fillColor('#333333');
+      doc.text(`Generated: ${new Date().toLocaleDateString()}`, 0, doc.y + 15, { align: 'center' });
       if (data.authorEmail) {
-        doc.fontSize(10).fillColor('#999999').text(`For: ${data.authorEmail}`, { align: 'center' });
+        doc.fontSize(10).fillColor('#666666').text(`Prepared for: ${data.authorEmail}`, { align: 'center' });
       }
 
       // Add page break
       doc.addPage();
 
-      // Table of Contents
-      doc.fontSize(24).font('Helvetica-Bold').fillColor('#000000').text('Table of Contents', { underline: true });
-      doc.moveDown(0.5);
+      // Table of Contents with styled header
+      doc.save();
+      doc.fillColor(primaryColor);
+      doc.rect(0, 0, doc.page.width, 80).fill();
+      doc.restore();
+      
+      doc.fillColor('#ffffff');
+      doc.fontSize(28).font('Helvetica-Bold').text('Table of Contents', 50, 25);
+      doc.fillColor('#000000');
+      doc.moveDown(3);
+      
       doc.fontSize(12);
       const sections = [
         'Project Overview',
-        'Brand Identity',
+        'Brand Identity & Voice',
         'Logo Philosophy',
         'Logo Mockups',
         'Color Palette',
         'Color Accessibility',
-        'Typography',
-        'Imagery Style',
+        'Typography Guide',
+        'Imagery & Photography Style',
         'Graphic Elements',
         'Brand Voice & Tone',
         'Visual Style Guide',
         'Usage Rules & Don\'ts',
         data.sections.web3Section ? 'Web3 Specifications' : null,
-        'Appendix',
+        'Appendix & Resources',
       ].filter(Boolean);
 
       sections.forEach((section, i) => {
-        doc.text(`${i + 1}. ${section}`);
+        // Draw section number in colored circle
+        const circleX = 70;
+        const circleY = doc.y + 3;
+        
+        doc.save();
+        doc.fillColor(primaryColor);
+        doc.circle(circleX, circleY, 12).fill();
+        doc.restore();
+        
+        doc.fillColor('#ffffff');
+        doc.fontSize(10).font('Helvetica-Bold');
+        doc.text(String(i + 1), circleX - 3, circleY - 4);
+        
+        doc.fillColor('#333333');
+        doc.fontSize(12).font('Helvetica');
+        doc.text(section, 100, doc.y - 12);
+        doc.moveDown(0.8);
       });
 
       // Project Overview Section
       if (data.sections.projectOverview) {
         doc.addPage();
-        addSection(doc, 'Project Overview', data.sections.projectOverview);
+        addSection(doc, 'Project Overview', data.sections.projectOverview, primaryColor);
       }
 
       // Brand Identity Section
       if (data.sections.brandIdentity) {
         doc.addPage();
-        addSection(doc, 'Brand Identity & Voice', data.sections.brandIdentity);
+        addSection(doc, 'Brand Identity & Voice', data.sections.brandIdentity, primaryColor);
       }
 
       // Logo Philosophy Section
       if (data.sections.logoPhilosophy) {
         doc.addPage();
-        addSection(doc, 'Logo Philosophy', data.sections.logoPhilosophy);
+        addSection(doc, 'Logo Philosophy', data.sections.logoPhilosophy, primaryColor);
       }
 
       // Logo Mockups Section
@@ -267,7 +322,7 @@ export async function generateBrandGuidePDF(data: BrandGuideData): Promise<Buffe
       // Color Accessibility Section
       if (data.sections.colorAccessibility) {
         doc.addPage();
-        addSection(doc, 'Color Accessibility', data.sections.colorAccessibility);
+        addSection(doc, 'Color Accessibility', data.sections.colorAccessibility, primaryColor);
       }
 
       // Typography Section
@@ -297,43 +352,43 @@ export async function generateBrandGuidePDF(data: BrandGuideData): Promise<Buffe
       // Imagery Style Section
       if (data.sections.imageryStyle) {
         doc.addPage();
-        addSection(doc, 'Imagery & Photography Style', data.sections.imageryStyle);
+        addSection(doc, 'Imagery & Photography Style', data.sections.imageryStyle, primaryColor);
       }
 
       // Graphic Elements Section
       if (data.sections.graphicElements) {
         doc.addPage();
-        addSection(doc, 'Graphic Elements', data.sections.graphicElements);
+        addSection(doc, 'Graphic Elements', data.sections.graphicElements, primaryColor);
       }
 
       // Brand Voice Section
       if (data.sections.brandVoice) {
         doc.addPage();
-        addSection(doc, 'Brand Voice & Tone', data.sections.brandVoice);
+        addSection(doc, 'Brand Voice & Tone', data.sections.brandVoice, primaryColor);
       }
 
       // Visual Style Guide Section
       if (data.sections.visualStyleGuide) {
         doc.addPage();
-        addSection(doc, 'Visual Style Guide', data.sections.visualStyleGuide);
+        addSection(doc, 'Visual Style Guide', data.sections.visualStyleGuide, primaryColor);
       }
 
       // Usage Rules Section
       if (data.sections.usageRulesAndDonts) {
         doc.addPage();
-        addSection(doc, 'Usage Rules & Don\'ts', data.sections.usageRulesAndDonts);
+        addSection(doc, 'Usage Rules & Don\'ts', data.sections.usageRulesAndDonts, primaryColor);
       }
 
       // Web3 Section (if applicable)
       if (data.sections.web3Section) {
         doc.addPage();
-        addSection(doc, 'Web3 Specifications', data.sections.web3Section);
+        addSection(doc, 'Web3 Specifications', data.sections.web3Section, primaryColor);
       }
 
       // Appendix
       if (data.sections.appendix) {
         doc.addPage();
-        addSection(doc, 'Appendix', data.sections.appendix);
+        addSection(doc, 'Appendix & Resources', data.sections.appendix, primaryColor);
       }
 
       // Footer page numbers
@@ -353,12 +408,24 @@ export async function generateBrandGuidePDF(data: BrandGuideData): Promise<Buffe
   });
 }
 
-function addSection(doc: PDFKit.PDFDocument, title: string, content: string): void {
-  doc.fontSize(18).font('Helvetica-Bold').fillColor('#000000').text(title, { underline: true });
-  doc.moveDown(0.5);
+function addSection(doc: PDFKit.PDFDocument, title: string, content: string | undefined, accentColor: string): void {
+  if (!content) return;
+  // Section header with colored accent
+  doc.save();
+  doc.fillColor(accentColor);
+  doc.rect(0, 0, doc.page.width, 60).fill();
+  doc.restore();
+  
+  doc.fillColor('#ffffff');
+  doc.fontSize(22).font('Helvetica-Bold').text(title, 50, 20);
+  doc.fillColor('#000000');
+  doc.moveDown(3);
+  
+  // Content with better formatting
   doc.fontSize(11).font('Helvetica').text(content, {
     align: 'left',
-    lineGap: 5,
+    lineGap: 6,
+    paragraphGap: 10,
   });
   doc.moveDown(1);
 }
