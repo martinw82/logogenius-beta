@@ -279,7 +279,8 @@ export default function AdminOrderDetail() {
         }
         
         // Step 3: Generate social media assets for Tier 3
-        if (orderData.tier === 'premium') {
+        console.log('[Generate] Checking tier for social:', orderData.tier, typeof orderData.tier);
+        if (orderData.tier === 'premium' || orderData.tier === '3' || String(orderData.tier).toLowerCase() === 'premium') {
           setClientGenStep('social');
           setSuccessMessage('Creating social media assets...');
           
