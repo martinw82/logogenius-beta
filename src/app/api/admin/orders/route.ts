@@ -85,12 +85,13 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const { 
+    const {
       tier, customerEmail, businessName, industry,
       aestheticKeywords, emotionalKeywords, functionalKeywords,
       primaryColors, secondaryColors, accentColors,
       preferredLogoStyle, composition, iconPlacement, iconComplexity,
-      fontStyle, fontHeadings, fontBody,
+      fontStyle, fontHeadings, fontBody, fontOther,
+      useHeadingsFontForLogo, useBodyFontForLogo, useOtherFontForLogo,
       missionStatement, brandPillars, brandArchetype, keyTagline, targetAudience,
       web3, web3ProjectType, logoPreferences
     } = body;
@@ -133,6 +134,10 @@ export async function POST(request: NextRequest) {
       fontStyle,
       fontHeadings,
       fontBody,
+      fontOther,
+      useHeadingsFontForLogo: useHeadingsFontForLogo ? 'true' : undefined,
+      useBodyFontForLogo: useBodyFontForLogo ? 'true' : undefined,
+      useOtherFontForLogo: useOtherFontForLogo ? 'true' : undefined,
       missionStatement,
       brandPillars,
       brandArchetype,
