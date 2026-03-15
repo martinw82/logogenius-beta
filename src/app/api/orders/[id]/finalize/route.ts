@@ -149,16 +149,34 @@ export async function POST(
 
     // Generate PDF and ZIP with selected logo
     console.log(`[Finalize] Generating PDF with variant ${selectedVariant}`);
+    let pdfGenerated = false;
     try {
-      await processOrderAssets({
+      const result = await processOrderAssets({
         orderId: orderId,
         businessName: formData.businessName,
         userApiKey: apiKey,
       });
-      console.log(`[Finalize] PDF and ZIP generated successfully`);
+      
+      if (result.success && result.pdfPath) {
+        console.log(`[Finalize] PDF generated: ${result.pdfPath}`);
+        pdfGenerated = true;
+      } else {
+        console.error(`[Finalize] PDF generation returned success=${result.success}, pdfPath=${result.pdfPath}`);
+      }
     } catch (pdfError) {
       console.error("[Finalize] PDF generation failed:", pdfError);
     }
+    
+    // Verify PDF was saved
+    const pdfDetail = await prisma.orderDetail.findUnique({
+      where: {
+        orderId_fieldName: {
+          orderId: orderId,
+          fieldName: 'pdf_path',
+        },
+      },
+    });
+    console.log(`[Finalize] PDF in database: ${pdfDetail?.fieldValue || 'NOT FOUND'}`);
 
     // Update order status to ready for review
     await updateOrder(orderId, { status: "ready_for_review" });
