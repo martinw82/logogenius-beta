@@ -108,16 +108,20 @@ export async function POST(
     if (socialAssets && typeof socialAssets === 'object') {
       for (const [platform, imageData] of Object.entries(socialAssets)) {
         if (typeof imageData === 'string' && imageData.startsWith('data:image')) {
+          // platform already includes 'social_' prefix from PLATFORM_KEY_MAP
+          // so we use it directly without adding another prefix
+          const fieldName = platform.startsWith('social_') ? platform : `social_${platform}`;
+          
           await prisma.orderDetail.upsert({
             where: {
               orderId_fieldName: {
                 orderId: orderId,
-                fieldName: `social_${platform}`,
+                fieldName: fieldName,
               },
             },
             create: {
               orderId: orderId,
-              fieldName: `social_${platform}`,
+              fieldName: fieldName,
               fieldValue: imageData,
             },
             update: {
