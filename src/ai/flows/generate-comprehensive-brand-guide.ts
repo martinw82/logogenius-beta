@@ -96,22 +96,32 @@ BUSINESS INFORMATION:
   prompt += `\n\nGenerate a comprehensive brand guide with EXACTLY these 13 sections. Return as a JSON object with these keys:
 
 {
-  "projectOverview": "2-3 paragraphs about company intro, mission, vision, why they exist",
-  "brandIdentityVoice": "2-3 paragraphs about personality, archetype, voice, tone, attributes",
-  "logoPhilosophy": "2 paragraphs about why the logo works, design thinking, core message",
-  "colorPalette": "2-3 paragraphs with primary, secondary, accent colors with hex codes, color psychology",
-  "colorAccessibility": "2 paragraphs about WCAG compliance, contrast ratios, accessibility best practices",
-  "typography": "2-3 paragraphs about primary/secondary fonts, sizing hierarchy, usage rules",
-  "imageryStyle": "2-3 paragraphs about photographic style, composition, color treatment",
-  "graphicElements": "2 paragraphs about icon style, patterns, decorative elements",
-  "brandVoiceTone": "2-3 paragraphs about voice characteristics, tone variations, vocabulary",
-  "visualStyleGuide": "2-3 paragraphs about spacing, grid, shadows, textures, animations",
-  "usageRulesAndDonts": "2-3 paragraphs about logo don'ts, minimum sizes, color restrictions",
+  "projectOverview": "2-3 paragraphs about company intro, mission, vision, why they exist. Start directly with the company name.",
+  "brandIdentityVoice": "2-3 paragraphs about personality, archetype, voice, tone, attributes. Use vivid descriptors.",
+  "logoPhilosophy": "2 paragraphs about why the logo works, design thinking, core message. Focus on symbolism.",
+  "colorPalette": "2-3 paragraphs with primary, secondary, accent colors with hex codes, color psychology. List specific hex codes.",
+  "colorAccessibility": "2 paragraphs about WCAG compliance, contrast ratios, accessibility best practices. Include specific ratios.",
+  "typography": "2-3 paragraphs about primary/secondary fonts, sizing hierarchy, usage rules. Name specific font families.",
+  "imageryStyle": "2-3 paragraphs about photographic style, composition, color treatment. Describe mood and feel.",
+  "graphicElements": "2 paragraphs about icon style, patterns, decorative elements. Keep practical and specific.",
+  "brandVoiceTone": "2-3 paragraphs about voice characteristics, tone variations, vocabulary. Give concrete examples.",
+  "visualStyleGuide": "2-3 paragraphs about spacing, grid, shadows, textures, animations. Include measurements.",
+  "usageRulesAndDonts": "2-3 paragraphs about logo don'ts, minimum sizes, color restrictions. Be prescriptive.",
   ${flowInput.web3BlockchainFocus ? '"web3Section": "2-3 paragraphs about token, blockchain context, DAO/governance guidelines",' : ''}
   "appendix": "1-2 paragraphs about font licensing, color downloads, version info, contact"
 }
 
-Be specific, practical, and actionable. Include actual hex codes and specific measurements where relevant. Return ONLY the JSON object, no markdown formatting.`;
+CRITICAL INSTRUCTIONS:
+1. NEVER start paragraphs with "In addition to..." - use varied transitions
+2. NEVER repeat the same sentence structure across sections
+3. NEVER use filler phrases like "it is important to note that" or "as mentioned previously"
+4. Each section must have a distinct voice and approach
+5. Use specific details, not generic statements
+6. Include actual hex codes (#RRGGBB format) for colors
+7. Be concise - every sentence should add value
+8. Write like a top-tier brand agency, not an AI
+
+Return ONLY the JSON object, no markdown formatting.`;
 
   console.log('[Brand Guide] Generating comprehensive brand guide...');
 
