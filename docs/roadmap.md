@@ -14,7 +14,17 @@
 | 5 | Dashboard + Revisions | 8 | ✅ COMPLETED | Customer dashboard & asset downloads, revision system |
 | 6 | Advanced Templates + Polish | 8 | 🔄 IN PROGRESS | Figma/Canva templates & media assets |
 
-**Completion Rate:** 33/44 tasks (75%) ✅ | 8/44 tasks (18%) 🔄 | 3/44 tasks (7%) ⏳
+**Completion Rate:** 36/44 tasks (82%) ✅ | 5/44 tasks (11%) 🔄 | 3/44 tasks (7%) ⏳
+
+### Additional Tasks Identified (Not in original 44)
+| Task | Status | Notes |
+|------|--------|-------|
+| Photo-realistic mockups (API) | ⏳ RESEARCH | Placeit/Mediamodifier/ControlNet - need to evaluate |
+| AI social images (3 platforms) | ⏳ PLANNED | Instagram Post, YouTube Thumb, Website Hero |
+| Canvas mockup improvements | ⏳ PLANNED | Shadows, textures, better layouts |
+| Canvas social improvements | ⏳ PLANNED | Gradients, patterns, platform styling |
+| Stripe payment integration | ⏳ PLANNED | 3 tiers ($29/$49/$99) |
+| Email integration (Resend) | ⏳ PLANNED | 8 templates exist, need provider |
 
 ---
 
@@ -395,10 +405,10 @@
 
 ---
 
-## ⏳ SPRINT 6: Advanced Templates + Polish (8 tasks) - ⏳ PENDING
+## 🔄 SPRINT 6: Advanced Templates + Polish (8 tasks) - IN PROGRESS
 
 **Goal:** Extend to Figma/Canva templates and comprehensive media suite
-**Status:** Future sprint - Figma/Canva generation, media assets, advanced testing, deployment
+**Status:** PDF redesign done, mockup/social quality upgrade next, then payments + deploy
 
 ### 6.1 Figma Template Generation
 - Create editable Figma files with brand assets:

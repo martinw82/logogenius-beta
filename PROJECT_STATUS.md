@@ -1,126 +1,158 @@
 # LogoGenius Project Status
 
-**Date:** 2026-03-15
-**Branch:** typography-system
-**Status:** 🔧 PDF Fixed - Output Quality Phase
-**Last Commit:** PDF generation fixed (jsPDF + /tmp storage)
+**Date:** 2026-03-15 (End of Session)
+**Branch:** claude/analyze-codebase-plan-g5Vfs
+**Status:** Phase 1 Complete - Quality Upgrades Next
+**Completion:** ~80% (core product working, quality + polish remaining)
 
 ---
 
-## ✅ What's Working (100% Complete)
+## What's Done (Working Now)
 
-### Database Layer
-- ✅ MySQL connection working
-- ✅ All tables created (orders, order_details, logo_variants, brand_archetypes, admin_sessions)
-- ✅ 12 brand archetypes seeded
-- ✅ CRUD operations working
+### Core Platform
+- MySQL database (TiDB Cloud) with all tables
+- Admin dashboard with JWT auth, orders list, create/detail/approve/reject
+- Customer-facing tier selection, order form, order confirmation
+- AI auto-fill (Google Gemini - FREE) from business name + industry
+- 5 AI providers supported (Together, Replicate, Fal, Google, Laozhang)
 
-### Admin Dashboard
-- ✅ Admin login with JWT
-- ✅ Orders list with pagination
-- ✅ Create order form with **AI auto-fill**
-- ✅ Order detail view with logos, mockups, social assets
-- ✅ Order status management (approve/reject)
-- ✅ Regenerate logos button
+### Logo Generation
+- 4 logo variants per order via Together AI ($0.004/order)
+- Template-based prompts (deterministic, no AI prompt engineering)
+- Provider abstraction - switch via env var
 
-### AI Features
-- ✅ **Form Auto-Fill** - AI fills brand details from business name + industry (Google Gemini - FREE)
-- ✅ **Logo Generation** - 4 logos generated via Together AI
-- ✅ **Template-Based Prompts** - Deterministic, no AI prompt engineering
-- ✅ **5 AI Providers** - Together, Replicate, Fal, Google, Laozhang (switch via env var)
+### Mockups (Canvas - Client-Side)
+- Business Card (900x500), Letterhead (800x1100), T-Shirt (600x700)
+- Generated for all 4 variants (12 mockups total)
+- Auto-uploaded to server, $0 cost
 
-### Mockups & Social Media (NEW - Client-Side Canvas!)
-- ✅ **Real Mockup Generation** - HTML5 Canvas renders in browser
-  - Business Card (900×500)
-  - Letterhead (800×1100)
-  - T-Shirt (600×700)
-- ✅ **Real Social Media Assets** - 10 platforms for Tier 3
-  - Instagram Post, Instagram Story
-  - Facebook Cover, Twitter Header, LinkedIn Banner
-  - YouTube Thumbnail, Pinterest Pin, TikTok Cover
-  - Email Header, Website Hero
-- ✅ **Zero Cost** - No API calls, pure Canvas rendering
-- ✅ **Auto-Upload** - Renders in browser, uploads to server automatically
-- ✅ **Fixed Social Display** - No more placeholders, real logos with proper overlays
+### Social Media Assets (Canvas - Tier 3)
+- 10 platforms: Instagram Post/Story, Facebook Cover, Twitter Header, LinkedIn Banner, YouTube Thumbnail, Pinterest Pin, TikTok Cover, Email Header, Website Hero
+- Generated after logo selection (uses selected variant only)
+- Auto-uploaded to server, $0 cost
 
-### Typography System (NEW!)
-- ✅ **Font Selection** - Curated library of 26 professional fonts
-- ✅ **Custom Font Upload** - TTF/OTF upload with validation (5MB limit)
-- ✅ **Font Previews** - Canvas-based font preview component
-- ✅ **PDF Font Embedding** - Custom fonts embedded in brand guides
-- ✅ **Logo Font Integration** - Selected fonts can override logo generation
+### Typography System
+- 26 curated professional fonts + custom TTF/OTF upload (5MB limit)
+- Canvas-based font previews
+- PDF font embedding
+- Admin font management page
 
-### PDF & Asset Packaging
-- ✅ **PDF Brand Guide** - Professional PDF with embedded mockups and fonts
-- ✅ **ZIP Packaging** - All assets bundled for download
-- ✅ **README Generation** - Brand guidelines text file
+### PDF & Packaging
+- PDF brand guide with jsPDF (cover page, TOC, color swatches, typography, mockups)
+- ZIP packaging with all assets + README
+- Vercel-compatible (/tmp + API route serving)
 
-### Customer-Facing
-- ✅ Tier selection page
-- ✅ Order form submission
-- ✅ Order confirmation
+### Two-Phase Workflow
+- Phase 1: Generate 4 logos + 12 mockups (all variants)
+- Admin selects preferred logo variant
+- Phase 2: Generate social assets + PDF using SELECTED logo only
 
 ---
 
-## 🎯 Current Architecture
+## What's Left To Do
 
-### Order Generation Flow
-```
-Admin clicks "Generate Logos"
-    ↓
-1. Server: Generate 4 logos (Together AI)        - $0.004
-2. Client: Generate 3 mockups (Canvas)           - $0
-   → Render in browser → Auto-upload to server
-3. Client: Generate 10 social assets (Canvas)    - $0 [Tier 3]
-   → Render in browser → Auto-upload to server
-4. Server: Generate PDF with embedded mockups    - $0 ⚠️ FONT ISSUE
-5. Server: Create ZIP package                    - $0
-    ↓
-Order status: "ready_for_review"
-```
+### PRIORITY 1: Mockup & Social Quality Upgrade
+**Status:** Planned, not started
+**Budget:** $1-2 per order is acceptable (product sells for $20-100+)
 
-### Cost Per Order (Current)
-| Tier | Logos | Mockups | Social | PDF/ZIP | **Total** |
-|------|-------|---------|--------|---------|-----------|
-| **1** | $0.004 | FREE | - | FREE | **$0.004** |
-| **2** | $0.004 | FREE | - | FREE | **$0.004** |
-| **3** | $0.004 | FREE | FREE | FREE | **$0.004** |
+The current Canvas mockups and social images are functional but look "generated" - they need to look professional and photo-realistic. This is the single biggest quality gap.
 
-**With $5 Together credit: 1,250 test orders!**
+#### Mockups - Need Photorealistic Quality
+- **Current:** Basic Canvas shapes with flat colors
+- **Goal:** Photo-quality UGC-style mockups with logo placed realistically on real products
+- **Approach:** Use specialist 3rd-party mockup/compositing API for final output
+- **Research needed:** Find the right API that can composite a logo onto a photo-realistic product shot
+
+**APIs to research:**
+| API | What it does | Approx cost |
+|-----|-------------|-------------|
+| Placeit API | Photo mockups with logo placement | ~$0.10-0.50/mockup |
+| Mediamodifier API | Similar, high quality templates | ~$0.10-0.30/mockup |
+| Renderforest | Mockup + video | Varies |
+| AI image compositing (DALL-E, Midjourney) | Generate product photo with described logo | ~$0.02-0.10/image |
+| Custom ComfyUI pipeline | Inpainting/compositing | Self-hosted cost |
+
+**Key question:** Which API gives the best logo-on-product compositing (not just describing it, but actually placing the PNG logo onto a realistic photo)?
+
+#### Social Media Images - Need Professional Quality
+- **Current:** Canvas-drawn gradients with logo overlay
+- **Goal:** Professional, agency-quality social templates
+- **Approach:** Mix of improved Canvas templates (7 platforms) + AI-generated hero images (3 platforms: Instagram Post, YouTube Thumbnail, Website Hero)
+- **Cost:** ~$0.009 for 3 AI social images
+
+#### Canvas Improvements (Free)
+- Add gradients, shadows, textures to all templates
+- Better typography and layout
+- Platform-appropriate styling
+- Consistent design language across all 10
+
+### PRIORITY 2: PDF Brand Guide Polish
+**Status:** Wireframe created at `docs/PDF_REQUIREMENTS_TEMPLATE.md`
+- Needs real brand deck examples (Uber, Spotify, Airbnb) to decompose
+- Cover page, TOC, color swatches, typography, logo guidelines, do/don't cards
+- Estimated: 4-6 hours
+
+### PRIORITY 3: Logo Prompt Optimization
+- Make prompts "super tight, super clean"
+- Style-specific templates per archetype
+- Add negative prompts
+- Consider upgrading to Google Imagen 3 (~$0.03/logo) or FLUX.1 (~$0.05/logo)
+
+### PRIORITY 4: Email Integration
+- Email templates already exist in code (8 templates)
+- Need to integrate Resend (free tier: 100 emails/day)
+- Wire up: order confirmation, logo selection link, dashboard access, revision notifications
+
+### PRIORITY 5: Stripe Payments
+- 3-tier pricing ($29/$49/$99)
+- Stripe checkout + webhooks
+- Order auto-creation on payment
+
+### PRIORITY 6: Final Polish & Launch
+- Landing page improvements
+- E2E testing all tiers
+- Production deployment
+- Monitoring
 
 ---
 
-## 📋 Testing Checklist
+## Cost Per Order (Current vs Target)
 
-Before moving to production, test these:
-
-- [ ] Set all required environment variables
-- [ ] Create order with AI auto-fill
-- [ ] Generate logos (shows 4 variants)
-- [ ] View logos in order detail
-- [ ] See mockups render in real-time (not placeholders!)
-- [ ] See social assets render (10 for Tier 3)
-- [ ] Download PDF - verify mockups embedded
-- [ ] Download ZIP - verify all assets included
-- [ ] Approve/reject orders
-- [ ] Try regenerate logos
+| Component | Current | Target | Notes |
+|-----------|---------|--------|-------|
+| Logo generation (4) | $0.004 | $0.12-0.20 | Upgrade to Imagen 3 or FLUX.1 |
+| Canvas mockups | $0 | $0 | Improved but still free |
+| AI photo mockups (3) | N/A | $0.30-1.50 | Specialist API - TBD |
+| Canvas social (7) | $0 | $0 | Improved but still free |
+| AI social (3) | N/A | $0.009 | Together AI |
+| Brand guide text | $0.004 | $0.004 | Together AI |
+| PDF/ZIP | $0 | $0 | Server-side |
+| **Total** | **$0.008** | **$0.50-1.75** | **Well within budget for $20-100 product** |
 
 ---
 
-## 🔧 Required Environment Variables
+## Research Items (For Next Session)
 
-See `docs/ENVIRONMENT_VARIABLES.md` for complete details.
+1. **Mockup compositing API** - Which service can take a PNG logo and place it realistically onto a product photo? Need actual compositing, not AI-described logos.
+2. **ComfyUI/ControlNet pipeline** - Can we use inpainting to place a logo on a product photo? Would need self-hosted or API.
+3. **Placeit/Mediamodifier pricing** - Get actual API access and test quality
+4. **Google Imagen 3 vs FLUX.1** - Test both for logo quality, pick winner
+5. **Resend email setup** - Quick integration, should be <1 hour
 
-### Minimum Required:
+---
+
+## Environment Variables
+
+### Required
 ```bash
 DATABASE_URL=mysql://user:pass@host:3306/db
 ADMIN_PASSWORD=secure_password
 JWT_SECRET=openssl_rand_base64_32
-GOOGLE_API_KEY=from_ai.google_dev      # For form auto-fill
-TOGETHER_API_KEY=from_together_xyz     # For logo generation
+GOOGLE_API_KEY=from_ai.google_dev      # Form auto-fill
+TOGETHER_API_KEY=from_together_xyz     # Logo generation
 ```
 
-### Optional:
+### Optional
 ```bash
 IMAGE_GEN_PROVIDER=together            # together | replicate | fal | google | laozhang
 NEXT_PUBLIC_BASE_URL=https://yourdomain.com
@@ -129,216 +161,58 @@ MODE=testing                           # testing | production
 
 ---
 
-## 📁 Key Files
+## Key Files
 
-### New This Session (Typography System):
 | File | Purpose |
 |------|---------|
-| `src/lib/types/typography.ts` | Shared typography types and schema |
-| `src/components/font-preview.tsx` | Canvas-based font preview component |
-| `src/lib/font-storage.ts` | Font file storage utility |
-| `src/app/api/admin/fonts/upload/route.ts` | Font upload API endpoint |
-| `src/app/admin/fonts/page.tsx` | Font management admin page |
-
-### Previous (Client-Side Rendering):
-| File | Purpose |
-|------|---------|
-| `src/hooks/useClientMockupGenerator.ts` | Canvas mockup renderer |
-| `src/hooks/useClientSocialGenerator.ts` | Canvas social media renderer |
-| `src/app/api/orders/[id]/upload-mockups/route.ts` | Receive client uploads |
-
-### Core Application:
-| File | Purpose |
-|------|---------|
-| `src/lib/services/image-generation.ts` | Provider abstraction |
-| `src/lib/services/logo-prompt-builder.ts` | Template-based prompts |
-| `src/lib/services/pdf-generator.ts` | PDF with embedded mockups |
-| `src/lib/services/order-processor.ts` | Asset orchestration |
-| `src/app/api/orders/[id]/generate/route.ts` | Logo/mockup/social generation |
+| `src/lib/services/image-generation.ts` | Provider abstraction (5 providers) |
+| `src/lib/services/logo-prompt-builder.ts` | Template-based logo prompts |
+| `src/lib/services/pdf-generator.ts` | PDF brand guide (jsPDF) |
+| `src/lib/services/order-processor.ts` | Order orchestration |
+| `src/hooks/useClientMockupGenerator.ts` | Canvas mockup rendering |
+| `src/hooks/useClientSocialGenerator.ts` | Canvas social rendering |
 | `src/app/admin/orders/[id]/page.tsx` | Admin order detail |
+| `src/app/api/orders/[id]/generate/route.ts` | Logo generation endpoint |
+| `src/app/api/orders/[id]/finalize/route.ts` | Phase 2 finalization |
+| `src/lib/types/typography.ts` | Typography types/schema |
+| `src/components/font-preview.tsx` | Font preview component |
 
 ---
 
-## 🚀 Production Launch Plan
+## Where to Pick Up
 
-### Phase 1: PDF Quality (This Week) - PRIORITY
-1. **Fix PDF Layout**
-   - Redesign cover page with proper spacing
-   - Fix color swatch rendering
-   - Improve typography section
-   - Add proper page breaks
-   - Fix mockup image positioning
-   - Professional footer with page numbers
-
-2. **Vercel File Storage** ✅ DONE
-   - Files save to `/tmp/downloads`
-   - Served via `/api/serve-file` route
-
-### Phase 2: Prompt Optimization (Next 2 Weeks)
-1. **Improve Logo Prompts**
-   - Analyze successful logo patterns
-   - Create style-specific templates
-   - Add negative prompts
-   - Professional brand direction
-   - "Super tight, super clean" prompts
-
-2. **Enhance Mockups**
-   - More sophisticated templates
-   - Better lighting/shadows
-   - Perspective transformations
-   - 10+ template types
-
-3. **Polish Social Assets**
-   - Platform-native formatting
-   - Professional graphic elements
-   - Better composition
-
-### Phase 3: Keep Current AI Provider
-- **Together AI** - $0.004/order (ultra cheap)
-- Stay with current provider for MVP
-- Upgrade to Google/Replicate when revenue supports
-
-### Phase 4: Payments & Launch (Later)
-1. **Payment Integration**
-   - Stripe checkout
-   - 3-tier pricing ($29/$49/$99)
-   - Webhook for confirmations
-
-2. **Customer Dashboard**
-   - Order history
-   - Download center
-   - Re-download capability
-
-3. **Launch**
-   - Soft launch (beta paid)
-   - Hard launch (marketing)
+1. Read `AGENTS.md` for universal AI agent context
+2. Read this file for current state
+3. Read `docs/ROADMAP_QUALITY_IMPROVEMENTS.md` for detailed improvement plan
+4. Priority: Research mockup compositing APIs, then implement
 
 ---
 
-## 🎯 Immediate Next Steps
-1. Fix PDF layout (this session)
-2. Optimize prompt synthesis (next session)
-3. Keep Together AI provider
-4. Payment integration (TBD)
+## Session History
+
+### March 15, 2026 - Session 3 (This Session)
+- PDF layout redesigned (branded cover, TOC, swatches, do/don't cards)
+- AI text post-processing added (banned phrases, better prompts)
+- Tier 3 templates re-enabled (colorPalette bug fixed)
+- Two-phase workflow debugged and stabilized
+- Prisma import issues fixed across multiple files
+- Documentation updated for session close-out
+
+### March 15, 2026 - Session 2
+- Typography system fully implemented (26 fonts, upload, PDF embedding)
+- PDF generation fixed (PDFKit replaced with jsPDF)
+- Vercel storage fixed (/tmp + API route)
+
+### March 15, 2026 - Session 1
+- Mockup bug fixes (all 4 variants, field name mapping)
+- Social asset rendering moved to client-side
+- Admin API fixed to return all variant mockups
+
+### March 14, 2026
+- Client-side Canvas mockup & social generation implemented
+- Replaced all placehold.co placeholders with real renders
+- Upload API for client-side renders
 
 ---
 
-## 🐛 Known Issues & Fixes
-
-| Issue | Status | Solution |
-|-------|--------|----------|
-| PDF Helvetica.afm Missing | ✅ **FIXED** | Replaced PDFKit with jsPDF (no external fonts needed) |
-| Vercel /tmp Storage | ✅ **FIXED** | Changed from `public/downloads` to `/tmp/downloads` + API route |
-| PDF Layout Quality | 🔧 **IN PROGRESS** | Needs redesign for professional output |
-| Prompt Optimization | 📋 **PLANNED** | Make prompts "super tight" for professional logos |
-
-**Previous Issues (RESOLVED):**
-- ~~Mockups are placeholders~~ → Now uses real Canvas rendering
-- ~~Social media are placeholders~~ → Now uses real Canvas rendering
-- ~~Social assets display as text overlays~~ → Now shows real logos with proper rendering
-- ~~Vercel compatibility~~ → Client-side rendering works on Vercel
-- ~~PDF Helvetica.afm missing~~ → Fixed with jsPDF (no external fonts)
-- ~~/var/task/public/downloads error~~ → Fixed with /tmp + API route
-
----
-
-## 💡 Quick Commands
-
-```bash
-# Local development
-npm run dev
-
-# Check build
-npm run build
-
-# Deploy
- git push origin beta
-```
-
----
-
-## 📝 Session History
-
-### March 15, 2026 (Today) - PDF Fix & Production Plan
-- ✅ **PDF Generation Fixed** - Replaced PDFKit with jsPDF (no Helvetica.afm needed)
-- ✅ **Vercel Storage Fixed** - Changed from public/downloads to /tmp + API route
-- ✅ **PDF Downloads Working** - Files served via /api/serve-file route
-- ✅ **PDF Layout Needs Polish** - Next: redesign for professional output
-- ✅ **Production Plan Created** - PDF → Prompts → Payments → Launch
-- ✅ **AI Provider Decision** - Stick with Together ($0.004/order) for MVP
-
-### March 15, 2026 Session (Typography Implementation)
-- ✅ **Typography System Complete** - Full font selection, upload, and PDF embedding implemented
-- ✅ **Shared Typography Schema** - Unified types for admin and customer forms
-- ✅ **Font Upload System** - TTF/OTF upload with validation and storage
-- ✅ **Font Previews** - Canvas-based preview component for font visualization
-- ✅ **PDF Font Integration** - Custom fonts registered and embedded in brand guides
-- ✅ **Admin Font Management** - Dedicated page for font upload and management
-- ✅ **Form Synchronization** - Both admin and customer forms support typography
-
-### March 14, 2026 Session (Previous)
-- ✅ **Client-side mockup generation** - Canvas renders real mockups
-- ✅ **Client-side social generation** - Canvas renders 10 platforms
-- ✅ **Upload API** - Receives client renders and stores in DB
-- ✅ **PDF with embedded mockups** - Real images in brand guide
-- ✅ **AGENTS.md** - Universal AI agent guide created
-- ✅ **All placeholders replaced** - No more placehold.co images!
-
-### Previous Sessions
-- See `AI_MIGRATION_COMPLETE.md`
-- See `FIREBASE_STUDIO_MIGRATION.md`
-
----
-
-## 📞 Where to Pick Up
-
-### If Starting Fresh:
-1. Read `AGENTS.md` first
-2. Read this file (`PROJECT_STATUS.md`)
-3. Read `docs/SESSION_2026-03-15.md` for latest context
-4. Run `npm run dev` and test the flow
-
-### If Testing:
-1. Create a Tier 3 (premium) order
-2. Use AI auto-fill
-3. Click "Generate Logos"
-4. Watch the progress indicators
-5. Verify mockups and social assets render correctly
-
-### If Deploying:
-1. Add env vars to Vercel
-2. Push to beta branch
-3. Test deployed version
-4. Switch to Replicate when ready for production quality
-
----
-
-## 🎨 Architecture Decisions Made
-
-1. **Client-side canvas rendering** - Works on Vercel, $0 cost
-2. **Template-based prompts** - Not AI prompt engineering (deterministic)
-3. **Provider abstraction** - Switch AI providers via env var
-4. **AI auto-fill preserves existing fields** - Better UX
-5. **Free tier first** - Google Gemini for form fill (free), Together for logos ($5 credit)
-
----
-
-## ✅ Success Criteria (Met!)
-
-- [x] Can create order in admin
-- [x] AI auto-fill works
-- [x] Can generate logos
-- [x] Logos display correctly
-- [x] **Mockups are REAL (not placeholders)** ✅ NEW
-- [x] **Mockups for ALL 4 variants** ✅ FIXED
-- [x] **Social assets are REAL (not placeholders)** ✅ NEW
-- [x] **Social assets display correctly** ✅ FIXED
-- [x] PDF includes real mockups ✅ NEW
-- [x] Order status updates
-- [x] Build succeeds on Vercel
-
-**Status: Ready for testing!** 🚀
-
----
-
-*Next: Test and deploy!*
+*Next: Research mockup compositing APIs, improve Canvas quality, then payments + launch*
