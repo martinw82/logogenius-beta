@@ -130,19 +130,21 @@ export async function POST(
         
         console.log(`[Finalize] Social assets generated:`, Object.keys(socialResults).length);
         
-        // Store social assets
+        // Store social assets - convert platform names from hyphen to underscore
         for (const [platform, imageUrl] of Object.entries(socialResults)) {
           if (imageUrl) {
+            // Convert 'instagram-post' to 'instagram_post' to match UI expectations
+            const fieldName = `social_${platform.replace(/-/g, '_')}`;
             await prisma.orderDetail.upsert({
               where: {
                 orderId_fieldName: {
                   orderId: orderId,
-                  fieldName: `social_${platform}`,
+                  fieldName: fieldName,
                 },
               },
               create: {
                 orderId: orderId,
-                fieldName: `social_${platform}`,
+                fieldName: fieldName,
                 fieldValue: imageUrl,
               },
               update: {
@@ -162,6 +164,7 @@ export async function POST(
     // Generate PDF and ZIP with selected logo
     console.log(`[Finalize] Generating PDF with variant ${selectedVariant}`);
     let pdfGenerated = false;
+    let pdfPath = null;
     try {
       const result = await processOrderAssets({
         orderId: orderId,
@@ -172,6 +175,7 @@ export async function POST(
       if (result.success && result.pdfPath) {
         console.log(`[Finalize] PDF generated: ${result.pdfPath}`);
         pdfGenerated = true;
+        pdfPath = result.pdfPath;
       } else {
         console.error(`[Finalize] PDF generation returned success=${result.success}, pdfPath=${result.pdfPath}`);
       }
@@ -179,7 +183,7 @@ export async function POST(
       console.error("[Finalize] PDF generation failed:", pdfError);
     }
     
-    // Verify PDF was saved
+    // Verify PDF was saved by checking database
     try {
       const pdfDetail = await prisma.orderDetail.findUnique({
         where: {
@@ -189,21 +193,38 @@ export async function POST(
           },
         },
       });
-      console.log(`[Finalize] PDF in database: ${pdfDetail?.fieldValue || 'NOT FOUND'}`);
+      if (pdfDetail?.fieldValue) {
+        console.log(`[Finalize] PDF verified in database: ${pdfDetail.fieldValue}`);
+        pdfGenerated = true;
+        pdfPath = pdfDetail.fieldValue;
+      } else {
+        console.error(`[Finalize] PDF NOT found in database`);
+      }
     } catch (verifyError) {
       console.error(`[Finalize] Error verifying PDF:`, verifyError);
     }
 
-    // Update order status to ready for review
-    await updateOrder(orderId, { status: "ready_for_review" });
-
-    return NextResponse.json({
-      success: true,
-      orderId,
-      selectedVariant,
-      status: "ready_for_review",
-      message: "Order finalized with selected logo",
-    });
+    // Update order status - use 'generation_failed' if PDF didn't generate
+    if (pdfGenerated) {
+      await updateOrder(orderId, { status: "ready_for_review" });
+      return NextResponse.json({
+        success: true,
+        orderId,
+        selectedVariant,
+        status: "ready_for_review",
+        pdfPath,
+        message: "Order finalized with selected logo",
+      });
+    } else {
+      await updateOrder(orderId, { status: "generation_failed" });
+      return NextResponse.json({
+        success: false,
+        orderId,
+        selectedVariant,
+        status: "generation_failed",
+        message: "PDF generation failed. Please try again.",
+      }, { status: 500 });
+    }
 
   } catch (error) {
     console.error("[Finalize] Error:", error);
