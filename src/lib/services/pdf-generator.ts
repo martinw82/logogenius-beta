@@ -1,4 +1,4 @@
-import { jsPDF } from 'jspdf';
+import jsPDF from 'jspdf';
 
 export interface BrandGuideData {
   businessName: string;
@@ -114,10 +114,6 @@ function getFontStyle(fontType: 'headings' | 'body' | 'other'): string {
 
 export async function generateBrandGuidePDF(data: BrandGuideData): Promise<Buffer> {
   try {
-    // Enable filesystem access for Vercel serverless
-    const jsPDF = require('jspdf');
-    jsPDF.allowFsRead = true;
-    
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
