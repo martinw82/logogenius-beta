@@ -48,8 +48,19 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
     // Extract data from OrderDetail records
     const orderData = extractOrderData(order.details);
 
-    // Get mockups for PDF
+    // Get the SELECTED logo for PDF cover (or default to variant 1)
+    // Check if order has a selected logo
+    const orderRecord = await prisma.order.findUnique({
+      where: { id: input.orderId },
+      select: { selectedLogoId: true },
+    });
+    
+    const selectedVariantNum = orderRecord?.selectedLogoId || 1;
+
+    // Get mockups for PDF - try OrderDetail first, then LogoVariant
     const mockupData: Record<string, string> = {};
+    
+    // First try OrderDetail (client-side mockups)
     const mockupDetails = order.details.filter(d => 
       d.fieldName === 'mockup_letterhead' || 
       d.fieldName === 'mockup_businesscard' || 
@@ -59,15 +70,32 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
       const key = detail.fieldName.replace('mockup_', '');
       mockupData[key] = detail.fieldValue;
     }
-
-    // Get the SELECTED logo for PDF cover (or default to variant 1)
-    // Check if order has a selected logo
-    const orderRecord = await prisma.order.findUnique({
-      where: { id: input.orderId },
-      select: { selectedLogoId: true },
-    });
     
-    const selectedVariantNum = orderRecord?.selectedLogoId || 1;
+    // If no mockups in OrderDetail, try LogoVariant (server-side mockups)
+    if (Object.keys(mockupData).length === 0) {
+      const logoVariantsWithMockups = await prisma.logoVariant.findMany({
+        where: { 
+          orderId: input.orderId,
+          mockupPaths: { not: null }
+        },
+      });
+      
+      for (const variant of logoVariantsWithMockups) {
+        if (variant.mockupPaths) {
+          try {
+            const paths = JSON.parse(variant.mockupPaths);
+            // Use variant 1 mockups as default, or selected variant if available
+            if (variant.variantNum === 1 || variant.variantNum === selectedVariantNum) {
+              Object.assign(mockupData, paths);
+            }
+          } catch {
+            // Invalid JSON, skip
+          }
+        }
+      }
+    }
+    
+    console.log(`[${input.orderId}] Mockup sources: OrderDetail=${mockupDetails.length}, LogoVariant lookup performed`);
     
     const logoVariant = await prisma.logoVariant.findFirst({
       where: { orderId: input.orderId, variantNum: selectedVariantNum },

@@ -295,38 +295,8 @@ export default function AdminOrderDetail() {
           setOrder(updatedData);
         }
         
-        // Step 3: Generate social media assets for Tier 3
-        console.log('[Generate] Checking tier for social:', orderData.tier, typeof orderData.tier);
-        const tierStr = String(orderData.tier).toLowerCase();
-        if (tierStr === 'premium' || tierStr === '3' || tierStr === 'tier 3' || tierStr === 'tier3') {
-          setClientGenStep('social');
-          setSuccessMessage('Creating social media assets...');
-          
-          const firstLogo = orderData.logos[0].svgData;
-          const socialResult = await generateAndUploadSocialAssets(parseInt(orderId), {
-            logoUrl: firstLogo,
-            businessName: orderData.data.businessName,
-            tagline: orderData.data.keyTagline,
-            primaryColor,
-            secondaryColor,
-            accentColor: '#ffffff',
-          });
-          
-          if (!socialResult.success) {
-            console.warn('Social generation failed:', socialResult.error);
-          } else {
-            console.log('Social assets generated:', socialResult.assets);
-          }
-          
-          // Refresh to show all assets
-          const finalOrderResponse = await fetch(`/api/admin/orders/${orderId}`, {
-            credentials: 'include',
-          });
-          if (finalOrderResponse.ok) {
-            const finalData = await finalOrderResponse.json();
-            setOrder(finalData);
-          }
-        }
+        // Note: Social media assets will be generated in Phase 2 (after logo selection)
+        // This ensures they use the correct selected logo variant
       }
       
       setClientGenStep('complete');

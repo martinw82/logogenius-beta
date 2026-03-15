@@ -191,8 +191,11 @@ export async function POST(
 
   } catch (error) {
     console.error("[Finalize] Error:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : '';
+    console.error("[Finalize] Stack:", errorStack);
     return NextResponse.json(
-      { error: "Failed to finalize order" },
+      { error: "Failed to finalize order", details: errorMessage },
       { status: 500 }
     );
   }
