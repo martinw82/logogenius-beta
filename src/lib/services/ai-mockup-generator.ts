@@ -1,21 +1,22 @@
 /**
  * AI Photorealistic Mockup Generator
  *
- * Generates 3 high-quality product mockups (t-shirt, coffee mug, tote bag)
- * using AI image generation for the selected logo variant.
+ * Generates 3 high-quality product mockups (t-shirt, coffee mug, tote bag).
+ *
+ * Two modes:
+ * 1. **Real Mockup API** (preferred) — uses mockup-generation.ts providers
+ *    (Dynamic Mockups, MockupsJar, MockCity) to composite the actual logo PNG
+ *    onto real product templates. Pixel-perfect results.
+ *
+ * 2. **AI Fallback** — uses image-generation.ts to generate representative
+ *    product photos via AI. The logo is described in the prompt, not composited.
+ *    Good enough for previews when no mockup API key is configured.
  *
  * Called during Phase 2 finalization (after logo selection).
- * Reuses the existing image-generation.ts provider abstraction.
- *
- * NOTE: Current AI models generate a *representative* logo on the product
- * based on the brand description — they cannot composite the exact PNG logo.
- * For pixel-perfect logo placement, a dedicated mockup API (Placeit,
- * Mediamodifier, or a ComfyUI ControlNet pipeline) would be needed.
- * That said, the prompts below are tuned to produce realistic product
- * photography that matches the brand's colors and style.
  */
 
 import { generateImage } from './image-generation';
+import { generateMultipleMockups, getProviderInfo } from './mockup-generation';
 
 export interface AIMockupOptions {
   businessName: string;
@@ -23,6 +24,9 @@ export interface AIMockupOptions {
   industry: string;
   logoStyle?: string;       // e.g. 'modern geometric', 'classic script', etc.
   keywords?: string;
+  /** Public URL of the actual logo image. When provided AND a mockup API is
+   *  configured, real template-based mockups are generated instead of AI ones. */
+  logoUrl?: string;
 }
 
 export interface AIMockupResult {
@@ -83,9 +87,45 @@ function getIndustryContext(industry: string): { scene: string; vibe: string } {
 }
 
 /**
- * Generate 3 AI photorealistic product mockups
+ * Generate 3 product mockups.
+ *
+ * If a logoUrl is provided AND a mockup API provider is configured,
+ * uses real template-based compositing (pixel-perfect).
+ * Otherwise falls back to AI-generated product photography.
  */
 export async function generateAIMockups(options: AIMockupOptions): Promise<AIMockupResult> {
+  // Try real mockup API first
+  if (options.logoUrl) {
+    const providerInfo = getProviderInfo();
+    if (providerInfo.configured) {
+      console.log(`[Mockups] Using real mockup API (${providerInfo.provider}) for pixel-perfect compositing...`);
+      try {
+        const results = await generateMultipleMockups(
+          options.logoUrl,
+          ['tshirt', 'mug', 'totebag'],
+          { businessName: options.businessName }
+        );
+
+        // Map results by product type
+        const byType = Object.fromEntries(results.map(r => [r.productType, r.imageUrl]));
+
+        if (results.length > 0) {
+          return {
+            tshirt: byType['tshirt'] || '',
+            coffeeMug: byType['mug'] || '',
+            toteBag: byType['totebag'] || '',
+          };
+        }
+        console.warn('[Mockups] Real mockup API returned no results, falling back to AI generation');
+      } catch (error) {
+        console.warn('[Mockups] Real mockup API failed, falling back to AI generation:', error);
+      }
+    } else {
+      console.log(`[Mockups] No mockup API configured (${providerInfo.keyName} not set). Using AI generation fallback.`);
+    }
+  }
+
+  // Fallback: AI-generated product photography
   const colorDesc = describeColors(options.brandColors);
   const styleDesc = options.logoStyle || 'modern minimalist';
   const industry = options.industry || 'business';
