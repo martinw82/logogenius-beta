@@ -144,16 +144,16 @@ const DYNAMIC_MOCKUPS_TEMPLATES: Partial<Record<MockupProductType, { mockup_uuid
   // These UUIDs need to be populated from the Dynamic Mockups library
   // Sign up at https://dynamicmockups.com, browse templates, copy UUIDs
   tshirt: {
-    mockup_uuid: '',       // e.g. '6308f2f7-80eb-42ab-a109-08a33e6dcc2d'
-    smart_object_uuid: '', // e.g. '22ec3dec-4df8-4643-8c68-01b72fa506f5'
+    mockup_uuid: '33192bb9-f197-4a5d-bccc-6e22f442a844',       // e.g. '6308f2f7-80eb-42ab-a109-08a33e6dcc2d'
+    smart_object_uuid: '6784a400-3306-4bdd-996b-96bbee77a2e3', // e.g. '22ec3dec-4df8-4643-8c68-01b72fa506f5'
   },
   mug: {
-    mockup_uuid: '',
-    smart_object_uuid: '',
+    mockup_uuid: '634f7bda-e705-4336-a822-338c99506fa9',
+    smart_object_uuid: '423df833-98a4-4887-94fc-f63c3ab2ca96',
   },
   totebag: {
-    mockup_uuid: '',
-    smart_object_uuid: '',
+    mockup_uuid: '32b4ce56-ab4a-4251-9a70-6c4ee7f04f96',
+    smart_object_uuid: '04144afa-b2fd-4e74-839d-df21db16e67f',
   },
 };
 
