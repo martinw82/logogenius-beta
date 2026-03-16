@@ -113,12 +113,15 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
         ...(orderData.colorPalette?.accent || []),
       ].filter(Boolean);
 
+      // Pass the selected logo so real mockup APIs can be tried first
+      const selectedLogoData = logoVariant?.svgData || '';
       const aiMockups = await generateAIMockups({
         businessName: input.businessName,
         brandColors: aiMockupColors.length > 0 ? aiMockupColors : ['#2563eb', '#1e40af', '#f59e0b'],
         industry: orderData.industry || 'business',
         logoStyle: orderData.logoStyle,
         keywords: orderData.keywords,
+        logoUrl: selectedLogoData || undefined,
       });
 
       // Save AI mockups to OrderDetail

@@ -8,8 +8,14 @@
  *
  * Switch providers by setting MOCKUP_PROVIDER env var.
  *
- * All providers accept a logo image URL and return rendered product mockup URLs.
+ * Logo images can be passed as:
+ * - Public URLs (https://...) — used directly
+ * - Base64 data URLs (data:image/png;base64,...) — automatically resolved:
+ *   - Dynamic Mockups: sent as binary via FormData (no hosting needed)
+ *   - Other providers: uploaded via image-hosting utility (imgbb or local serve)
  */
+
+import { resolveImageUrl, decodeDataUrl } from './image-hosting';
 
 export type MockupProvider = 'mockupsjar' | 'dynamicmockups' | 'mockcity';
 
@@ -49,14 +55,23 @@ export async function generateMockup(options: MockupOptions): Promise<MockupResu
 
   console.log(`[Mockup] Generating ${options.productType} mockup via ${provider}...`);
 
+  // Dynamic Mockups handles base64 natively via FormData binary upload,
+  // so no URL resolution needed. Other providers need a public URL.
+  let resolvedOptions = options;
+  if (provider !== 'dynamicmockups' && options.logoUrl.startsWith('data:')) {
+    console.log(`[Mockup] Resolving base64 data URL to public URL for ${provider}...`);
+    const publicUrl = await resolveImageUrl(options.logoUrl);
+    resolvedOptions = { ...options, logoUrl: publicUrl };
+  }
+
   switch (provider) {
     case 'mockupsjar':
-      return generateWithMockupsJar(options);
+      return generateWithMockupsJar(resolvedOptions);
     case 'mockcity':
-      return generateWithMockCity(options);
+      return generateWithMockCity(resolvedOptions);
     case 'dynamicmockups':
     default:
-      return generateWithDynamicMockups(options);
+      return generateWithDynamicMockups(options); // Uses original options (may be base64)
   }
 }
 
@@ -242,30 +257,61 @@ async function generateWithDynamicMockups(options: MockupOptions): Promise<Mocku
     );
   }
 
-  const smartObject: Record<string, unknown> = {
-    uuid: template.smart_object_uuid,
-    asset: {
-      url: options.logoUrl,
-    },
-  };
+  const isBase64 = options.logoUrl.startsWith('data:');
+  let response: Response;
 
-  if (options.productColor) {
-    smartObject.color = options.productColor;
+  if (isBase64) {
+    // Binary upload via FormData — no public URL needed
+    console.log('[Mockup] Dynamic Mockups: using FormData binary upload for base64 image');
+    const { buffer, extension } = decodeDataUrl(options.logoUrl);
+    const blob = new Blob([new Uint8Array(buffer)], { type: `image/${extension}` });
+
+    const formData = new FormData();
+    formData.append('mockup_uuid', template.mockup_uuid);
+    formData.append('smart_objects[0][uuid]', template.smart_object_uuid);
+    formData.append('smart_objects[0][asset][file]', blob, `logo.${extension}`);
+    if (options.productColor) {
+      formData.append('smart_objects[0][color]', options.productColor);
+    }
+    if (options.format) {
+      formData.append('format', options.format);
+    }
+
+    response = await fetch('https://app.dynamicmockups.com/api/v1/renders', {
+      method: 'POST',
+      headers: {
+        'Accept': 'application/json',
+        'x-api-key': apiKey,
+      },
+      body: formData,
+    });
+  } else {
+    // URL-based upload via JSON
+    const smartObject: Record<string, unknown> = {
+      uuid: template.smart_object_uuid,
+      asset: {
+        url: options.logoUrl,
+      },
+    };
+
+    if (options.productColor) {
+      smartObject.color = options.productColor;
+    }
+
+    response = await fetch('https://app.dynamicmockups.com/api/v1/renders', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'x-api-key': apiKey,
+      },
+      body: JSON.stringify({
+        mockup_uuid: template.mockup_uuid,
+        smart_objects: [smartObject],
+        ...(options.format ? { format: options.format } : {}),
+      }),
+    });
   }
-
-  const response = await fetch('https://app.dynamicmockups.com/api/v1/renders', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Accept': 'application/json',
-      'x-api-key': apiKey,
-    },
-    body: JSON.stringify({
-      mockup_uuid: template.mockup_uuid,
-      smart_objects: [smartObject],
-      ...(options.format ? { format: options.format } : {}),
-    }),
-  });
 
   if (!response.ok) {
     const error = await response.text();
