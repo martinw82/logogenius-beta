@@ -111,15 +111,14 @@ BUSINESS INFORMATION:
   "appendix": "1-2 paragraphs about font licensing, color downloads, version info, contact"
 }
 
-CRITICAL INSTRUCTIONS:
-1. NEVER start paragraphs with "In addition to..." - use varied transitions
-2. NEVER repeat the same sentence structure across sections
-3. NEVER use filler phrases like "it is important to note that" or "as mentioned previously"
-4. Each section must have a distinct voice and approach
-5. Use specific details, not generic statements
-6. Include actual hex codes (#RRGGBB format) for colors
-7. Be concise - every sentence should add value
-8. Write like a top-tier brand agency, not an AI
+WRITING RULES (strictly follow):
+1. BANNED phrases — never use these: "In addition to", "Furthermore", "Moreover", "It is important to note", "As mentioned previously", "It's worth noting", "In today's", "In the world of", "When it comes to", "At the heart of", "plays a crucial role", "is designed to"
+2. Vary sentence openings — each paragraph must begin with a different word
+3. Vary sentence length — mix short punchy sentences (5-8 words) with longer ones
+4. Be specific — use concrete numbers, actual font names, real hex codes, precise measurements
+5. Write like a human strategist from Pentagram or Collins — confident, direct, opinionated
+6. Each section must have its own distinct rhythm and structure — no two sections should read the same way
+7. Keep total output under 3000 words — be concise and impactful
 
 Return ONLY the JSON object, no markdown formatting.`;
 
@@ -168,21 +167,48 @@ Return ONLY the JSON object, no markdown formatting.`;
     
     console.log('[Brand Guide] Successfully generated brand guide');
     
-    // Ensure all required fields are present
+    // Post-process to remove repetitive/filler phrases
+    const cleanText = (text: string): string => {
+      if (!text) return text;
+      const banned = [
+        /\bIn addition(?:\s+to\s+(?:this|that|our|the))?,?\s*/gi,
+        /\bFurthermore,?\s*/gi,
+        /\bMoreover,?\s*/gi,
+        /\bIt is (?:also )?important to (?:note|understand|remember) that\s*/gi,
+        /\bAs (?:mentioned|noted|discussed|stated) (?:previously|earlier|above),?\s*/gi,
+        /\bIt'?s worth (?:noting|mentioning) that\s*/gi,
+        /\bIn today's (?:world|landscape|market|environment),?\s*/gi,
+        /\bWhen it comes to\s*/gi,
+        /\bAt the heart of\s*/gi,
+        /\bplays a (?:crucial|vital|key|important|significant) role\s*/gi,
+        /\bis designed to\s*/gi,
+      ];
+      let result = text;
+      for (const pattern of banned) {
+        result = result.replace(pattern, '');
+      }
+      // Clean up double spaces and leading spaces after removals
+      result = result.replace(/\s{2,}/g, ' ').replace(/\.\s*\./g, '.').trim();
+      // Capitalize first letter after period if needed
+      result = result.replace(/\.\s+([a-z])/g, (_, c) => `. ${c.toUpperCase()}`);
+      return result;
+    };
+
+    // Ensure all required fields are present, clean up text
     return {
-      projectOverview: brandGuide.projectOverview || `${flowInput.businessName} is a ${flowInput.industry} company.`,
-      brandIdentityVoice: brandGuide.brandIdentityVoice || `Brand voice for ${flowInput.businessName}.`,
-      logoPhilosophy: brandGuide.logoPhilosophy || `Logo designed to represent ${flowInput.keywords}.`,
-      colorPalette: brandGuide.colorPalette || `Primary brand colors for ${flowInput.businessName}.`,
-      colorAccessibility: brandGuide.colorAccessibility || "WCAG compliant color combinations.",
-      typography: brandGuide.typography || "Professional typography guidelines.",
-      imageryStyle: brandGuide.imageryStyle || "Brand imagery style guidelines.",
-      graphicElements: brandGuide.graphicElements || "Graphic element usage guidelines.",
-      brandVoiceTone: brandGuide.brandVoiceTone || "Brand voice and tone guidelines.",
-      visualStyleGuide: brandGuide.visualStyleGuide || "Visual style guidelines.",
-      usageRulesAndDonts: brandGuide.usageRulesAndDonts || "Logo usage rules and restrictions.",
-      web3Section: flowInput.web3BlockchainFocus ? (brandGuide.web3Section || "Web3 specific guidelines.") : undefined,
-      appendix: brandGuide.appendix || "Brand guide appendix.",
+      projectOverview: cleanText(brandGuide.projectOverview || `${flowInput.businessName} is a ${flowInput.industry} company.`),
+      brandIdentityVoice: cleanText(brandGuide.brandIdentityVoice || `Brand voice for ${flowInput.businessName}.`),
+      logoPhilosophy: cleanText(brandGuide.logoPhilosophy || `Logo designed to represent ${flowInput.keywords}.`),
+      colorPalette: cleanText(brandGuide.colorPalette || `Primary brand colors for ${flowInput.businessName}.`),
+      colorAccessibility: cleanText(brandGuide.colorAccessibility || "WCAG compliant color combinations."),
+      typography: cleanText(brandGuide.typography || "Professional typography guidelines."),
+      imageryStyle: cleanText(brandGuide.imageryStyle || "Brand imagery style guidelines."),
+      graphicElements: cleanText(brandGuide.graphicElements || "Graphic element usage guidelines."),
+      brandVoiceTone: cleanText(brandGuide.brandVoiceTone || "Brand voice and tone guidelines."),
+      visualStyleGuide: cleanText(brandGuide.visualStyleGuide || "Visual style guidelines."),
+      usageRulesAndDonts: cleanText(brandGuide.usageRulesAndDonts || "Logo usage rules and restrictions."),
+      web3Section: flowInput.web3BlockchainFocus ? cleanText(brandGuide.web3Section || "Web3 specific guidelines.") : undefined,
+      appendix: cleanText(brandGuide.appendix || "Brand guide appendix."),
     };
 
   } catch (error) {

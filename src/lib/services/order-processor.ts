@@ -3,6 +3,15 @@ import { generateBrandGuidePDF } from './pdf-generator';
 import { generateReadmeContent } from './readme-generator';
 import { createBrandAssetZip } from './zip-packager';
 import { saveFile, saveTextFile, generateFileName } from './file-manager';
+import { generateAIMockups } from './ai-mockup-generator';
+import { generateAISocialAssets } from './ai-social-generator';
+
+function hexToRgbSafe(hex: string): { r: number; g: number; b: number } {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
+    : { r: 37, g: 99, b: 235 };
+}
 
 export interface OrderProcessingInput {
   orderId: number;
@@ -95,6 +104,89 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
       where: { orderId: input.orderId, variantNum: selectedVariantNum },
     });
 
+    // === AI Photorealistic Mockups (t-shirt, coffee mug, tote bag) ===
+    console.log(`[${input.orderId}] Generating AI photorealistic mockups...`);
+    try {
+      const aiMockupColors = [
+        ...(orderData.colorPalette?.primary || []),
+        ...(orderData.colorPalette?.secondary || []),
+        ...(orderData.colorPalette?.accent || []),
+      ].filter(Boolean);
+
+      const aiMockups = await generateAIMockups({
+        businessName: input.businessName,
+        brandColors: aiMockupColors.length > 0 ? aiMockupColors : ['#2563eb', '#1e40af', '#f59e0b'],
+        industry: orderData.industry || 'business',
+        logoStyle: orderData.logoStyle,
+        keywords: orderData.keywords,
+      });
+
+      // Save AI mockups to OrderDetail
+      const aiMockupEntries = [
+        { fieldName: 'ai_mockup_tshirt', fieldValue: aiMockups.tshirt },
+        { fieldName: 'ai_mockup_mug', fieldValue: aiMockups.coffeeMug },
+        { fieldName: 'ai_mockup_tote', fieldValue: aiMockups.toteBag },
+      ];
+
+      for (const entry of aiMockupEntries) {
+        await prisma.orderDetail.upsert({
+          where: {
+            orderId_fieldName: { orderId: input.orderId, fieldName: entry.fieldName },
+          },
+          update: { fieldValue: entry.fieldValue },
+          create: { orderId: input.orderId, ...entry },
+        });
+      }
+
+      // Add AI mockups to mockupData for PDF inclusion
+      mockupData['ai_tshirt'] = aiMockups.tshirt;
+      mockupData['ai_mug'] = aiMockups.coffeeMug;
+      mockupData['ai_tote'] = aiMockups.toteBag;
+
+      console.log(`[${input.orderId}] AI mockups generated and saved`);
+    } catch (aiMockupError) {
+      console.warn(`[${input.orderId}] AI mockup generation failed (non-fatal):`, aiMockupError instanceof Error ? aiMockupError.message : aiMockupError);
+    }
+
+    // === AI Social Media Assets (Instagram Post, YouTube Thumbnail, Website Hero) ===
+    console.log(`[${input.orderId}] Generating AI social media assets...`);
+    try {
+      const aiSocialColors = [
+        ...(orderData.colorPalette?.primary || []),
+        ...(orderData.colorPalette?.secondary || []),
+        ...(orderData.colorPalette?.accent || []),
+      ].filter(Boolean);
+
+      const aiSocial = await generateAISocialAssets({
+        businessName: input.businessName,
+        brandColors: aiSocialColors.length > 0 ? aiSocialColors : ['#2563eb', '#1e40af', '#f59e0b'],
+        industry: orderData.industry || 'business',
+        tagline: orderData.tagline,
+        logoStyle: orderData.logoStyle,
+      });
+
+      // Save AI social assets to OrderDetail
+      const aiSocialEntries = [
+        { fieldName: 'social_instagram_post', fieldValue: aiSocial.instagramPost },
+        { fieldName: 'social_youtube_thumbnail', fieldValue: aiSocial.youtubeThumbnail },
+        { fieldName: 'social_website_hero', fieldValue: aiSocial.websiteHero },
+      ];
+
+      for (const entry of aiSocialEntries) {
+        await prisma.orderDetail.upsert({
+          where: {
+            orderId_fieldName: { orderId: input.orderId, fieldName: entry.fieldName },
+          },
+          update: { fieldValue: entry.fieldValue },
+          create: { orderId: input.orderId, ...entry },
+        });
+      }
+
+      console.log(`[${input.orderId}] AI social assets generated and saved`);
+    } catch (aiSocialError) {
+      console.warn(`[${input.orderId}] AI social generation failed (non-fatal):`, aiSocialError instanceof Error ? aiSocialError.message : aiSocialError);
+    }
+
     // Generate PDF
     console.log(`[${input.orderId}] Generating PDF with logo variant ${selectedVariantNum}...`);
     console.log(`[${input.orderId}] Logo data present: ${!!logoVariant?.svgData}`);
@@ -112,7 +204,9 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
       mockups: {
         letterhead: mockupData['letterhead'],
         businesscard: mockupData['businesscard'],
-        tshirt: mockupData['tshirt'],
+        tshirt: mockupData['ai_tshirt'] || mockupData['tshirt'],
+        coffeeMug: mockupData['ai_mug'],
+        toteBag: mockupData['ai_tote'],
       },
       fonts: orderData.fonts,
       sections: {
@@ -282,11 +376,105 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
     let canvaDesigns: Record<string, any> | undefined;
     let mediaAssets: Record<string, any> | undefined;
 
-    // Note: Tier 3 templates (Figma, Canva, Media Assets) disabled for now
-    // They were causing "forEach" errors with undefined colorPalette
-    // TODO: Fix and re-enable after proper validation
+    // Tier 3 templates: Figma, Canva, Media Assets
     if (order.tier === 'premium') {
-      console.log(`[${input.orderId}] Tier 3 templates skipped (disabled for stability)`);
+      console.log(`[${input.orderId}] Processing Tier 3 premium templates...`);
+
+      // Build brandColors array from colorPalette with safe defaults
+      const allColors = [
+        ...(orderData.colorPalette?.primary || []),
+        ...(orderData.colorPalette?.secondary || []),
+        ...(orderData.colorPalette?.accent || []),
+      ].filter(Boolean);
+
+      // Use logo colors as fallback if no palette colors exist
+      const colorHexes = allColors.length > 0 ? allColors : ['#2563eb', '#1e40af', '#f59e0b'];
+
+      const brandColorsForGenerators = colorHexes.map((hex: string, idx: number) => {
+        const rgb = hexToRgbSafe(hex);
+        return {
+          name: idx === 0 ? 'Primary' : idx === 1 ? 'Secondary' : `Accent ${idx - 1}`,
+          hex,
+          rgb,
+        };
+      });
+
+      const selectedLogo = logoVariant?.svgData || '';
+      const selectedLogoBase64 = selectedLogo.startsWith('data:')
+        ? selectedLogo.split(',')[1] || ''
+        : '';
+
+      // Generate Figma templates (requires FIGMA_API_TOKEN)
+      if (process.env.FIGMA_API_TOKEN) {
+        try {
+          const { generateFigmaTemplates } = await import('./figma-generator');
+          const figmaResult = await generateFigmaTemplates({
+            businessName: input.businessName,
+            brandColors: brandColorsForGenerators,
+            typography: [
+              {
+                name: 'Heading',
+                fontFamily: orderData.fonts?.headings?.name || 'Inter',
+                fontSize: 32,
+                fontWeight: 700,
+                lineHeight: 40,
+              },
+              {
+                name: 'Body',
+                fontFamily: orderData.fonts?.body?.name || 'Inter',
+                fontSize: 16,
+                fontWeight: 400,
+                lineHeight: 24,
+              },
+            ],
+            logoUrl: selectedLogo,
+          });
+          figmaUrl = figmaResult.fileUrl;
+          console.log(`[${input.orderId}] Figma templates generated: ${figmaUrl}`);
+        } catch (figmaError) {
+          console.warn(`[${input.orderId}] Figma generation skipped:`, figmaError instanceof Error ? figmaError.message : figmaError);
+        }
+      } else {
+        console.log(`[${input.orderId}] Figma templates skipped (FIGMA_API_TOKEN not set)`);
+      }
+
+      // Generate Canva templates (requires CANVA_API_KEY)
+      if (process.env.CANVA_API_KEY) {
+        try {
+          const { generateCanvaTemplates } = await import('./canva-generator');
+          const canvaResult = await generateCanvaTemplates({
+            businessName: input.businessName,
+            brandColors: brandColorsForGenerators,
+            logoUrl: selectedLogo,
+          });
+          canvaDesigns = canvaResult as unknown as Record<string, any>;
+          console.log(`[${input.orderId}] Canva templates generated`);
+        } catch (canvaError) {
+          console.warn(`[${input.orderId}] Canva generation skipped:`, canvaError instanceof Error ? canvaError.message : canvaError);
+        }
+      } else {
+        console.log(`[${input.orderId}] Canva templates skipped (CANVA_API_KEY not set)`);
+      }
+
+      // Generate media assets (favicons, avatars, email signatures)
+      if (selectedLogoBase64) {
+        try {
+          const { generateMediaAssets } = await import('./media-assets-generator');
+          const mediaResult = await generateMediaAssets({
+            businessName: input.businessName,
+            logoSvg: selectedLogo,
+            logoBase64: selectedLogoBase64,
+            brandColors: brandColorsForGenerators.map((c: { name: string; hex: string }) => ({ name: c.name, hex: c.hex })),
+            tagline: orderData.tagline,
+          });
+          mediaAssets = mediaResult as unknown as Record<string, any>;
+          console.log(`[${input.orderId}] Media assets generated`);
+        } catch (mediaError) {
+          console.warn(`[${input.orderId}] Media assets generation skipped:`, mediaError instanceof Error ? mediaError.message : mediaError);
+        }
+      } else {
+        console.log(`[${input.orderId}] Media assets skipped (no logo base64 available)`);
+      }
     }
 
     // Update status to ready for review
@@ -407,6 +595,9 @@ function extractOrderData(details: any[]) {
     web3Section: data['guide_web3Section'] || data['web3Section'],
     appendix: data['guide_appendix'] || data['appendix'],
     logoUsageRules: data['logoUsageRules'],
+    industry: data['industry'],
+    keywords: data['keywords'],
+    logoStyle: data['preferredLogoStyle'] || data['logoStyle'],
   };
 }
 

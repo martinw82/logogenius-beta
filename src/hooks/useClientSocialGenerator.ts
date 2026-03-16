@@ -1,23 +1,25 @@
 /**
  * Client-Side Social Media Generator Hook
- * 
- * Renders social media assets using HTML5 Canvas in the browser
- * Automatically uploads rendered images to server
+ *
+ * Renders social media assets using HTML5 Canvas in the browser.
+ * Generates 7 Canvas-rendered templates + uploads them to the server.
+ * 3 additional platforms (Instagram Post, YouTube Thumbnail, Website Hero)
+ * are generated server-side via AI after logo selection.
  */
 
 import { useState, useCallback, useRef } from 'react';
 
-export type SocialPlatform = 
-  | 'instagram-post'      // 1080×1080
-  | 'instagram-story'     // 1080×1920
-  | 'facebook-cover'      // 820×312
-  | 'twitter-header'      // 1500×500
-  | 'linkedin-banner'     // 1584×396
-  | 'youtube-thumbnail'   // 1280×720
-  | 'pinterest-pin'       // 1000×1500
-  | 'tiktok-cover'        // 1080×1920
-  | 'email-header'        // 600×200
-  | 'website-hero';       // 1920×1080
+export type SocialPlatform =
+  | 'instagram-post'      // 1080×1080 — AI generated
+  | 'instagram-story'     // 1080×1920 — Canvas
+  | 'facebook-cover'      // 820×312  — Canvas
+  | 'twitter-header'      // 1500×500 — Canvas
+  | 'linkedin-banner'     // 1584×396 — Canvas
+  | 'youtube-thumbnail'   // 1280×720 — AI generated
+  | 'pinterest-pin'       // 1000×1500 — Canvas
+  | 'tiktok-cover'        // 1080×1920 — Canvas
+  | 'email-header'        // 600×200  — Canvas
+  | 'website-hero';       // 1920×1080 — AI generated
 
 interface SocialAssetOptions {
   logoUrl: string;
@@ -63,8 +65,7 @@ const PLATFORM_SPECS: Record<SocialPlatform, {
   'website-hero': { width: 1920, height: 1080, name: 'Website Hero' },
 };
 
-// All platforms to generate
-// Platform key mapping (UI uses underscores, internal uses hyphens)
+// Platform key mapping for storage (UI uses underscores)
 const PLATFORM_KEY_MAP: Record<SocialPlatform, string> = {
   'instagram-post': 'social_instagram_post',
   'instagram-story': 'social_instagram_story',
@@ -78,32 +79,116 @@ const PLATFORM_KEY_MAP: Record<SocialPlatform, string> = {
   'website-hero': 'social_website_hero',
 };
 
-const ALL_PLATFORMS: SocialPlatform[] = [
-  'instagram-post',
+// Only Canvas-rendered platforms (AI platforms handled server-side)
+const CANVAS_PLATFORMS: SocialPlatform[] = [
   'instagram-story',
   'facebook-cover',
   'twitter-header',
   'linkedin-banner',
-  'youtube-thumbnail',
   'pinterest-pin',
   'tiktok-cover',
   'email-header',
-  'website-hero',
 ];
+
+/**
+ * Parse hex to RGB
+ */
+function hexToRgb(hex: string): { r: number; g: number; b: number } {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  return result
+    ? { r: parseInt(result[1], 16), g: parseInt(result[2], 16), b: parseInt(result[3], 16) }
+    : { r: 10, g: 25, b: 47 };
+}
+
+/**
+ * Lighten a hex color
+ */
+function lightenHex(hex: string, factor: number): string {
+  const { r, g, b } = hexToRgb(hex);
+  const lr = Math.round(r + (255 - r) * factor);
+  const lg = Math.round(g + (255 - g) * factor);
+  const lb = Math.round(b + (255 - b) * factor);
+  return `rgb(${lr}, ${lg}, ${lb})`;
+}
+
+/**
+ * Check if color is light
+ */
+function isLightColor(hex: string): boolean {
+  const { r, g, b } = hexToRgb(hex);
+  return (r * 299 + g * 587 + b * 114) / 1000 > 128;
+}
+
+/**
+ * Draw a subtle dot grid pattern
+ */
+function drawDotPattern(
+  ctx: CanvasRenderingContext2D,
+  w: number, h: number,
+  color: string, opacity: number,
+  spacing: number, radius: number
+) {
+  const { r, g, b } = hexToRgb(color);
+  ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  for (let x = spacing; x < w; x += spacing) {
+    for (let y = spacing; y < h; y += spacing) {
+      ctx.beginPath();
+      ctx.arc(x, y, radius, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+}
+
+/**
+ * Draw a diagonal line pattern
+ */
+function drawDiagonalLines(
+  ctx: CanvasRenderingContext2D,
+  w: number, h: number,
+  color: string, opacity: number,
+  spacing: number, lineWidth: number
+) {
+  const { r, g, b } = hexToRgb(color);
+  ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  ctx.lineWidth = lineWidth;
+  for (let i = -h; i < w + h; i += spacing) {
+    ctx.beginPath();
+    ctx.moveTo(i, 0);
+    ctx.lineTo(i + h, h);
+    ctx.stroke();
+  }
+}
+
+/**
+ * Draw rounded rectangle
+ */
+function roundedRect(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number, w: number, h: number, r: number
+) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + w - r, y);
+  ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+  ctx.lineTo(x + w, y + h - r);
+  ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  ctx.lineTo(x + r, y + h);
+  ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
 
 export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState({
     current: 0,
-    total: 10,
+    total: CANVAS_PLATFORMS.length,
     step: '',
   });
-  
+
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
 
-  /**
-   * Load an image from URL
-   */
   const loadImage = useCallback((url: string): Promise<HTMLImageElement> => {
     return new Promise((resolve, reject) => {
       const img = new Image();
@@ -115,528 +200,566 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
   }, []);
 
   /**
-   * Render a single social asset to canvas
+   * Draw logo at a position, maintaining aspect ratio
    */
-  const renderSocialAsset = useCallback(async (
-    platform: SocialPlatform,
-    options: SocialAssetOptions
-  ): Promise<string> => {
-    const spec = PLATFORM_SPECS[platform];
-    
-    // Get or create canvas
-    let canvas = canvasRef.current;
-    if (!canvas) {
-      canvas = document.createElement('canvas');
-      canvasRef.current = canvas;
-    }
-    
-    canvas.width = spec.width;
-    canvas.height = spec.height;
-    
-    const ctx = canvas.getContext('2d');
-    if (!ctx) {
-      throw new Error('Failed to get canvas context');
-    }
-
-    const primaryColor = options.primaryColor || '#0a192f';
-    const secondaryColor = options.secondaryColor || '#f4a261';
-    const accentColor = options.accentColor || '#ffffff';
-
-    // Clear canvas
-    ctx.clearRect(0, 0, spec.width, spec.height);
-
-    // Draw platform-specific design
-    switch (platform) {
-      case 'instagram-post':
-        await drawInstagramPost(ctx, spec, options, primaryColor, secondaryColor, accentColor);
-        break;
-      case 'instagram-story':
-        await drawInstagramStory(ctx, spec, options, primaryColor, secondaryColor, accentColor);
-        break;
-      case 'facebook-cover':
-        await drawFacebookCover(ctx, spec, options, primaryColor, secondaryColor, accentColor);
-        break;
-      case 'twitter-header':
-        await drawTwitterHeader(ctx, spec, options, primaryColor, secondaryColor, accentColor);
-        break;
-      case 'linkedin-banner':
-        await drawLinkedInBanner(ctx, spec, options, primaryColor, secondaryColor, accentColor);
-        break;
-      case 'youtube-thumbnail':
-        await drawYouTubeThumbnail(ctx, spec, options, primaryColor, secondaryColor, accentColor);
-        break;
-      case 'pinterest-pin':
-        await drawPinterestPin(ctx, spec, options, primaryColor, secondaryColor, accentColor);
-        break;
-      case 'tiktok-cover':
-        await drawTikTokCover(ctx, spec, options, primaryColor, secondaryColor, accentColor);
-        break;
-      case 'email-header':
-        await drawEmailHeader(ctx, spec, options, primaryColor, secondaryColor, accentColor);
-        break;
-      case 'website-hero':
-        await drawWebsiteHero(ctx, spec, options, primaryColor, secondaryColor, accentColor);
-        break;
-    }
-
-    // Convert to data URL
-    return canvas.toDataURL('image/png', 0.9);
-  }, [loadImage]);
-
-  // Template drawing functions
-  const drawInstagramPost = async (
+  const drawLogo = async (
     ctx: CanvasRenderingContext2D,
-    spec: typeof PLATFORM_SPECS['instagram-post'],
-    options: SocialAssetOptions,
-    primaryColor: string,
-    secondaryColor: string,
-    accentColor: string
+    logoUrl: string,
+    x: number, y: number, maxW: number, maxH: number,
+    fallbackName: string, fallbackColor: string
   ) => {
-    // Background with gradient
-    const gradient = ctx.createLinearGradient(0, 0, spec.width, spec.height);
-    gradient.addColorStop(0, primaryColor);
-    gradient.addColorStop(1, secondaryColor);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, spec.width, spec.height);
-
-    // Centered content area
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    ctx.fillRect(140, 140, 800, 800);
-
-    // Logo
     try {
-      const logo = await loadImage(options.logoUrl);
-      const logoSize = 300;
-      ctx.drawImage(logo, (spec.width - logoSize) / 2, 250, logoSize, logoSize);
+      const logo = await loadImage(logoUrl);
+      const scale = Math.min(maxW / logo.width, maxH / logo.height);
+      const lw = logo.width * scale;
+      const lh = logo.height * scale;
+      ctx.drawImage(logo, x + (maxW - lw) / 2, y + (maxH - lh) / 2, lw, lh);
     } catch {
-      ctx.fillStyle = accentColor;
-      ctx.font = 'bold 48px sans-serif';
+      ctx.fillStyle = fallbackColor;
+      ctx.font = `bold ${Math.min(maxW, maxH) * 0.4}px sans-serif`;
       ctx.textAlign = 'center';
-      ctx.fillText(options.businessName.substring(0, 2).toUpperCase(), spec.width / 2, 400);
+      ctx.fillText(fallbackName.substring(0, 2).toUpperCase(), x + maxW / 2, y + maxH / 2 + 10);
+      ctx.textAlign = 'left';
     }
-
-    // Business name
-    ctx.fillStyle = accentColor;
-    ctx.font = 'bold 56px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(options.businessName, spec.width / 2, 620);
-
-    // Tagline
-    if (options.tagline) {
-      ctx.font = '32px sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.fillText(options.tagline, spec.width / 2, 680);
-    }
-
-    ctx.textAlign = 'left';
   };
+
+  // ==================== TEMPLATE RENDERERS ====================
 
   const drawInstagramStory = async (
     ctx: CanvasRenderingContext2D,
-    spec: typeof PLATFORM_SPECS['instagram-story'],
+    spec: { width: number; height: number },
     options: SocialAssetOptions,
-    primaryColor: string,
-    secondaryColor: string,
-    accentColor: string
+    primary: string, secondary: string, accent: string
   ) => {
-    // Full gradient background
-    const gradient = ctx.createLinearGradient(0, 0, 0, spec.height);
-    gradient.addColorStop(0, primaryColor);
-    gradient.addColorStop(0.5, secondaryColor);
-    gradient.addColorStop(1, primaryColor);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, spec.width, spec.height);
+    const { width: W, height: H } = spec;
 
-    // Top logo area
-    try {
-      const logo = await loadImage(options.logoUrl);
-      ctx.drawImage(logo, 340, 300, 400, 400);
-    } catch {
-      ctx.fillStyle = accentColor;
-      ctx.font = 'bold 120px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(options.businessName.substring(0, 2).toUpperCase(), spec.width / 2, 520);
+    // Rich multi-stop gradient background
+    const grad = ctx.createLinearGradient(0, 0, W * 0.3, H);
+    grad.addColorStop(0, primary);
+    grad.addColorStop(0.35, secondary);
+    grad.addColorStop(0.65, primary);
+    grad.addColorStop(1, lightenHex(primary, 0.15));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
+
+    // Soft radial glow behind logo area
+    const { r, g, b } = hexToRgb(secondary);
+    const glow = ctx.createRadialGradient(W / 2, 460, 60, W / 2, 460, 350);
+    glow.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.2)`);
+    glow.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow;
+    ctx.fillRect(0, 0, W, H);
+
+    // Subtle diagonal lines
+    drawDiagonalLines(ctx, W, H, '#ffffff', 0.03, 70, 1);
+
+    // Decorative top bar
+    ctx.fillStyle = `rgba(255,255,255,0.08)`;
+    ctx.fillRect(0, 0, W, 80);
+
+    // Logo in upper third — slightly larger
+    await drawLogo(ctx, options.logoUrl, (W - 380) / 2, 260, 380, 380, options.businessName, accent);
+
+    // Business name with slight letter spacing effect
+    ctx.fillStyle = accent;
+    ctx.font = 'bold 58px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(options.businessName, W / 2, 770);
+
+    // Tagline in a frosted glass pill
+    if (options.tagline) {
+      ctx.font = '26px sans-serif';
+      const tagWidth = ctx.measureText(options.tagline).width + 70;
+      const pillX = (W - tagWidth) / 2;
+
+      // Frosted pill background
+      ctx.fillStyle = 'rgba(255,255,255,0.12)';
+      roundedRect(ctx, pillX, 800, tagWidth, 54, 27);
+      ctx.fill();
+      // Pill border
+      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
+      ctx.lineWidth = 1;
+      roundedRect(ctx, pillX, 800, tagWidth, 54, 27);
+      ctx.stroke();
+
+      ctx.fillStyle = accent;
+      ctx.fillText(options.tagline, W / 2, 835);
     }
 
-    // Business name
-    ctx.fillStyle = accentColor;
-    ctx.font = 'bold 64px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(options.businessName, spec.width / 2, 800);
+    // CTA pill at bottom — frosted glass style
+    const ctaWidth = 280;
+    const ctaX = (W - ctaWidth) / 2;
+    ctx.fillStyle = secondary;
+    roundedRect(ctx, ctaX, H - 220, ctaWidth, 64, 32);
+    ctx.fill();
+    ctx.fillStyle = isLightColor(secondary) ? '#111' : '#fff';
+    ctx.font = 'bold 24px sans-serif';
+    ctx.fillText('Learn More', W / 2, H - 180);
 
-    // CTA
-    ctx.fillStyle = 'rgba(255,255,255,0.2)';
-    ctx.fillRect(290, 1000, 500, 80);
-    ctx.fillStyle = accentColor;
-    ctx.font = 'bold 36px sans-serif';
-    ctx.fillText('Swipe Up', spec.width / 2, 1055);
+    // Chevron arrow
+    ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(W / 2 - 12, H - 130);
+    ctx.lineTo(W / 2, H - 142);
+    ctx.lineTo(W / 2 + 12, H - 130);
+    ctx.stroke();
 
     ctx.textAlign = 'left';
   };
 
   const drawFacebookCover = async (
     ctx: CanvasRenderingContext2D,
-    spec: typeof PLATFORM_SPECS['facebook-cover'],
+    spec: { width: number; height: number },
     options: SocialAssetOptions,
-    primaryColor: string,
-    secondaryColor: string,
-    accentColor: string
+    primary: string, secondary: string, accent: string
   ) => {
-    // Split design
-    ctx.fillStyle = primaryColor;
-    ctx.fillRect(0, 0, spec.width * 0.6, spec.height);
-    ctx.fillStyle = secondaryColor;
-    ctx.fillRect(spec.width * 0.6, 0, spec.width * 0.4, spec.height);
+    const { width: W, height: H } = spec;
 
-    // Logo on left
-    try {
-      const logo = await loadImage(options.logoUrl);
-      ctx.drawImage(logo, 80, 56, 200, 200);
-    } catch {
-      ctx.fillStyle = accentColor;
-      ctx.font = 'bold 48px sans-serif';
-      ctx.fillText(options.businessName.substring(0, 2).toUpperCase(), 140, 170);
-    }
+    // Horizontal gradient with smooth midpoint
+    const grad = ctx.createLinearGradient(0, 0, W, 0);
+    grad.addColorStop(0, primary);
+    grad.addColorStop(0.55, primary);
+    grad.addColorStop(0.85, secondary);
+    grad.addColorStop(1, lightenHex(secondary, 0.15));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
 
-    // Text
-    ctx.fillStyle = accentColor;
+    // Subtle geometric shape (angled divider)
+    const { r, g, b } = hexToRgb(secondary);
+    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.08)`;
+    ctx.beginPath();
+    ctx.moveTo(W * 0.5, 0);
+    ctx.lineTo(W * 0.7, 0);
+    ctx.lineTo(W * 0.55, H);
+    ctx.lineTo(W * 0.35, H);
+    ctx.closePath();
+    ctx.fill();
+
+    // Dot pattern — very subtle
+    drawDotPattern(ctx, W, H, '#ffffff', 0.03, 35, 1.5);
+
+    // Profile photo safe zone (left 170px) — logo after it
+    await drawLogo(ctx, options.logoUrl, 200, (H - 150) / 2, 150, 150, options.businessName, accent);
+
+    // Business name with proper vertical centering
+    ctx.fillStyle = accent;
     ctx.font = 'bold 36px sans-serif';
-    ctx.fillText(options.businessName, 320, 130);
+    ctx.fillText(options.businessName, 380, H / 2 - 8);
 
     if (options.tagline) {
-      ctx.font = '20px sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.8)';
-      ctx.fillText(options.tagline, 320, 165);
+      ctx.font = '17px sans-serif';
+      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.6)';
+      ctx.fillText(options.tagline, 380, H / 2 + 22);
     }
 
-    // Decorative element on right
-    ctx.fillStyle = 'rgba(255,255,255,0.1)';
-    ctx.beginPath();
-    ctx.arc(spec.width * 0.8, spec.height / 2, 80, 0, Math.PI * 2);
-    ctx.fill();
+    // Bottom accent — gradient bar instead of flat
+    const barGrad = ctx.createLinearGradient(0, H - 5, W, H - 5);
+    barGrad.addColorStop(0, secondary);
+    barGrad.addColorStop(1, lightenHex(secondary, 0.3));
+    ctx.fillStyle = barGrad;
+    ctx.fillRect(0, H - 5, W, 5);
   };
 
   const drawTwitterHeader = async (
     ctx: CanvasRenderingContext2D,
-    spec: typeof PLATFORM_SPECS['twitter-header'],
+    spec: { width: number; height: number },
     options: SocialAssetOptions,
-    primaryColor: string,
-    secondaryColor: string,
-    accentColor: string
+    primary: string, secondary: string, accent: string
   ) => {
-    // Gradient background
-    const gradient = ctx.createLinearGradient(0, 0, spec.width, 0);
-    gradient.addColorStop(0, primaryColor);
-    gradient.addColorStop(0.5, secondaryColor);
-    gradient.addColorStop(1, primaryColor);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, spec.width, spec.height);
+    const { width: W, height: H } = spec;
 
-    // Logo
-    try {
-      const logo = await loadImage(options.logoUrl);
-      ctx.drawImage(logo, 100, 100, 300, 300);
-    } catch {
-      ctx.fillStyle = accentColor;
-      ctx.font = 'bold 72px sans-serif';
-      ctx.fillText(options.businessName.substring(0, 2).toUpperCase(), 200, 280);
-    }
+    // Clean gradient
+    const grad = ctx.createLinearGradient(0, 0, W, 0);
+    grad.addColorStop(0, primary);
+    grad.addColorStop(0.6, primary);
+    grad.addColorStop(1, lightenHex(primary, 0.15));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
 
-    // Text
-    ctx.fillStyle = accentColor;
-    ctx.font = 'bold 48px sans-serif';
-    ctx.fillText(options.businessName, 450, 220);
+    // Geometric accent shapes (right side)
+    const { r, g, b } = hexToRgb(secondary);
+    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.15)`;
+    ctx.beginPath();
+    ctx.moveTo(W - 400, 0);
+    ctx.lineTo(W, 0);
+    ctx.lineTo(W, H);
+    ctx.lineTo(W - 250, H);
+    ctx.closePath();
+    ctx.fill();
+
+    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.1)`;
+    ctx.beginPath();
+    ctx.moveTo(W - 500, 0);
+    ctx.lineTo(W - 350, 0);
+    ctx.lineTo(W - 200, H);
+    ctx.lineTo(W - 350, H);
+    ctx.closePath();
+    ctx.fill();
+
+    // Logo (left-center)
+    await drawLogo(ctx, options.logoUrl, 120, (H - 200) / 2, 200, 200, options.businessName, accent);
+
+    // Business name
+    ctx.fillStyle = accent;
+    ctx.font = 'bold 46px sans-serif';
+    ctx.fillText(options.businessName, 370, H / 2 - 5);
 
     if (options.tagline) {
-      ctx.font = '24px sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.8)';
-      ctx.fillText(options.tagline, 450, 260);
-    }
-
-    // Pattern
-    ctx.fillStyle = 'rgba(255,255,255,0.05)';
-    for (let i = 0; i < 5; i++) {
-      ctx.beginPath();
-      ctx.arc(1200 + i * 150, 250, 60, 0, Math.PI * 2);
-      ctx.fill();
+      ctx.font = '22px sans-serif';
+      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)';
+      ctx.fillText(options.tagline, 370, H / 2 + 30);
     }
   };
 
   const drawLinkedInBanner = async (
     ctx: CanvasRenderingContext2D,
-    spec: typeof PLATFORM_SPECS['linkedin-banner'],
+    spec: { width: number; height: number },
     options: SocialAssetOptions,
-    primaryColor: string,
-    secondaryColor: string,
-    accentColor: string
+    primary: string, secondary: string, accent: string
   ) => {
-    // Clean professional look
-    ctx.fillStyle = primaryColor;
-    ctx.fillRect(0, 0, spec.width, spec.height);
+    const { width: W, height: H } = spec;
 
-    // Accent line
-    ctx.fillStyle = secondaryColor;
-    ctx.fillRect(0, spec.height - 8, spec.width, 8);
+    // Professional gradient — primary to slightly darker
+    const grad = ctx.createLinearGradient(0, 0, W, H);
+    grad.addColorStop(0, primary);
+    grad.addColorStop(1, lightenHex(primary, -0.1));
+    ctx.fillStyle = grad;
+    ctx.fillRect(0, 0, W, H);
 
-    // Logo
-    try {
-      const logo = await loadImage(options.logoUrl);
-      ctx.drawImage(logo, 80, 78, 240, 240);
-    } catch {
-      ctx.fillStyle = accentColor;
-      ctx.font = 'bold 64px sans-serif';
-      ctx.fillText(options.businessName.substring(0, 2).toUpperCase(), 160, 220);
+    // Subtle grid lines (corporate feel)
+    const { r, g, b } = hexToRgb('#ffffff');
+    ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, 0.04)`;
+    ctx.lineWidth = 1;
+    for (let x = 0; x < W; x += 60) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x, H);
+      ctx.stroke();
+    }
+    for (let y = 0; y < H; y += 60) {
+      ctx.beginPath();
+      ctx.moveTo(0, y);
+      ctx.lineTo(W, y);
+      ctx.stroke();
     }
 
-    // Text
-    ctx.fillStyle = accentColor;
+    // Right-side accent shape (subtle branded triangle)
+    const sr = hexToRgb(secondary);
+    ctx.fillStyle = `rgba(${sr.r}, ${sr.g}, ${sr.b}, 0.1)`;
+    ctx.beginPath();
+    ctx.moveTo(W - 400, 0);
+    ctx.lineTo(W, 0);
+    ctx.lineTo(W, H);
+    ctx.lineTo(W - 200, H);
+    ctx.closePath();
+    ctx.fill();
+
+    // Logo left with subtle glow
+    const glowGrad = ctx.createRadialGradient(170, H / 2, 30, 170, H / 2, 120);
+    glowGrad.addColorStop(0, `rgba(${sr.r}, ${sr.g}, ${sr.b}, 0.08)`);
+    glowGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glowGrad;
+    ctx.fillRect(50, 0, 240, H);
+
+    await drawLogo(ctx, options.logoUrl, 80, (H - 180) / 2, 180, 180, options.businessName, accent);
+
+    // Name next to logo
+    ctx.fillStyle = accent;
     ctx.font = 'bold 40px sans-serif';
-    ctx.fillText(options.businessName, 360, 180);
+    ctx.fillText(options.businessName, 290, H / 2 - 5);
 
+    // Thin divider line
+    ctx.fillStyle = `rgba(${sr.r}, ${sr.g}, ${sr.b}, 0.4)`;
+    ctx.fillRect(290, H / 2 + 10, 100, 2);
+
+    // Tagline right-aligned
     if (options.tagline) {
-      ctx.font = '22px sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.8)';
-      ctx.fillText(options.tagline, 360, 220);
+      ctx.font = '20px sans-serif';
+      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.55)';
+      ctx.textAlign = 'right';
+      ctx.fillText(options.tagline, W - 90, H / 2 + 5);
+      ctx.textAlign = 'left';
     }
 
-    // Right side pattern
-    ctx.fillStyle = 'rgba(255,255,255,0.05)';
-    for (let i = 0; i < 3; i++) {
-      ctx.fillRect(1200 + i * 120, 50, 80, 296);
-    }
-  };
-
-  const drawYouTubeThumbnail = async (
-    ctx: CanvasRenderingContext2D,
-    spec: typeof PLATFORM_SPECS['youtube-thumbnail'],
-    options: SocialAssetOptions,
-    primaryColor: string,
-    secondaryColor: string,
-    accentColor: string
-  ) => {
-    // Bold background
-    ctx.fillStyle = primaryColor;
-    ctx.fillRect(0, 0, spec.width, spec.height);
-
-    // Corner accent
-    ctx.fillStyle = secondaryColor;
-    ctx.beginPath();
-    ctx.moveTo(0, 0);
-    ctx.lineTo(400, 0);
-    ctx.lineTo(0, 400);
-    ctx.closePath();
-    ctx.fill();
-
-    // Logo
-    try {
-      const logo = await loadImage(options.logoUrl);
-      ctx.drawImage(logo, 80, 210, 300, 300);
-    } catch {
-      ctx.fillStyle = accentColor;
-      ctx.font = 'bold 80px sans-serif';
-      ctx.fillText(options.businessName.substring(0, 2).toUpperCase(), 180, 400);
-    }
-
-    // Title
-    ctx.fillStyle = accentColor;
-    ctx.font = 'bold 56px sans-serif';
-    ctx.fillText(options.businessName, 420, 300);
-
-    if (options.tagline) {
-      ctx.font = '28px sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.8)';
-      ctx.fillText(options.tagline, 420, 350);
-    }
-
-    // YouTube play button style element
-    ctx.fillStyle = 'rgba(255,0,0,0.8)';
-    ctx.beginPath();
-    ctx.roundRect(1000, 260, 200, 120, 20);
-    ctx.fill();
-    ctx.fillStyle = '#ffffff';
-    ctx.beginPath();
-    ctx.moveTo(1060, 290);
-    ctx.lineTo(1060, 350);
-    ctx.lineTo(1140, 320);
-    ctx.closePath();
-    ctx.fill();
+    // Bottom accent — gradient bar
+    const barGrad = ctx.createLinearGradient(0, 0, W, 0);
+    barGrad.addColorStop(0, secondary);
+    barGrad.addColorStop(0.5, lightenHex(secondary, 0.2));
+    barGrad.addColorStop(1, secondary);
+    ctx.fillStyle = barGrad;
+    ctx.fillRect(0, H - 5, W, 5);
   };
 
   const drawPinterestPin = async (
     ctx: CanvasRenderingContext2D,
-    spec: typeof PLATFORM_SPECS['pinterest-pin'],
+    spec: { width: number; height: number },
     options: SocialAssetOptions,
-    primaryColor: string,
-    secondaryColor: string,
-    accentColor: string
+    primary: string, secondary: string, accent: string
   ) => {
-    // Vertical layout
-    const gradient = ctx.createLinearGradient(0, 0, 0, spec.height);
-    gradient.addColorStop(0, primaryColor);
-    gradient.addColorStop(1, secondaryColor);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, spec.width, spec.height);
+    const { width: W, height: H } = spec;
 
-    // Top logo area
-    try {
-      const logo = await loadImage(options.logoUrl);
-      ctx.drawImage(logo, 200, 200, 600, 600);
-    } catch {
-      ctx.fillStyle = accentColor;
-      ctx.font = 'bold 160px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(options.businessName.substring(0, 2).toUpperCase(), spec.width / 2, 500);
+    // Upper section — soft warm gradient
+    const upperGrad = ctx.createLinearGradient(0, 0, W * 0.3, H * 0.65);
+    upperGrad.addColorStop(0, lightenHex(primary, 0.88));
+    upperGrad.addColorStop(0.5, lightenHex(secondary, 0.85));
+    upperGrad.addColorStop(1, lightenHex(primary, 0.75));
+    ctx.fillStyle = upperGrad;
+    ctx.fillRect(0, 0, W, H * 0.65);
+
+    // Subtle pattern — small cross/plus marks instead of dots
+    const pr = hexToRgb(primary);
+    ctx.strokeStyle = `rgba(${pr.r}, ${pr.g}, ${pr.b}, 0.06)`;
+    ctx.lineWidth = 1.5;
+    for (let x = 30; x < W; x += 50) {
+      for (let y = 30; y < H * 0.65; y += 50) {
+        ctx.beginPath();
+        ctx.moveTo(x - 5, y); ctx.lineTo(x + 5, y);
+        ctx.moveTo(x, y - 5); ctx.lineTo(x, y + 5);
+        ctx.stroke();
+      }
     }
 
-    // Bottom text area
-    ctx.fillStyle = 'rgba(0,0,0,0.3)';
-    ctx.fillRect(0, 1000, spec.width, 500);
+    // Large logo centered in upper half
+    await drawLogo(ctx, options.logoUrl, (W - 420) / 2, 150, 420, 420, options.businessName, primary);
 
-    ctx.fillStyle = accentColor;
-    ctx.font = 'bold 56px sans-serif';
+    // Decorative divider between sections — wavy accent line
+    const cardY = Math.round(H * 0.65);
+    ctx.fillStyle = secondary;
+    ctx.fillRect((W - 80) / 2, cardY - 15, 80, 3);
+
+    // Bottom card with brand color
+    const cardGrad = ctx.createLinearGradient(0, cardY, 0, H);
+    cardGrad.addColorStop(0, primary);
+    cardGrad.addColorStop(1, lightenHex(primary, -0.1));
+    ctx.fillStyle = cardGrad;
+    ctx.fillRect(0, cardY, W, H - cardY);
+
+    // Business name on card
+    const textColor = isLightColor(primary) ? '#111' : '#fff';
+    ctx.fillStyle = textColor;
+    ctx.font = 'bold 50px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(options.businessName, spec.width / 2, 1100);
+    ctx.fillText(options.businessName, W / 2, cardY + 90);
 
+    // Tagline
     if (options.tagline) {
-      ctx.font = '32px sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.fillText(options.tagline, spec.width / 2, 1160);
+      ctx.font = '26px sans-serif';
+      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.65)';
+      ctx.fillText(options.tagline, W / 2, cardY + 140);
     }
+
+    // CTA pill — rounded with border
+    const ctaText = 'Learn More';
+    ctx.font = 'bold 22px sans-serif';
+    const ctaW = ctx.measureText(ctaText).width + 64;
+    const ctaH = 52;
+    const ctaX = (W - ctaW) / 2;
+    const ctaY = cardY + 180;
+
+    ctx.fillStyle = secondary;
+    roundedRect(ctx, ctaX, ctaY, ctaW, ctaH, 26);
+    ctx.fill();
+    ctx.fillStyle = isLightColor(secondary) ? '#111' : '#fff';
+    ctx.fillText(ctaText, W / 2, ctaY + 34);
 
     ctx.textAlign = 'left';
   };
 
   const drawTikTokCover = async (
     ctx: CanvasRenderingContext2D,
-    spec: typeof PLATFORM_SPECS['tiktok-cover'],
+    spec: { width: number; height: number },
     options: SocialAssetOptions,
-    primaryColor: string,
-    secondaryColor: string,
-    accentColor: string
+    primary: string, secondary: string, accent: string
   ) => {
-    // Dark trendy background
-    ctx.fillStyle = '#000000';
-    ctx.fillRect(0, 0, spec.width, spec.height);
+    const { width: W, height: H } = spec;
 
-    // Neon accents
-    ctx.fillStyle = secondaryColor;
-    ctx.fillRect(40, 40, 100, 10);
-    ctx.fillRect(40, 40, 10, 100);
+    // Dark gradient base — not pure black, has brand tint
+    const pr = hexToRgb(primary);
+    const baseGrad = ctx.createLinearGradient(0, 0, 0, H);
+    baseGrad.addColorStop(0, '#0a0a0a');
+    baseGrad.addColorStop(0.5, `rgba(${Math.min(pr.r, 30)}, ${Math.min(pr.g, 30)}, ${Math.min(pr.b, 30)}, 1)`);
+    baseGrad.addColorStop(1, '#050505');
+    ctx.fillStyle = baseGrad;
+    ctx.fillRect(0, 0, W, H);
 
-    ctx.fillStyle = '#ff0050'; // TikTok pink
-    ctx.fillRect(spec.width - 140, spec.height - 140, 100, 10);
-    ctx.fillRect(spec.width - 50, spec.height - 140, 10, 100);
+    // Primary neon glow — main ring behind logo
+    const { r, g, b } = hexToRgb(secondary);
+    const glow1 = ctx.createRadialGradient(W / 2, H * 0.38, 80, W / 2, H * 0.38, 380);
+    glow1.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.35)`);
+    glow1.addColorStop(0.4, `rgba(${r}, ${g}, ${b}, 0.12)`);
+    glow1.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow1;
+    ctx.fillRect(0, 0, W, H);
 
-    // Center content
-    try {
-      const logo = await loadImage(options.logoUrl);
-      ctx.drawImage(logo, 290, 400, 500, 500);
-    } catch {
-      ctx.fillStyle = accentColor;
-      ctx.font = 'bold 140px sans-serif';
-      ctx.textAlign = 'center';
-      ctx.fillText(options.businessName.substring(0, 2).toUpperCase(), spec.width / 2, 680);
-    }
+    // Secondary glow — offset for depth
+    const glow2 = ctx.createRadialGradient(W * 0.45, H * 0.35, 40, W * 0.45, H * 0.35, 250);
+    glow2.addColorStop(0, `rgba(${pr.r}, ${pr.g}, ${pr.b}, 0.2)`);
+    glow2.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = glow2;
+    ctx.fillRect(0, 0, W, H);
 
-    ctx.fillStyle = accentColor;
-    ctx.font = 'bold 64px sans-serif';
-    ctx.fillText(options.businessName, spec.width / 2, 1000);
+    // Neon corner brackets (TikTok creator aesthetic)
+    ctx.strokeStyle = secondary;
+    ctx.lineWidth = 3;
+    ctx.lineCap = 'round';
+    // Top-left
+    ctx.beginPath();
+    ctx.moveTo(60, 130); ctx.lineTo(60, 60); ctx.lineTo(130, 60);
+    ctx.stroke();
+    // Top-right
+    ctx.beginPath();
+    ctx.moveTo(W - 130, 60); ctx.lineTo(W - 60, 60); ctx.lineTo(W - 60, 130);
+    ctx.stroke();
+    // Bottom-left
+    ctx.beginPath();
+    ctx.moveTo(60, H - 130); ctx.lineTo(60, H - 60); ctx.lineTo(130, H - 60);
+    ctx.stroke();
+    // Bottom-right
+    ctx.beginPath();
+    ctx.moveTo(W - 130, H - 60); ctx.lineTo(W - 60, H - 60); ctx.lineTo(W - 60, H - 130);
+    ctx.stroke();
 
+    // Logo centered
+    await drawLogo(ctx, options.logoUrl, (W - 400) / 2, 340, 400, 400, options.businessName, accent);
+
+    // Business name — bold with subtle text shadow
+    ctx.save();
+    ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
+    ctx.shadowBlur = 20;
+    ctx.fillStyle = '#ffffff';
+    ctx.font = 'bold 66px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(options.businessName, W / 2, 880);
+    ctx.restore();
+
+    // Tagline with neon color
     if (options.tagline) {
-      ctx.font = '32px sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.7)';
-      ctx.fillText(options.tagline, spec.width / 2, 1060);
+      ctx.fillStyle = secondary;
+      ctx.font = '28px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText(options.tagline, W / 2, 930);
     }
+
+    // Handle text at bottom
+    ctx.fillStyle = 'rgba(255,255,255,0.35)';
+    ctx.font = '22px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText(`@${options.businessName.toLowerCase().replace(/\s+/g, '')}`, W / 2, H - 200);
 
     ctx.textAlign = 'left';
   };
 
   const drawEmailHeader = async (
     ctx: CanvasRenderingContext2D,
-    spec: typeof PLATFORM_SPECS['email-header'],
+    spec: { width: number; height: number },
     options: SocialAssetOptions,
-    primaryColor: string,
-    secondaryColor: string,
-    accentColor: string
+    primary: string, secondary: string, accent: string
   ) => {
-    // Clean header
-    ctx.fillStyle = primaryColor;
-    ctx.fillRect(0, 0, spec.width, spec.height);
+    const { width: W, height: H } = spec;
 
-    // Logo
-    try {
-      const logo = await loadImage(options.logoUrl);
-      ctx.drawImage(logo, 30, 30, 140, 140);
-    } catch {
-      ctx.fillStyle = accentColor;
-      ctx.font = 'bold 36px sans-serif';
-      ctx.fillText(options.businessName.substring(0, 2).toUpperCase(), 70, 120);
-    }
-
-    // Text
-    ctx.fillStyle = accentColor;
-    ctx.font = 'bold 28px sans-serif';
-    ctx.fillText(options.businessName, 190, 90);
-
-    if (options.tagline) {
-      ctx.font = '14px sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.7)';
-      ctx.fillText(options.tagline, 190, 115);
-    }
-
-    // Right accent
-    ctx.fillStyle = secondaryColor;
-    ctx.fillRect(450, 0, 150, spec.height);
-  };
-
-  const drawWebsiteHero = async (
-    ctx: CanvasRenderingContext2D,
-    spec: typeof PLATFORM_SPECS['website-hero'],
-    options: SocialAssetOptions,
-    primaryColor: string,
-    secondaryColor: string,
-    accentColor: string
-  ) => {
-    // Full-width hero
-    const gradient = ctx.createLinearGradient(0, 0, spec.width, spec.height);
-    gradient.addColorStop(0, primaryColor);
-    gradient.addColorStop(0.5, `${secondaryColor}80`);
-    gradient.addColorStop(1, primaryColor);
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, spec.width, spec.height);
-
-    // Left content
-    ctx.fillStyle = accentColor;
-    ctx.font = 'bold 96px sans-serif';
-    ctx.fillText(options.businessName, 120, 500);
-
-    if (options.tagline) {
-      ctx.font = '40px sans-serif';
-      ctx.fillStyle = 'rgba(255,255,255,0.9)';
-      ctx.fillText(options.tagline, 120, 580);
-    }
-
-    // CTA button
-    ctx.fillStyle = secondaryColor;
-    ctx.fillRect(120, 650, 280, 80);
+    // Clean white background
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 28px sans-serif';
-    ctx.fillText('Learn More', 180, 702);
+    ctx.fillRect(0, 0, W, H);
 
-    // Right side logo
-    try {
-      const logo = await loadImage(options.logoUrl);
-      ctx.drawImage(logo, 1200, 250, 600, 600);
-    } catch {
-      ctx.fillStyle = accentColor;
-      ctx.font = 'bold 200px sans-serif';
-      ctx.fillText(options.businessName.substring(0, 2).toUpperCase(), 1400, 600);
+    // Very subtle top tint bar using primary at low opacity
+    const { r, g, b } = hexToRgb(primary);
+    const topGrad = ctx.createLinearGradient(0, 0, 0, 8);
+    topGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.08)`);
+    topGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = topGrad;
+    ctx.fillRect(0, 0, W, 40);
+
+    // Logo left with proper spacing
+    await drawLogo(ctx, options.logoUrl, 24, (H - 70) / 2, 70, 70, options.businessName, primary);
+
+    // Thin vertical divider
+    ctx.fillStyle = `rgba(${r}, ${g}, ${b}, 0.12)`;
+    ctx.fillRect(108, H * 0.25, 1, H * 0.5);
+
+    // Company name
+    ctx.fillStyle = primary;
+    ctx.font = 'bold 22px sans-serif';
+    ctx.fillText(options.businessName, 124, H / 2 - 4);
+
+    // Tagline
+    if (options.tagline) {
+      ctx.font = '12px sans-serif';
+      ctx.fillStyle = '#999999';
+      ctx.fillText(options.tagline, 124, H / 2 + 14);
     }
+
+    // Bottom border — two-tone gradient
+    const barGrad = ctx.createLinearGradient(0, 0, W, 0);
+    barGrad.addColorStop(0, secondary);
+    barGrad.addColorStop(0.3, primary);
+    barGrad.addColorStop(1, primary);
+    ctx.fillStyle = barGrad;
+    ctx.fillRect(0, H - 4, W, 4);
   };
 
   /**
-   * Generate all social assets and upload to server in batches
-   * (to avoid 413 Payload Too Large errors)
+   * Render a single Canvas social asset
+   */
+  const renderSocialAsset = useCallback(async (
+    platform: SocialPlatform,
+    options: SocialAssetOptions
+  ): Promise<string> => {
+    const spec = PLATFORM_SPECS[platform];
+
+    let canvas = canvasRef.current;
+    if (!canvas) {
+      canvas = document.createElement('canvas');
+      canvasRef.current = canvas;
+    }
+
+    canvas.width = spec.width;
+    canvas.height = spec.height;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) throw new Error('Failed to get canvas context');
+
+    const primary = options.primaryColor || '#0a192f';
+    const secondary = options.secondaryColor || '#f4a261';
+    const accent = options.accentColor || '#ffffff';
+
+    ctx.clearRect(0, 0, spec.width, spec.height);
+
+    switch (platform) {
+      case 'instagram-story':
+        await drawInstagramStory(ctx, spec, options, primary, secondary, accent);
+        break;
+      case 'facebook-cover':
+        await drawFacebookCover(ctx, spec, options, primary, secondary, accent);
+        break;
+      case 'twitter-header':
+        await drawTwitterHeader(ctx, spec, options, primary, secondary, accent);
+        break;
+      case 'linkedin-banner':
+        await drawLinkedInBanner(ctx, spec, options, primary, secondary, accent);
+        break;
+      case 'pinterest-pin':
+        await drawPinterestPin(ctx, spec, options, primary, secondary, accent);
+        break;
+      case 'tiktok-cover':
+        await drawTikTokCover(ctx, spec, options, primary, secondary, accent);
+        break;
+      case 'email-header':
+        await drawEmailHeader(ctx, spec, options, primary, secondary, accent);
+        break;
+      default:
+        // AI platforms won't be rendered here but just in case
+        ctx.fillStyle = primary;
+        ctx.fillRect(0, 0, spec.width, spec.height);
+        break;
+    }
+
+    return canvas.toDataURL('image/png', 0.9);
+  }, [loadImage]);
+
+  /**
+   * Generate Canvas social assets and upload in batches
    */
   const generateAndUploadSocialAssets = useCallback(async (
     orderId: number,
@@ -650,42 +773,35 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     const allAssets: Record<string, string> = {};
 
     try {
-      // Split platforms into batches of 3 to avoid payload size limits
       const BATCH_SIZE = 3;
       const batches: SocialPlatform[][] = [];
-      for (let i = 0; i < ALL_PLATFORMS.length; i += BATCH_SIZE) {
-        batches.push(ALL_PLATFORMS.slice(i, i + BATCH_SIZE));
+      for (let i = 0; i < CANVAS_PLATFORMS.length; i += BATCH_SIZE) {
+        batches.push(CANVAS_PLATFORMS.slice(i, i + BATCH_SIZE));
       }
 
-      // Generate and upload each batch
       for (let batchIndex = 0; batchIndex < batches.length; batchIndex++) {
         const batch = batches[batchIndex];
         const batchAssets: Record<string, string> = {};
 
-        // Generate assets for this batch
         for (let i = 0; i < batch.length; i++) {
           const platform = batch[i];
           const overallIndex = batchIndex * BATCH_SIZE + i;
-          
+
           setProgress({
             current: overallIndex + 1,
-            total: ALL_PLATFORMS.length,
-            step: `Generating ${PLATFORM_SPECS[platform].name} (${overallIndex + 1}/${ALL_PLATFORMS.length})...`,
+            total: CANVAS_PLATFORMS.length,
+            step: `Generating ${PLATFORM_SPECS[platform].name} (${overallIndex + 1}/${CANVAS_PLATFORMS.length})...`,
           });
 
           const imageData = await renderSocialAsset(platform, options);
-          // Use underscore key for storage (matches UI expectations)
           const storageKey = PLATFORM_KEY_MAP[platform];
           batchAssets[storageKey] = imageData;
           allAssets[storageKey] = imageData;
         }
 
-        // Upload this batch
         setProgress({
-          current: (batchIndex + 1) * BATCH_SIZE > ALL_PLATFORMS.length 
-            ? ALL_PLATFORMS.length 
-            : (batchIndex + 1) * BATCH_SIZE,
-          total: ALL_PLATFORMS.length,
+          current: Math.min((batchIndex + 1) * BATCH_SIZE, CANVAS_PLATFORMS.length),
+          total: CANVAS_PLATFORMS.length,
           step: `Uploading batch ${batchIndex + 1}/${batches.length}...`,
         });
 
@@ -710,8 +826,8 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
       }
 
       setProgress({
-        current: ALL_PLATFORMS.length,
-        total: ALL_PLATFORMS.length,
+        current: CANVAS_PLATFORMS.length,
+        total: CANVAS_PLATFORMS.length,
         step: 'Complete!',
       });
 

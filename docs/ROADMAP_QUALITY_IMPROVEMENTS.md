@@ -1,388 +1,214 @@
 # LogoGenius Quality Improvements Roadmap
 
-**Date:** March 15, 2026  
-**Status:** Phase 1 Complete ✅  
-**Goal:** Transform from "working prototype" to "professional product"
-
-### Latest Updates
-- Two-phase workflow implemented (logos+mockups → select logo → socials+PDF)
-- Added debug logging for PDF generation issues
-- Downloads section shows loading states during finalization
-- Fixed Prisma client import issues across multiple files
-- Disabled problematic Tier 3 templates (Figma/Canva) causing "forEach" errors
-
-### Known Issues Being Fixed
-| Issue | Status | Details |
-|-------|--------|---------|
-| `prisma is not defined` | 🔄 Fixed | Multiple files using `prisma` instead of `getPrisma()` |
-| `forEach on undefined` | 🔄 Fixed | README generator failing on undefined colorPalette |
-| PDF not saving | 🔄 Testing | Database verification added, error handling improved |
-| Social field names | ✅ Fixed | Changed from hyphen to underscore format |
-
-### Troubleshooting Session (March 15)
-**Problem:** Finalize endpoint returning 500 errors
-
-**Root Causes Identified:**
-1. **Prisma Import Issues**: Several files imported `prisma` directly instead of using `getPrisma()` function
-   - Fixed in: `finalize/route.ts`, `order-processor.ts`
-   
-2. **Undefined Color Palette**: README generator calling `forEach` on undefined arrays
-   - Fixed by wrapping in try-catch with fallback content
-   
-3. **Field Name Mismatch**: Social assets saved with hyphens (`social_instagram-post`) but UI expects underscores (`social_instagram_post`)
-   - Fixed with string replacement in finalize route
-
-**Testing Status:**
-- ✅ Phase 1: Logos + Mockups working
-- ✅ Logo selection UI working  
-- 🔄 Phase 2: PDF generation (in progress)
-- 🔄 Social assets display (in progress)
+**Date:** March 15, 2026 (Updated end of session)
+**Status:** Phase 1 Complete, Phase 2 Next
+**Goal:** Transform from "working prototype" to "professional product worth $20-100+"
 
 ---
 
-## ✅ Current Status (Completed)
+## Current State Summary
 
-| Feature | Status | Notes |
-|---------|--------|-------|
-| Logo Generation (4 variants) | ✅ Working | Together AI - basic quality |
-| Mockup Generation (12 total) | ✅ Working | All 4 variants × 3 templates |
-| Social Media Assets (10) | ✅ Fixed | Generated AFTER logo selection (was bug: always variant 1) |
-| PDF Generation | ✅ Working | Generated AFTER logo selection |
-| Order Management | ✅ Working | Full admin dashboard |
-| Logo Selection | ✅ Working | Admin picks variant 1-4 |
-| Two-Phase Generation | ✅ Working | Phase 1: Logos+Mockups, Phase 2: Socials+PDF |
+| Feature | Status | Quality Level |
+|---------|--------|---------------|
+| Logo Generation (4 variants) | Working | Basic (Together AI - cheap but adequate) |
+| Canvas Mockups (12 total) | Working | **Needs upgrade** - flat/basic look |
+| Social Media Assets (10) | Working | **Needs upgrade** - basic Canvas overlays |
+| PDF Brand Guide | Working | **Needs polish** - wireframe ready |
+| Two-Phase Workflow | Working | Good - logos then selection then socials |
+| Typography System | Working | Good - 26 fonts + custom upload |
+| AI Text Quality | Improved | Post-processing added, better prompts |
 
-**Cost per order:** $0.004 (Together AI) + $0 (Canvas rendering)
-
-### Workflow Fix (Critical)
-**Problem:** Social assets were generated for Variant 1 only, even if admin selected Variant 4.
-
-**Solution:** Two-phase generation:
-1. **Phase 1**: Generate 4 logos + 12 mockups (all variants)
-2. **Selection**: Admin picks preferred logo variant (1-4)
-3. **Phase 2**: Generate social assets + PDF using SELECTED logo only
+**Cost per order:** $0.008 | **Budget per order:** $1-2 (product sells $20-100+)
 
 ---
 
-## 🎯 Phase 1: Quick Wins (This Session)
+## Phase 1: Bug Fixes & Quick Wins - DONE
 
-### 1.1 Clickable Images (Lightbox)
-**Effort:** 30 minutes  
-**Impact:** High UX improvement  
-**Files:** `src/app/admin/orders/[id]/page.tsx`
-
-**Implementation:**
-- Add modal/dialog component for image viewing
-- Click any logo/mockup/social image → opens full-size modal
-- Include download button in modal
-- Close on backdrop click or X button
-
-**Success Criteria:**
-- [ ] Click logo variant → see full size
-- [ ] Click mockup → see full size
-- [ ] Click social asset → see full size
-- [ ] Download button works from modal
+| Task | Status | Notes |
+|------|--------|-------|
+| PDF layout redesign | Done | Branded cover, TOC, swatches, do/don't cards, page numbers |
+| Fix repetitive AI text | Done | Post-processing strips banned phrases |
+| Re-enable Tier 3 templates | Done | colorPalette bug fixed, try-catch wrapping |
+| Prisma import fixes | Done | getPrisma() used everywhere |
+| Two-phase workflow debug | Done | Finalize endpoint stabilized |
 
 ---
 
-### 1.2 Fix Repetitive AI Text
-**Effort:** 1-2 hours  
-**Impact:** High quality improvement  
-**Files:** `src/lib/services/order-processor.ts`, prompt templates
+## Phase 2: Mockup & Social Quality - NEXT UP
 
-**Problem:**
-AI generates repetitive phrases like:
-> "In addition to our primary colors, we also use... In addition to our typography... In addition to our..."
+### The Big Problem
+Current mockups look "generated" - flat Canvas shapes with basic colors. For a product selling at $20-100+, customers expect **photo-realistic, agency-quality output**.
 
-**Solution:**
-1. **Template-based structure** with AI filling specific gaps only
-2. **Post-processing** to detect and remove repetition
-3. **Better prompts** with "avoid repetitive transitions" instruction
+### The Solution: Specialist Compositing APIs
 
-**Template Sections:**
-```
-Brand Philosophy:
-- Mission Statement: [AI generates]
-- Core Values: [AI generates]
-- Vision: [AI generates]
+**Key insight:** We can afford $1-2 per order in API costs. The mockups and social images are where the perceived value lives. This is worth investing in.
 
-Visual Identity:
-- Color Psychology: [Template + AI details]
-- Typography Rationale: [Template + AI details]
-- Logo Concept: [AI generates]
+### 2.1 Photo-Realistic Product Mockups
 
-Usage Guidelines:
-- Do's and Don'ts: [Template-based]
-- Applications: [Template-based]
-```
+**Goal:** Logo placed realistically on actual product photos (UGC style)
 
-**Success Criteria:**
-- [ ] No repeated transition phrases
-- [ ] Professional, varied sentence structure
-- [ ] Concise, impactful copy
+**Current approach (Canvas):** Flat colored shapes - NOT good enough
+**Target approach:** Real photo with logo composited onto product surface
 
----
+#### APIs to Research
 
-### 1.3 PDF Layout Improvements
-**Effort:** 2-3 hours  
-**Impact:** High value delivery  
-**Files:** `src/lib/services/pdf-generator.ts`
+| API | Type | Quality | Est. Cost | Notes |
+|-----|------|---------|-----------|-------|
+| **Placeit API** | Template-based mockup | High | $0.10-0.50/img | Huge template library, proven quality |
+| **Mediamodifier API** | Template-based mockup | High | $0.10-0.30/img | Good API, lots of templates |
+| **Smartmockups API** | Template-based mockup | High | Similar | Alternative to Placeit |
+| **Dynamic Mockups** | Template-based | High | Pay per use | API-first approach |
+| **AI Compositing (ControlNet)** | AI inpainting | Very High | $0.05-0.20/img | Needs logo as input, composites onto scene |
+| **Stable Diffusion + IP-Adapter** | AI compositing | High | Self-hosted | Can take logo and place on product |
 
-**Current PDF:**
-- Basic text sections
-- Embedded mockup images
-- Simple layout
+#### What "Realistic Logo Placement" Actually Needs
+1. Take the **actual PNG logo** (not a description of it)
+2. Place it on a **real product photo** (t-shirt, mug, tote bag, signage, etc.)
+3. Apply **perspective transformation** to match product surface angle
+4. Apply **lighting/shadow** to look natural
+5. Output a **photo-quality result**
 
-**Improved PDF:**
-1. **Cover Page**
-   - Large logo display
-   - Brand name + tagline
-   - Professional background with brand colors
+#### Research TODO
+- [ ] Sign up for Placeit API and test with sample logo
+- [ ] Test Mediamodifier API
+- [ ] Research ControlNet/IP-Adapter for logo compositing
+- [ ] Compare quality vs cost across options
+- [ ] Determine if any API supports batch processing
 
-2. **Table of Contents**
-   - Clickable navigation
-
-3. **Color Palette Page**
-   - Visual color swatches (not just hex codes)
-   - Primary, secondary, accent colors
-   - CMYK/RGB values
-   - Usage percentages
-
-4. **Typography Page**
-   - Font samples showing actual text
-   - Heading hierarchy examples
-   - Font pairing rationale
-
-5. **Logo Guidelines**
-   - Clear space requirements (visual diagram)
-   - Minimum size
-   - Do's and Don'ts with visual examples
-
-6. **Mockup Gallery**
-   - Professional layout of all mockups
-   - Captioned with use case
-
-7. **Brand Voice & Messaging**
-   - Tone guidelines
-   - Key messages
-   - Sample copy
-
-**Success Criteria:**
-- [ ] Cover page looks professional
-- [ ] Color swatches are visual (colored boxes)
-- [ ] Typography shows actual font samples
-- [ ] Logo guidelines have visual do/don't diagrams
-- [ ] Overall design feels like a real brand guide
+#### Target Mockup Set (Per Order)
+| Mockup | Method | Notes |
+|--------|--------|-------|
+| Business Card | Canvas (improved) | Good enough with shadows/texture |
+| Letterhead | Canvas (improved) | Good enough with proper layout |
+| T-Shirt | **API/AI compositing** | Needs photo-real quality |
+| Coffee Mug | **API/AI compositing** | NEW - adds perceived value |
+| Tote Bag | **API/AI compositing** | NEW - adds perceived value |
+| Storefront/Signage | **API/AI compositing** | NEW - impressive for businesses |
 
 ---
 
-## 🚀 Phase 2: Quality Upgrades (Next Session)
+### 2.2 Canvas Mockup Improvements (Free)
 
-### 2.1 Logo Quality Upgrade
-**Effort:** 1 hour setup  
-**Impact:** Critical - main product  
-**Cost:** ~$0.05-0.20 per logo (vs $0.004 now)
+Even the Canvas mockups can be improved significantly:
 
-**Current:** Together AI (basic quality, very cheap)
-**Upgrade Options:**
+**Business Card:**
+- Rounded corners with drop shadow
+- Paper texture overlay (noise pattern)
+- Two-card layout (front + back)
+- Accent stripe using brand color
 
-| Provider | Model | Quality | Cost/Logo | Setup |
-|----------|-------|---------|-----------|-------|
-| **Google** | Imagen 3 | ⭐⭐⭐⭐⭐ | ~$0.03 | Easy |
-| **Replicate** | FLUX.1 | ⭐⭐⭐⭐⭐ | ~$0.05 | Easy |
-| **Replicate** | Imagen 3 | ⭐⭐⭐⭐⭐ | ~$0.05 | Easy |
-
-**Recommendation:** Google Imagen 3
-- Best quality for logos
-- Reliable text rendering
-- Good composition
-
-**Implementation:**
-```bash
-# Add to .env.local
-IMAGE_GEN_PROVIDER=google
-GOOGLE_API_KEY=your_key_here
-```
-
-**Success Criteria:**
-- [ ] Logos look professionally designed
-- [ ] Text in logos is legible
-- [ ] Better composition and detail
-- [ ] Worth the extra cost per order
+**Letterhead:**
+- Paper grain background
+- Gradient header bar with logo
+- Sample letter text with proper hierarchy
+- Footer with contact details
+- Faint watermark logo at 5% opacity
 
 ---
 
-### 2.2 Better Mockup Templates
-**Effort:** 3-4 hours  
-**Impact:** High - shows value to customers  
+### 2.3 Social Media Quality Upgrade
 
-**Current:** Basic Canvas shapes
-**Upgrade Options:**
-
-**Option A: Enhanced Canvas (Recommended for now)**
-- Add gradients, shadows, textures
-- Better typography
-- More realistic shapes
-- Still $0 cost
-
-**Option B: HTML/CSS → Image**
-- Use styled HTML templates
-- Convert with html2canvas
-- More professional look
-- Slightly more complex
-
-**Option C: Mockup API (Photorealistic)**
-- PlaceIt API or similar
-- Photorealistic results
-- ~$0.10-0.50 per mockup
-- Highest quality
-
-**Recommendation:** Start with Option A (enhanced canvas), evaluate Option C later
-
-**Mockup Improvements:**
-1. **Business Card**
-   - Rounded corners
-   - Subtle shadow
-   - Better texture/paper effect
-   - Professional layout
-
-2. **Letterhead**
-   - Header with gradient
-   - Better typography hierarchy
-   - Subtle watermark
-   - Professional margins
-
-3. **T-Shirt**
-   - Realistic fabric texture
-   - Shadow/fold effects
-   - Better proportions
-   - Multiple color options
-
-**Success Criteria:**
-- [ ] Mockups look professional
-- [ ] Better use of brand colors
-- [ ] Shadows and depth added
-- [ ] Customers say "wow"
-
----
-
-### 2.3 Better Social Media Templates
-**Effort:** 2-3 hours  
-**Impact:** Medium - nice to have  
-
-**Improvements:**
-- Better gradients and backgrounds
-- Professional typography
-- Platform-appropriate layouts
+#### Canvas Templates (7 platforms - Free)
+Improve all with:
+- Multi-stop gradients using brand colors
+- Subtle geometric pattern overlays
+- Better text layout with proper padding
+- Platform-appropriate styling
 - Consistent design language
-- Add more platforms if needed
 
-**Success Criteria:**
-- [ ] Instagram posts look professional
-- [ ] YouTube thumbnails are clickable
-- [ ] LinkedIn banners look corporate
-- [ ] All platforms have consistent branding
+| Platform | Key Improvements |
+|----------|-----------------|
+| Instagram Story | Vertical gradient, swipe-up CTA pill, logo upper third |
+| Facebook Cover | Asymmetric layout, profile photo safe zone |
+| Twitter/X Header | Clean horizontal strip, geometric accent |
+| LinkedIn Banner | Corporate clean, subtle grid pattern |
+| Pinterest Pin | Vertical layout, text card with brand bg |
+| TikTok Cover | Dark background, neon glow effect |
+| Email Header | Lightweight, logo left + name right |
 
----
-
-### 2.4 Professional Brand Content
-**Effort:** 3-4 hours  
-**Impact:** High - differentiates from competitors  
-
-**Current Problem:**
-AI generates generic, repetitive content that sounds robotic.
-
-**Solution:**
-1. **Curated Template Library**
-   - Professional copy for common industries
-   - Multiple variations per section
-   - Mix-and-match approach
-
-2. **AI Enhancement (not replacement)**
-   - Templates provide structure
-   - AI adds business-specific details
-   - Post-processing removes repetition
-
-3. **Section Templates:**
-
-```typescript
-// Brand Philosophy Templates
-const brandPhilosophyTemplates = [
-  "At {businessName}, we believe {coreBelief}. Our mission is to {missionStatement}...",
-  "Founded on the principle that {coreBelief}, {businessName} exists to {missionStatement}...",
-  "{businessName} was born from a simple idea: {coreBelief}. Today, we {missionStatement}..."
-];
-
-// Randomly select + fill in AI-generated details
-```
-
-**Success Criteria:**
-- [ ] No repetitive phrases
-- [ ] Each section feels unique
-- [ ] Professional tone throughout
-- [ ] Industry-appropriate language
+#### AI-Generated Social Images (3 platforms - ~$0.009)
+| Platform | Why AI? |
+|----------|---------|
+| Instagram Post | Hero image - needs to look stunning |
+| YouTube Thumbnail | Click-worthy - needs professional design |
+| Website Hero | First impression - needs to look premium |
 
 ---
 
-## 📊 Implementation Order
+### 2.4 Integration Plan
 
-### This Session (Phase 1)
-1. ⬜ Clickable images (lightbox)
-2. ⬜ Fix repetitive text
-3. ⬜ PDF layout improvements
+**Phase 1 flow (unchanged):**
+Generate 4 logos + Canvas mockups for all variants → Admin selects variant
 
-### Next Session (Phase 2)
-4. ⬜ Switch to Google Imagen 3
-5. ⬜ Enhanced mockup templates
-6. ⬜ Better social templates
-7. ⬜ Professional brand content
-
----
-
-## 💰 Cost Analysis
-
-| Phase | Current Cost | New Cost | Change |
-|-------|-------------|----------|--------|
-| Phase 1 | $0.004 | $0.004 | No change |
-| Phase 2 (Logos) | $0.004 | $0.12 | +$0.116 |
-| Phase 2 (Mockups API) | $0 | $1.50 | +$1.50 |
-| **Total with API** | **$0.004** | **$1.624** | Worth it for quality |
-| **Total without API** | **$0.004** | **$0.12** | Better logos only |
-
-**Recommendation:** Start with just logo upgrade ($0.12/order), evaluate mockup API later.
+**Phase 2 flow (enhanced):**
+1. Canvas social templates (7 platforms) - improved quality
+2. AI social templates (3 platforms) - NEW
+3. AI photo mockups (3-6 products) - NEW
+4. PDF brand guide
+5. ZIP package
 
 ---
 
-## 🎨 Design Principles
+## Phase 3: PDF Final Polish (Deferred)
 
-1. **Professional First**
-   - Every output should look like it came from a design agency
-   - No "AI-generated" look and feel
-
-2. **Consistent Branding**
-   - All assets feel like one cohesive brand
-   - Colors, typography, spacing consistent
-
-3. **Customer-Ready**
-   - Customer can use PDF directly
-   - Social assets ready to post
-   - Mockups good enough for presentations
-
-4. **Scalable**
-   - Quality doesn't degrade with volume
-   - Templates reusable across orders
+- Wireframe created at `docs/PDF_REQUIREMENTS_TEMPLATE.md`
+- Source real brand deck examples to decompose
+- Rebuild page by page to professional standard
+- 4-6 hours estimated
 
 ---
 
-## 📝 Notes
+## Phase 4: Logo Quality Upgrade
 
-- **Phase 1** focuses on immediate UX improvements
-- **Phase 2** focuses on core quality (logos + templates)
-- **Mockup API** is optional - enhanced canvas might be "good enough"
-- **Text quality** is crucial for perceived value
-- **PDF** is the deliverable - must look professional
+| Provider | Model | Quality | Cost/Logo |
+|----------|-------|---------|-----------|
+| Together AI (current) | FLUX.1 Schnell | Basic | $0.001 |
+| Google Imagen 3 | Imagen 3 | Excellent | ~$0.03 |
+| Replicate FLUX.1 Pro | FLUX.1 Pro | Excellent | ~$0.05 |
+
+**Decision:** Test both Google and Replicate, pick winner. Budget supports either.
 
 ---
 
-**Last Updated:** March 15, 2026  
-**Next Review:** After Phase 1 completion
+## Phase 5: Email + Payments + Launch
+
+| Task | Effort | Status |
+|------|--------|--------|
+| Resend email integration | 1-2 hrs | Pending |
+| Stripe checkout (3 tiers) | 4-6 hrs | Pending |
+| Landing page polish | 2-3 hrs | Pending |
+| E2E testing | 3-4 hrs | Pending |
+| Production deployment | 1-2 hrs | Pending |
+
+---
+
+## Cost Analysis (Target)
+
+| Component | Current | Target | Notes |
+|-----------|---------|--------|-------|
+| Logos (4) | $0.004 | $0.12-0.20 | Better model |
+| Canvas mockups (2-3) | $0 | $0 | Improved free |
+| Photo mockups (3-6) | N/A | $0.30-1.50 | Specialist API |
+| Canvas social (7) | $0 | $0 | Improved free |
+| AI social (3) | N/A | $0.009 | Together AI |
+| Brand text | $0.004 | $0.004 | Together AI |
+| **Total** | **$0.008** | **$0.50-1.75** | **Worth it** |
+
+**Revenue per order:** $20-100+ | **API cost:** $0.50-1.75 | **Margin:** 92-99%
+
+---
+
+## Research Checklist
+
+- [ ] **Placeit API** - Sign up, test logo placement quality, check batch support
+- [ ] **Mediamodifier API** - Compare with Placeit
+- [ ] **ControlNet/IP-Adapter** - Can it composite a specific logo onto product photos?
+- [ ] **ComfyUI API services** - Any hosted ComfyUI APIs that do logo compositing?
+- [ ] **Google Imagen 3** - Test logo generation quality
+- [ ] **FLUX.1 Pro** - Test logo generation quality
+- [ ] **Resend** - Quick setup for email delivery
+
+---
+
+**Last Updated:** March 15, 2026 (end of session)
+**Next Session Priority:** Research mockup compositing APIs, then implement best option
