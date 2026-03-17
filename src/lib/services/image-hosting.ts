@@ -14,9 +14,8 @@
  * FormData binary upload (see mockup-generation.ts).
  */
 
-import { promises as fs } from 'fs';
-import path from 'path';
-import crypto from 'crypto';
+// Note: fs, path, crypto are dynamically imported in functions that need them
+// to avoid bundling Node.js modules in client-side code
 
 const TEMP_IMAGES_DIR = '/tmp/mockup-images';
 
@@ -114,6 +113,11 @@ async function uploadToImgbb(dataUrl: string, apiKey: string): Promise<string> {
 // ==================== Strategy: Local temp serve ====================
 
 async function saveAndServeLocally(dataUrl: string, baseUrl: string): Promise<string> {
+  // Dynamic imports for Node.js modules - only loaded when needed
+  const { promises: fs } = await import('fs');
+  const path = await import('path');
+  const crypto = await import('crypto');
+  
   const { buffer, extension } = decodeDataUrl(dataUrl);
 
   // Generate unique filename
@@ -140,6 +144,10 @@ async function saveAndServeLocally(dataUrl: string, baseUrl: string): Promise<st
  */
 export async function cleanupTempImages(maxAgeMs = 30 * 60 * 1000): Promise<number> {
   try {
+    // Dynamic import for Node.js module
+    const { promises: fs } = await import('fs');
+    const path = await import('path');
+    
     const files = await fs.readdir(TEMP_IMAGES_DIR);
     const now = Date.now();
     let cleaned = 0;

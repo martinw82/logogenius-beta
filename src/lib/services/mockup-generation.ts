@@ -16,7 +16,7 @@
  */
 
 import { resolveImageUrl, decodeDataUrl } from './image-hosting';
-import sharp from 'sharp';
+// sharp is dynamically imported in functions that need it to avoid bundling in client code
 
 export type MockupProvider = 'mockupsjar' | 'dynamicmockups' | 'mockcity';
 
@@ -272,6 +272,8 @@ async function generateWithDynamicMockups(options: MockupOptions): Promise<Mocku
     // Convert SVG to PNG if needed
     if (extension === 'svg+xml') {
       console.log('[Mockup] Converting SVG logo to PNG for mockup API');
+      // Dynamic import to avoid bundling sharp in client code
+      const sharp = (await import('sharp')).default;
       finalBuffer = await sharp(Buffer.from(buffer)).png().toBuffer();
       finalExtension = 'png';
     }

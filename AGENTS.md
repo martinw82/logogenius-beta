@@ -56,6 +56,7 @@ docs/
 | `src/app/api/serve-image/[id]/route.ts` | **Temp image serving for mockup APIs** |
 | `src/app/api/test/mockup-generation/route.ts` | **Test endpoint for mockup providers** |
 | `src/app/api/test/single-generation/route.ts` | **Single-call test endpoint (logo/mockup/social)** |
+| `src/app/api/generate-brand-assets/route.ts` | **BrandSheet: Server-side mockup/social generation** |
 | `src/app/admin/orders/[id]/page.tsx` | Admin order detail with generation UI |
 
 ### Database

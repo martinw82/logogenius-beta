@@ -6,8 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import type { Logo } from "@/types";
 import type { GenerateLogoConceptsInput } from "@/ai/flows/generate-logo-concepts";
-import { generateAIMockups } from "@/lib/services/ai-mockup-generator";
-import { generateAISocialAssets } from "@/lib/services/ai-social-generator";
+// Dynamic imports to avoid bundling Node.js-only modules (sharp) in client bundle
 
 interface BrandSheetProps {
   selectedLogo: Logo;
@@ -38,25 +37,33 @@ export function BrandSheet({ selectedLogo, brandDetails, onAssetsGenerated }: Br
 
     setIsGenerating(true);
     try {
-      const commonOptions = {
-        businessName: brandDetails.businessName || "",
-        brandColors: parseColorPalette(brandDetails.preferredColorPalette),
-        industry: brandDetails.industry || "",
-        logoStyle: selectedLogo.style || "modern minimalist",
-        logoUrl: selectedLogo.url,
-      };
+      // Call server API to generate assets (avoids bundling Node.js modules in client)
+      const response = await fetch("/api/generate-brand-assets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          businessName: brandDetails.businessName || "",
+          brandColors: parseColorPalette(brandDetails.preferredColorPalette),
+          industry: brandDetails.industry || "",
+          logoStyle: selectedLogo.style || "modern minimalist",
+          logoUrl: selectedLogo.url,
+          tagline: selectedLogo.tagline || "",
+        }),
+      });
 
-      const [mockupResults, socialResults] = await Promise.all([
-        generateAIMockups(commonOptions),
-        generateAISocialAssets({ ...commonOptions, tagline: selectedLogo.tagline || "" }),
-      ]);
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to generate assets");
+      }
 
-      setMockups(mockupResults);
-      setSocialAssets(socialResults);
+      const { mockups, socialAssets } = await response.json();
+
+      setMockups(mockups);
+      setSocialAssets(socialAssets);
 
       toast({ title: "✅ Success", description: "Real Dynamic Mockups + Social Assets generated!" });
 
-      if (onAssetsGenerated) onAssetsGenerated(mockupResults, socialResults);
+      if (onAssetsGenerated) onAssetsGenerated(mockups, socialAssets);
     } catch (err) {
       console.error(err);
       toast({ title: "Generation failed", description: "Check console for details", variant: "destructive" });
