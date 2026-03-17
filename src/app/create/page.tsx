@@ -7,7 +7,7 @@ import { useState, useEffect, useRef, Suspense } from "react";
 import { LogoForm } from "@/components/logo-form";
 import { LogoGallery } from "@/components/logo-gallery";
 import { PageHeader } from "@/components/page-header";
-import { BrandGuideDisplay } from "@/components/brand-guide-display";
+import { BrandSheet } from "@/components/brand-sheet";
 import type { Logo, LogoBatch } from "@/types";
 import type { GenerateLogoConceptsInput } from "@/ai/flows/generate-logo-concepts";
 import { generateLogoConcepts } from "@/ai/flows/generate-logo-concepts";
