@@ -55,7 +55,7 @@
     "framer-motion": "^11.1.15",
     "genkit": "^1.8.0",
     "jsonwebtoken": "^9.0.3",
-    "jspdf": "^4.2.0",
+    "jspdf": "^4.2.1",
     "lucide-react": "^0.475.0",
     "mysql2": "^3.19.1",
     "next": "^15.5.12",
