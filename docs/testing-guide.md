@@ -486,6 +486,24 @@ curl -X POST http://localhost:3000/api/test/single-generation \
 | Social | ~$0.003 |
 | **Total** | **~$0.015** |
 
+### BrandSheet Server Generation
+Test the BrandSheet API endpoint for generating mockups and social assets:
+
+```bash
+curl -X POST http://localhost:3000/api/generate-brand-assets \
+  -H "Content-Type: application/json" \
+  -d '{
+    "businessName": "Test Company",
+    "brandColors": ["#2563eb", "#1e40af", "#f59e0b"],
+    "industry": "technology",
+    "logoUrl": "https://example.com/logo.png",
+    "logoStyle": "modern minimalist",
+    "tagline": "Your tagline here"
+  }'
+```
+
+Returns: `{ "success": true, "mockups": {...}, "socialAssets": {...} }`
+
 ### Feedback Submission
 ```bash
 curl -X POST http://localhost:3000/api/orders/1/feedback \
