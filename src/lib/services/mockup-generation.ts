@@ -16,6 +16,7 @@
  */
 
 import { resolveImageUrl, decodeDataUrl } from './image-hosting';
+import sharp from 'sharp';
 
 export type MockupProvider = 'mockupsjar' | 'dynamicmockups' | 'mockcity';
 
@@ -264,12 +265,23 @@ async function generateWithDynamicMockups(options: MockupOptions): Promise<Mocku
     // Binary upload via FormData — no public URL needed
     console.log('[Mockup] Dynamic Mockups: using FormData binary upload for base64 image');
     const { buffer, extension } = decodeDataUrl(options.logoUrl);
-    const blob = new Blob([new Uint8Array(buffer)], { type: `image/${extension}` });
+
+    let finalBuffer = buffer;
+    let finalExtension = extension;
+
+    // Convert SVG to PNG if needed
+    if (extension === 'svg+xml') {
+      console.log('[Mockup] Converting SVG logo to PNG for mockup API');
+      finalBuffer = await sharp(Buffer.from(buffer)).png().toBuffer();
+      finalExtension = 'png';
+    }
+
+    const blob = new Blob([finalBuffer], { type: `image/${finalExtension}` });
 
     const formData = new FormData();
     formData.append('mockup_uuid', template.mockup_uuid);
     formData.append('smart_objects[0][uuid]', template.smart_object_uuid);
-    formData.append('smart_objects[0][asset][file]', blob, `logo.${extension}`);
+    formData.append('smart_objects[0][asset][file]', blob, `logo.${finalExtension}`);
     if (options.productColor) {
       formData.append('smart_objects[0][color]', options.productColor);
     }
