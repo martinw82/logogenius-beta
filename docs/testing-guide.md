@@ -458,6 +458,34 @@ curl -X POST http://localhost:3000/api/admin/orders/1/approve \
 curl http://localhost:3000/api/orders/1/dashboard?token=$CUSTOMER_TOKEN
 ```
 
+### Single-Call Test Endpoint (Credit Conservation)
+For testing API connectivity and functionality using exactly 1 call per component.
+
+```bash
+# Test Logo Generation
+curl -X POST http://localhost:3000/api/test/single-generation \
+  -H "Content-Type: application/json" \
+  -d '{"testType": "logo"}'
+
+# Test Mockup Generation (requires logoUrl)
+curl -X POST http://localhost:3000/api/test/single-generation \
+  -H "Content-Type: application/json" \
+  -d '{"testType": "mockup", "logoUrl": "https://example.com/logo.png"}'
+
+# Test Social Asset Generation
+curl -X POST http://localhost:3000/api/test/single-generation \
+  -H "Content-Type: application/json" \
+  -d '{"testType": "social"}'
+```
+
+**Expected Credit Usage:**
+| Test | Credit Cost |
+|------|-------------|
+| Logo | ~$0.001 |
+| Mockup | ~$0.01-0.05 |
+| Social | ~$0.003 |
+| **Total** | **~$0.015** |
+
 ### Feedback Submission
 ```bash
 curl -X POST http://localhost:3000/api/orders/1/feedback \
