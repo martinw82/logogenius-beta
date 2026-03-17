@@ -369,11 +369,9 @@ export default function CreatePage() {
 
         {selectedLogoForBrandSheet && logoBatch && (
           <div ref={brandSheetRef} className="mt-12">
-            <BrandGuideDisplay
+            <BrandSheet
               selectedLogo={selectedLogoForBrandSheet}
               brandDetails={logoBatch.generationInput}
-              brandNarrative={brandGuideText}
-              isLoadingNarrative={isGeneratingBrandText}
             />
           </div>
         )}

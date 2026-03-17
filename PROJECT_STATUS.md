@@ -16,6 +16,11 @@
 - AI auto-fill (Google Gemini - FREE) from business name + industry
 - 5 AI providers supported (Together, Replicate, Fal, Google, Laozhang)
 
+### BrandSheet Integration
+- BrandSheet is now working with generate mockups/social assets buttons
+- Order-processor has guard against re-generation (prevents double credit usage)
+- Test endpoint for single-call generation is available at /api/test/single-generation
+
 ### Logo Generation
 - 4 logo variants per order via Together AI ($0.004/order)
 - Template-based prompts (deterministic, no AI prompt engineering)
@@ -202,6 +207,13 @@ IMGBB_API_KEY=your_key                 # Free, needed for MockupsJar/MockCity on
 ---
 
 ## Session History
+
+### March 17, 2026 (Additional Fixes)
+- Fixed BrandSheet import in create/page.tsx (changed BrandGuideDisplay to BrandSheet)
+- Verified BrandSheet component already has full functionality (generateAIMockups, generateAISocialAssets buttons)
+- Confirmed logo count is already set to 4 (no changes needed)
+- Added order-processor guard to prevent double regeneration of mockups/social assets
+- Created single-call test endpoint at /api/test/single-generation
 
 ### March 17, 2026 (This Session)
 - Mockup API provider system built (Dynamic Mockups, MockupsJar, MockCity)
