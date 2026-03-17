@@ -105,50 +105,72 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
     });
 
     // === AI Photorealistic Mockups (t-shirt, coffee mug, tote bag) ===
-    console.log(`[${input.orderId}] Generating AI photorealistic mockups...`);
-    try {
-      const aiMockupColors = [
-        ...(orderData.colorPalette?.primary || []),
-        ...(orderData.colorPalette?.secondary || []),
-        ...(orderData.colorPalette?.accent || []),
-      ].filter(Boolean);
+    // Check if mockups already exist (generated during Step 2) to avoid regenerating
+    const existingAiMockups = await prisma.orderDetail.findMany({
+      where: {
+        orderId: input.orderId,
+        fieldName: { in: ['ai_mockup_tshirt', 'ai_mockup_mug', 'ai_mockup_tote'] },
+      },
+    });
 
-      // Pass the selected logo so real mockup APIs can be tried first
-      const selectedLogoData = logoVariant?.svgData || '';
-      const aiMockups = await generateAIMockups({
-        businessName: input.businessName,
-        brandColors: aiMockupColors.length > 0 ? aiMockupColors : ['#2563eb', '#1e40af', '#f59e0b'],
-        industry: orderData.industry || 'business',
-        logoStyle: orderData.logoStyle,
-        keywords: orderData.keywords,
-        logoUrl: selectedLogoData || undefined,
-      });
+    const existingMockupMap: Record<string, string> = {};
+    for (const m of existingAiMockups) {
+      existingMockupMap[m.fieldName] = m.fieldValue;
+    }
 
-      // Save AI mockups to OrderDetail
-      const aiMockupEntries = [
-        { fieldName: 'ai_mockup_tshirt', fieldValue: aiMockups.tshirt },
-        { fieldName: 'ai_mockup_mug', fieldValue: aiMockups.coffeeMug },
-        { fieldName: 'ai_mockup_tote', fieldValue: aiMockups.toteBag },
-      ];
+    if (existingMockupMap['ai_mockup_tshirt']) {
+      console.log(`[${input.orderId}] Using cached AI mockups from Step 2 (zero credits)`);
+      // Use cached mockups
+      mockupData['ai_tshirt'] = existingMockupMap['ai_mockup_tshirt'];
+      mockupData['ai_mug'] = existingMockupMap['ai_mockup_mug'];
+      mockupData['ai_tote'] = existingMockupMap['ai_mockup_tote'];
+    } else {
+      // Generate new mockups (fallback for orders created before this fix)
+      console.log(`[${input.orderId}] Generating AI photorealistic mockups...`);
+      try {
+        const aiMockupColors = [
+          ...(orderData.colorPalette?.primary || []),
+          ...(orderData.colorPalette?.secondary || []),
+          ...(orderData.colorPalette?.accent || []),
+        ].filter(Boolean);
 
-      for (const entry of aiMockupEntries) {
-        await prisma.orderDetail.upsert({
-          where: {
-            orderId_fieldName: { orderId: input.orderId, fieldName: entry.fieldName },
-          },
-          update: { fieldValue: entry.fieldValue },
-          create: { orderId: input.orderId, ...entry },
+        // Pass the selected logo so real mockup APIs can be tried first
+        const selectedLogoData = logoVariant?.svgData || '';
+        const aiMockups = await generateAIMockups({
+          businessName: input.businessName,
+          brandColors: aiMockupColors.length > 0 ? aiMockupColors : ['#2563eb', '#1e40af', '#f59e0b'],
+          industry: orderData.industry || 'business',
+          logoStyle: orderData.logoStyle,
+          keywords: orderData.keywords,
+          logoUrl: selectedLogoData || undefined,
         });
+
+        // Save AI mockups to OrderDetail
+        const aiMockupEntries = [
+          { fieldName: 'ai_mockup_tshirt', fieldValue: aiMockups.tshirt },
+          { fieldName: 'ai_mockup_mug', fieldValue: aiMockups.coffeeMug },
+          { fieldName: 'ai_mockup_tote', fieldValue: aiMockups.toteBag },
+        ];
+
+        for (const entry of aiMockupEntries) {
+          await prisma.orderDetail.upsert({
+            where: {
+              orderId_fieldName: { orderId: input.orderId, fieldName: entry.fieldName },
+            },
+            update: { fieldValue: entry.fieldValue },
+            create: { orderId: input.orderId, ...entry },
+          });
+        }
+
+        // Add AI mockups to mockupData for PDF inclusion
+        mockupData['ai_tshirt'] = aiMockups.tshirt;
+        mockupData['ai_mug'] = aiMockups.coffeeMug;
+        mockupData['ai_tote'] = aiMockups.toteBag;
+
+        console.log(`[${input.orderId}] AI mockups generated and saved`);
+      } catch (aiMockupError) {
+        console.warn(`[${input.orderId}] AI mockup generation failed (non-fatal):`, aiMockupError instanceof Error ? aiMockupError.message : aiMockupError);
       }
-
-      // Add AI mockups to mockupData for PDF inclusion
-      mockupData['ai_tshirt'] = aiMockups.tshirt;
-      mockupData['ai_mug'] = aiMockups.coffeeMug;
-      mockupData['ai_tote'] = aiMockups.toteBag;
-
-      console.log(`[${input.orderId}] AI mockups generated and saved`);
-    } catch (aiMockupError) {
-      console.warn(`[${input.orderId}] AI mockup generation failed (non-fatal):`, aiMockupError instanceof Error ? aiMockupError.message : aiMockupError);
     }
 
     // === AI Social Media Assets (Instagram Post, YouTube Thumbnail, Website Hero) ===
@@ -160,32 +182,53 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
         ...(orderData.colorPalette?.accent || []),
       ].filter(Boolean);
 
-      const aiSocial = await generateAISocialAssets({
-        businessName: input.businessName,
-        brandColors: aiSocialColors.length > 0 ? aiSocialColors : ['#2563eb', '#1e40af', '#f59e0b'],
-        industry: orderData.industry || 'business',
-        tagline: orderData.tagline,
-        logoStyle: orderData.logoStyle,
+      // Check if social assets already exist (generated during Step 2)
+      const existingSocialAssets = await prisma.orderDetail.findMany({
+        where: {
+          orderId: input.orderId,
+          fieldName: { in: ['social_instagram_post', 'social_youtube_thumbnail', 'social_website_hero'] },
+        },
       });
 
-      // Save AI social assets to OrderDetail
-      const aiSocialEntries = [
-        { fieldName: 'social_instagram_post', fieldValue: aiSocial.instagramPost },
-        { fieldName: 'social_youtube_thumbnail', fieldValue: aiSocial.youtubeThumbnail },
-        { fieldName: 'social_website_hero', fieldValue: aiSocial.websiteHero },
-      ];
-
-      for (const entry of aiSocialEntries) {
-        await prisma.orderDetail.upsert({
-          where: {
-            orderId_fieldName: { orderId: input.orderId, fieldName: entry.fieldName },
-          },
-          update: { fieldValue: entry.fieldValue },
-          create: { orderId: input.orderId, ...entry },
+      if (existingSocialAssets.length > 0) {
+        console.log(`[${input.orderId}] Using cached social assets from Step 2 (zero credits)`);
+        // Store in orderData for later use
+        for (const s of existingSocialAssets) {
+          orderData[s.fieldName] = s.fieldValue;
+        }
+      } else {
+        const aiSocial = await generateAISocialAssets({
+          businessName: input.businessName,
+          brandColors: aiSocialColors.length > 0 ? aiSocialColors : ['#2563eb', '#1e40af', '#f59e0b'],
+          industry: orderData.industry || 'business',
+          tagline: orderData.tagline,
+          logoStyle: orderData.logoStyle,
         });
-      }
 
-      console.log(`[${input.orderId}] AI social assets generated and saved`);
+        // Save AI social assets to OrderDetail
+        const aiSocialEntries = [
+          { fieldName: 'social_instagram_post', fieldValue: aiSocial.instagramPost },
+          { fieldName: 'social_youtube_thumbnail', fieldValue: aiSocial.youtubeThumbnail },
+          { fieldName: 'social_website_hero', fieldValue: aiSocial.websiteHero },
+        ];
+
+        for (const entry of aiSocialEntries) {
+          await prisma.orderDetail.upsert({
+            where: {
+              orderId_fieldName: { orderId: input.orderId, fieldName: entry.fieldName },
+            },
+            update: { fieldValue: entry.fieldValue },
+            create: { orderId: input.orderId, ...entry },
+          });
+        }
+
+        // Store in orderData for PDF
+        for (const entry of aiSocialEntries) {
+          orderData[entry.fieldName] = entry.fieldValue;
+        }
+
+        console.log(`[${input.orderId}] AI social assets generated and saved`);
+      }
     } catch (aiSocialError) {
       console.warn(`[${input.orderId}] AI social generation failed (non-fatal):`, aiSocialError instanceof Error ? aiSocialError.message : aiSocialError);
     }

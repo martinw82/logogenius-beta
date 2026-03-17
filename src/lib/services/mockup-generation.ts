@@ -331,9 +331,18 @@ async function generateWithDynamicMockups(options: MockupOptions): Promise<Mocku
   }
 
   const data = await response.json();
+  
+  console.log('[Dynamic Mockups full response]:', JSON.stringify(data, null, 2));
+
+  // Try various possible URL locations in the response
+  const imageUrl = data.url || data.image_url || data.imageUrl || data.data?.url || data.data?.image_url || data.renders?.[0]?.url || data.renders?.[0]?.image_url || '';
+
+  if (!imageUrl) {
+    console.error('[Dynamic Mockups] No image URL found in response. Full response:', data);
+  }
 
   return {
-    imageUrl: data.url || data.image_url || data.data?.url,
+    imageUrl: imageUrl,
     provider: 'dynamicmockups',
     productType: options.productType,
     cost: 0, // Free tier: 1,000 renders (with watermark)

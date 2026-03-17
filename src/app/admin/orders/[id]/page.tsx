@@ -299,6 +299,25 @@ export default function AdminOrderDetail() {
           setOrder(updatedData);
         }
         
+        // Step 3: Generate photorealistic mockups (t-shirt, mug, tote) via API
+        // These will be saved to DB and reused during finalization (zero extra credits)
+        console.log('[Generate] Triggering API mockup generation...');
+        try {
+          const mockupApiResponse = await fetch(`/api/orders/${orderId}/generate-mockups`, {
+            method: 'POST',
+            credentials: 'include',
+          });
+          
+          if (mockupApiResponse.ok) {
+            const mockupApiResult = await mockupApiResponse.json();
+            console.log('[Generate] API mockup result:', mockupApiResult);
+          } else {
+            console.warn('[Generate] API mockup generation failed:', await mockupApiResponse.text());
+          }
+        } catch (mockupApiError) {
+          console.warn('[Generate] API mockup generation error (non-fatal):', mockupApiError);
+        }
+        
         // Note: Social media assets will be generated in Phase 2 (after logo selection)
         // This ensures they use the correct selected logo variant
       }

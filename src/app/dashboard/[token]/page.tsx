@@ -32,6 +32,10 @@ interface OrderData {
   pdfPath?: string;
   zipPath?: string;
   guide?: Record<string, string>;
+  // AI Photorealistic Mockups
+  ai_mockup_tshirt?: string;
+  ai_mockup_mug?: string;
+  ai_mockup_tote?: string;
 }
 
 const TEMPLATE_TYPES = ['letterhead', 'tshirt', 'businesscard'] as const;
@@ -301,7 +305,7 @@ export default function CustomerDashboard() {
           </Card>
         </div>
 
-        {/* Mockup Gallery */}
+        {/* Mockup Gallery - Shows API-generated mockups if available, otherwise canvas */}
         {order.logos && order.logos.length > 0 && (
           <Card className="mb-8 bg-white">
             <CardHeader>
@@ -309,23 +313,66 @@ export default function CustomerDashboard() {
               <CardDescription>See how your logo looks on real-world applications</CardDescription>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {TEMPLATE_TYPES.map((template) => (
-                  <div key={template} className="border rounded-lg p-4 bg-slate-50">
-                    <div className="bg-white rounded-lg p-4 min-h-48 flex items-center justify-center mb-3">
-                      {order.selectedLogoUrl && (
-                        <MockupTemplate
-                          template={template}
-                          logoSvgData={order.selectedLogoUrl}
-                          width="100%"
-                          showLoading={false}
+              {/* Show API-generated mockups if available (from Dynamic Mockups) */}
+              {(order.ai_mockup_tshirt || order.ai_mockup_mug || order.ai_mockup_tote) ? (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {order.ai_mockup_tshirt && (
+                    <div className="border rounded-lg p-4 bg-slate-50">
+                      <div className="bg-white rounded-lg p-4 min-h-48 flex items-center justify-center mb-3">
+                        <img 
+                          src={order.ai_mockup_tshirt} 
+                          alt="T-Shirt Mockup" 
+                          className="max-w-full max-h-44 object-contain"
                         />
-                      )}
+                      </div>
+                      <p className="text-sm font-semibold capitalize text-center">T-Shirt</p>
                     </div>
-                    <p className="text-sm font-semibold capitalize text-center">{template}</p>
-                  </div>
-                ))}
-              </div>
+                  )}
+                  {order.ai_mockup_mug && (
+                    <div className="border rounded-lg p-4 bg-slate-50">
+                      <div className="bg-white rounded-lg p-4 min-h-48 flex items-center justify-center mb-3">
+                        <img 
+                          src={order.ai_mockup_mug} 
+                          alt="Coffee Mug Mockup" 
+                          className="max-w-full max-h-44 object-contain"
+                        />
+                      </div>
+                      <p className="text-sm font-semibold capitalize text-center">Coffee Mug</p>
+                    </div>
+                  )}
+                  {order.ai_mockup_tote && (
+                    <div className="border rounded-lg p-4 bg-slate-50">
+                      <div className="bg-white rounded-lg p-4 min-h-48 flex items-center justify-center mb-3">
+                        <img 
+                          src={order.ai_mockup_tote} 
+                          alt="Tote Bag Mockup" 
+                          className="max-w-full max-h-44 object-contain"
+                        />
+                      </div>
+                      <p className="text-sm font-semibold capitalize text-center">Tote Bag</p>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                /* Fallback to canvas mockups */
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  {TEMPLATE_TYPES.map((template) => (
+                    <div key={template} className="border rounded-lg p-4 bg-slate-50">
+                      <div className="bg-white rounded-lg p-4 min-h-48 flex items-center justify-center mb-3">
+                        {order.selectedLogoUrl && (
+                          <MockupTemplate
+                            template={template}
+                            logoSvgData={order.selectedLogoUrl}
+                            width="100%"
+                            showLoading={false}
+                          />
+                        )}
+                      </div>
+                      <p className="text-sm font-semibold capitalize text-center">{template}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         )}
