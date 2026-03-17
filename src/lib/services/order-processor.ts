@@ -105,8 +105,16 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
     });
 
     // === AI Photorealistic Mockups (t-shirt, coffee mug, tote bag) ===
-    console.log(`[${input.orderId}] Generating AI photorealistic mockups...`);
-    try {
+    // Check if already exists first
+    const existingAiMockups = await prisma.orderDetail.findFirst({
+      where: { orderId: input.orderId, fieldName: 'ai_mockup_tshirt' },
+    });
+
+    if (existingAiMockups?.fieldValue) {
+      console.log(`[${input.orderId}] AI mockups already exist, skipping regeneration`);
+    } else {
+      console.log(`[${input.orderId}] Generating AI photorealistic mockups...`);
+      try {
       const aiMockupColors = [
         ...(orderData.colorPalette?.primary || []),
         ...(orderData.colorPalette?.secondary || []),
@@ -150,10 +158,19 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
     } catch (aiMockupError) {
       console.warn(`[${input.orderId}] AI mockup generation failed (non-fatal):`, aiMockupError instanceof Error ? aiMockupError.message : aiMockupError);
     }
+    }
 
     // === AI Social Media Assets (Instagram Post, YouTube Thumbnail, Website Hero) ===
-    console.log(`[${input.orderId}] Generating AI social media assets...`);
-    try {
+    // Check if already exists first
+    const existingSocialAssets = await prisma.orderDetail.findFirst({
+      where: { orderId: input.orderId, fieldName: 'social_instagram_post' },
+    });
+
+    if (existingSocialAssets?.fieldValue) {
+      console.log(`[${input.orderId}] AI social assets already exist, skipping regeneration`);
+    } else {
+      console.log(`[${input.orderId}] Generating AI social media assets...`);
+      try {
       const aiSocialColors = [
         ...(orderData.colorPalette?.primary || []),
         ...(orderData.colorPalette?.secondary || []),
@@ -188,6 +205,7 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
       console.log(`[${input.orderId}] AI social assets generated and saved`);
     } catch (aiSocialError) {
       console.warn(`[${input.orderId}] AI social generation failed (non-fatal):`, aiSocialError instanceof Error ? aiSocialError.message : aiSocialError);
+    }
     }
 
     // Generate PDF

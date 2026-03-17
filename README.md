@@ -182,6 +182,46 @@ See `docs/ENVIRONMENT_VARIABLES.md` for complete reference.
    - 10 social assets render (5s) [Tier 3]
 8. Download PDF and ZIP
 
+### Single-Call Test Mode (Credit Conservation)
+For credit-efficient testing, use the single-call test endpoint:
+
+```bash
+# Test logo generation (~0.001 credits)
+curl -X POST http://localhost:3000/api/test/single-generation \
+  -H "Content-Type: application/json" \
+  -d '{"testType": "logo"}'
+
+# Test mockup generation (~0.01-0.05 credits)
+curl -X POST http://localhost:3000/api/test/single-generation \
+  -H "Content-Type: application/json" \
+  -d '{"testType": "mockup", "logoUrl": "https://example.com/logo.png"}'
+
+# Test social asset generation (~0.003 credits)
+curl -X POST http://localhost:3000/api/test/single-generation \
+  -H "Content-Type: application/json" \
+  -d '{"testType": "social"}'
+```
+
+**Total test cost: ~$0.015**
+
+### BrandSheet Server-Side Generation
+Generate mockups and social assets server-side for the BrandSheet component:
+
+```bash
+curl -X POST http://localhost:3000/api/generate-brand-assets \
+  -H "Content-Type: application/json" \
+  -d '{
+    "businessName": "Acme Corp",
+    "brandColors": ["#FF5733", "#33FF57"],
+    "industry": "technology",
+    "logoUrl": "https://example.com/logo.png",
+    "logoStyle": "modern",
+    "tagline": "Innovation for you"
+  }'
+```
+
+Returns: `{ success: true, mockups: [...], socialAssets: [...] }`
+
 ---
 
 ## 📖 Documentation
