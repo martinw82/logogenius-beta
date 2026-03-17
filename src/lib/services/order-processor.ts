@@ -182,11 +182,16 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
         ...(orderData.colorPalette?.accent || []),
       ].filter(Boolean);
 
-      // Check if social assets already exist (generated during Step 2)
+      // Check if social assets already exist (generated during Step 2) - check ALL 10 types
+      const allSocialFields = [
+        'social_instagram_post', 'social_instagram_story', 'social_facebook_cover',
+        'social_twitter_header', 'social_linkedin_banner', 'social_youtube_thumbnail',
+        'social_pinterest_pin', 'social_tiktok_cover', 'social_email_header', 'social_website_hero'
+      ];
       const existingSocialAssets = await prisma.orderDetail.findMany({
         where: {
           orderId: input.orderId,
-          fieldName: { in: ['social_instagram_post', 'social_youtube_thumbnail', 'social_website_hero'] },
+          fieldName: { in: allSocialFields },
         },
       });
 

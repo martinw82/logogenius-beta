@@ -335,7 +335,7 @@ async function generateWithDynamicMockups(options: MockupOptions): Promise<Mocku
   console.log('[Dynamic Mockups full response]:', JSON.stringify(data, null, 2));
 
   // Try various possible URL locations in the response
-  const imageUrl = data.url || data.image_url || data.imageUrl || data.data?.url || data.data?.image_url || data.renders?.[0]?.url || data.renders?.[0]?.image_url || '';
+  const imageUrl = data.url || data.image_url || data.imageUrl || data.data?.url || data.data?.image_url || data.data?.export_path || data.renders?.[0]?.url || data.renders?.[0]?.image_url || '';
 
   if (!imageUrl) {
     console.error('[Dynamic Mockups] No image URL found in response. Full response:', data);
