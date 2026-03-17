@@ -62,8 +62,9 @@ Browser Canvas → Render with brand colors → Upload to server → Store in da
 - **Auth:** JWT (jsonwebtoken)
 - **Styling:** Tailwind CSS + shadcn/ui
 - **AI Providers:** Together AI, Replicate, Fal, Google, Laozhang
-- **PDF:** PDFKit
-- **Mockups:** HTML5 Canvas (client-side)
+- **Mockup APIs:** Dynamic Mockups, MockupsJar, MockCity (switchable)
+- **PDF:** jsPDF
+- **Mockups:** HTML5 Canvas (client-side) + API-based (server-side)
 
 ---
 
@@ -85,7 +86,10 @@ logogenius-beta/
 │   │   ├── auth.ts             # JWT auth
 │   │   ├── database.ts         # Database client
 │   │   └── services/           # Business logic
-│   │       ├── image-generation.ts        # AI provider abstraction
+│   │       ├── image-generation.ts        # AI provider abstraction (5 providers)
+│   │       ├── mockup-generation.ts       # Mockup API abstraction (3 providers)
+│   │       ├── ai-mockup-generator.ts     # Smart routing (API → AI fallback)
+│   │       ├── image-hosting.ts           # Base64-to-URL bridge
 │   │       ├── pdf-generator.ts           # PDF with mockups
 │   │       └── order-processor.ts         # Asset orchestration
 │   └── ai/flows/               # AI generation flows
@@ -144,9 +148,14 @@ TOGETHER_API_KEY=your_together_key      # For logo generation
 
 **Optional:**
 ```bash
-IMAGE_GEN_PROVIDER=together             # together | replicate | fal | google
+IMAGE_GEN_PROVIDER=together             # together | replicate | fal | google | laozhang
 MODE=testing                            # testing | production
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
+
+# Mockup API (photo-realistic product mockups)
+MOCKUP_PROVIDER=dynamicmockups          # dynamicmockups | mockupsjar | mockcity
+DYNAMIC_MOCKUPS_API_KEY=your_key        # 1,000 free renders
+IMGBB_API_KEY=your_key                  # Free image hosting (for MockupsJar/MockCity only)
 ```
 
 See `docs/ENVIRONMENT_VARIABLES.md` for complete reference.
@@ -182,7 +191,8 @@ See `docs/ENVIRONMENT_VARIABLES.md` for complete reference.
 - `docs/SESSION_*.md` - Session history
 - `docs/ENVIRONMENT_VARIABLES.md` - Complete env var reference
 - `docs/PROVIDER_MIGRATION_GUIDE.md` - Switching AI providers
-- `docs/MOCKUP_SOCIAL_INTEGRATION.md` - Mockup/social feature docs
+- `docs/MOCKUP_SOCIAL_INTEGRATION.md` - Mockup/social feature docs (Canvas + API)
+- `docs/MOCKUP_API_RESEARCH.md` - Mockup API research and implementation status
 
 ---
 
@@ -230,26 +240,33 @@ git push origin beta
 
 ---
 
-## 🔄 Switching AI Providers
+## Switching Providers
 
+### Logo Generation Provider
 Change one env var to switch logo provider:
 
 ```bash
-# Default (cheap, good for testing)
-IMAGE_GEN_PROVIDER=together
-TOGETHER_API_KEY=xxx
-
-# Production quality
-IMAGE_GEN_PROVIDER=replicate
-REPLICATE_API_KEY=xxx
-
-# Other options
-IMAGE_GEN_PROVIDER=fal
-FAL_API_KEY=xxx
-
-IMAGE_GEN_PROVIDER=google
-GOOGLE_API_KEY=xxx
+IMAGE_GEN_PROVIDER=together    # Default (cheap, $0.001/image)
+IMAGE_GEN_PROVIDER=replicate   # Production (Google Imagen 3, $0.05/image)
+IMAGE_GEN_PROVIDER=fal         # Fast ($0.15/image)
+IMAGE_GEN_PROVIDER=google      # Direct Google Imagen ($0.04/image)
+IMAGE_GEN_PROVIDER=laozhang    # Alternative ($0.05/image)
 ```
+
+### Mockup Generation Provider
+Switch between 3 mockup API providers for photo-realistic product mockups:
+
+```bash
+MOCKUP_PROVIDER=dynamicmockups   # Default: 1,000 free renders, FormData binary upload
+MOCKUP_PROVIDER=mockupsjar       # 100 free/month, needs IMGBB_API_KEY for base64 logos
+MOCKUP_PROVIDER=mockcity         # Credit-based, any PSD template, needs IMGBB_API_KEY
+```
+
+**How base64 logos reach the API:**
+- Dynamic Mockups: decoded to binary and sent via FormData (works everywhere, even localhost)
+- MockupsJar/MockCity: auto-uploaded to imgbb (free) or served via local temp endpoint
+
+**No API key?** System falls back to AI-generated product photography automatically.
 
 ---
 
@@ -288,6 +305,6 @@ For issues:
 
 ---
 
-**Last Updated:** 2026-03-14  
-**Branch:** beta  
-**Status:** Ready for testing and deployment! 🚀
+**Last Updated:** 2026-03-17
+**Branch:** beta
+**Status:** Ready for testing and deployment

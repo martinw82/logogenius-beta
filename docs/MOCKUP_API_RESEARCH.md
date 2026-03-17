@@ -89,16 +89,61 @@ Find an API that takes a **PNG logo file** and composites it onto **photo-realis
 
 ---
 
-## Action Items
+## Implementation Status (March 17, 2026)
 
-- [ ] Sign up for Dynamic Mockups API (free 50 credits)
-- [ ] Test API with sample logo
-- [ ] If quality is good: build integration service
-- [ ] Also test SudoMock with a few PSD templates (500 free credits)
-- [ ] Compare quality side-by-side
-- [ ] Decide which to use for production
+### What's Been Built
+
+A full **3-provider switchable mockup system** has been implemented, mirroring the image-generation provider pattern:
+
+| Component | File | Status |
+|-----------|------|--------|
+| Provider abstraction | `src/lib/services/mockup-generation.ts` | Done |
+| Smart fallback routing | `src/lib/services/ai-mockup-generator.ts` | Done |
+| Base64-to-URL bridge | `src/lib/services/image-hosting.ts` | Done |
+| Temp image serving | `src/app/api/serve-image/[id]/route.ts` | Done |
+| Test endpoint | `src/app/api/test/mockup-generation/route.ts` | Done |
+| Order processor wiring | `src/lib/services/order-processor.ts` | Done |
+
+### Providers Implemented
+
+| Provider | Env Var | Base64 Strategy | Status |
+|----------|---------|-----------------|--------|
+| **Dynamic Mockups** | `DYNAMIC_MOCKUPS_API_KEY` | FormData binary upload (no hosting needed) | Ready |
+| **MockupsJar** | `MOCKUPSJAR_API_KEY` | imgbb upload or local temp serve | Ready |
+| **MockCity** | `MOCKCITY_API_KEY` | imgbb upload or local temp serve | Ready |
+
+### Additional Providers Researched (Not Implemented)
+
+| Provider | Why Not |
+|----------|---------|
+| Mockey AI | No API available |
+| SudoMock | Good for future self-hosted option, not needed for LogoGenius MVP |
+
+### How It Works
+
+```
+1. Order processor gets selected logo (base64 data URL from database)
+2. Passes logoUrl to generateAIMockups()
+3. Smart routing checks: is a mockup API key configured?
+   YES → Try real mockup API:
+     - Dynamic Mockups: decode base64 → Buffer → FormData binary upload
+     - MockupsJar/MockCity: upload to imgbb or local temp → pass public URL
+   NO → Fall back to AI-generated product photography (Together AI)
+4. Results stored as base64 data URLs in OrderDetail
+```
+
+### What Still Needs Doing
+
+- [ ] Sign up for Dynamic Mockups (1,000 free renders) — https://dynamicmockups.com
+- [ ] Browse template library and copy mockup_uuid + smart_object_uuid for t-shirt, mug, tote bag
+- [ ] Populate template UUIDs in `mockup-generation.ts`
+- [ ] Optionally sign up for MockupsJar (100 free/month) — https://mockupsjar.com/api
+- [ ] Optionally get imgbb API key (free) — https://api.imgbb.com/
+- [ ] Test end-to-end with a real logo
+- [ ] Compare quality across providers
+- [ ] Consider SudoMock for future self-hosted high-volume use
 
 ---
 
-**Last Updated:** March 15, 2026
-**Status:** Research complete, ready for testing
+**Last Updated:** March 17, 2026
+**Status:** Implementation complete, awaiting API key signup and template configuration

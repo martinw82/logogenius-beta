@@ -1,9 +1,9 @@
 # LogoGenius Project Status
 
-**Date:** 2026-03-15 (End of Session)
+**Date:** 2026-03-17
 **Branch:** claude/analyze-codebase-plan-g5Vfs
-**Status:** Phase 1 Complete - Quality Upgrades Next
-**Completion:** ~80% (core product working, quality + polish remaining)
+**Status:** Mockup API System Implemented - Needs API Keys + Template IDs
+**Completion:** ~85% (core product working, mockup APIs built, quality + polish remaining)
 
 ---
 
@@ -21,10 +21,18 @@
 - Template-based prompts (deterministic, no AI prompt engineering)
 - Provider abstraction - switch via env var
 
-### Mockups (Canvas - Client-Side)
+### Mockups - Two Systems
+#### Canvas Mockups (Client-Side, FREE)
 - Business Card (900x500), Letterhead (800x1100), T-Shirt (600x700)
 - Generated for all 4 variants (12 mockups total)
 - Auto-uploaded to server, $0 cost
+
+#### API Mockups (Server-Side, 3 Providers)
+- Dynamic Mockups, MockupsJar, MockCity - switchable via `MOCKUP_PROVIDER` env var
+- Photo-realistic product mockups with pixel-perfect logo compositing
+- Smart routing: tries real API first, falls back to AI-generated
+- Base64-to-URL bridge: Dynamic Mockups uses FormData binary upload, others use imgbb
+- **Status: Code complete, needs API keys + template UUIDs to activate**
 
 ### Social Media Assets (Canvas - Tier 3)
 - 10 platforms: Instagram Post/Story, Facebook Cover, Twitter Header, LinkedIn Banner, YouTube Thumbnail, Pinterest Pin, TikTok Cover, Email Header, Website Hero
@@ -51,28 +59,24 @@
 
 ## What's Left To Do
 
-### PRIORITY 1: Mockup & Social Quality Upgrade
-**Status:** Planned, not started
+### PRIORITY 1: Activate Mockup API Providers
+**Status:** Code complete, needs API keys and template configuration
 **Budget:** $1-2 per order is acceptable (product sells for $20-100+)
 
-The current Canvas mockups and social images are functional but look "generated" - they need to look professional and photo-realistic. This is the single biggest quality gap.
+#### What's Already Built
+- 3-provider switchable mockup system (Dynamic Mockups, MockupsJar, MockCity)
+- Base64-to-URL bridge (FormData binary for Dynamic Mockups, imgbb for others)
+- Smart fallback routing (real API → AI-generated)
+- Test endpoint at `/api/test/mockup-generation`
+- Full integration with order processor pipeline
 
-#### Mockups - Need Photorealistic Quality
-- **Current:** Basic Canvas shapes with flat colors
-- **Goal:** Photo-quality UGC-style mockups with logo placed realistically on real products
-- **Approach:** Use specialist 3rd-party mockup/compositing API for final output
-- **Research needed:** Find the right API that can composite a logo onto a photo-realistic product shot
-
-**APIs to research:**
-| API | What it does | Approx cost |
-|-----|-------------|-------------|
-| Placeit API | Photo mockups with logo placement | ~$0.10-0.50/mockup |
-| Mediamodifier API | Similar, high quality templates | ~$0.10-0.30/mockup |
-| Renderforest | Mockup + video | Varies |
-| AI image compositing (DALL-E, Midjourney) | Generate product photo with described logo | ~$0.02-0.10/image |
-| Custom ComfyUI pipeline | Inpainting/compositing | Self-hosted cost |
-
-**Key question:** Which API gives the best logo-on-product compositing (not just describing it, but actually placing the PNG logo onto a realistic photo)?
+#### What Still Needs Doing
+1. **Sign up for Dynamic Mockups** (https://dynamicmockups.com) — 1,000 free renders
+2. **Browse template library** and copy `mockup_uuid` + `smart_object_uuid` for each product
+3. **Populate template UUIDs** in `src/lib/services/mockup-generation.ts`
+4. **Set `DYNAMIC_MOCKUPS_API_KEY`** in `.env.local`
+5. **Test end-to-end** with a real logo
+6. Optionally: sign up for MockupsJar (100 free/month), get imgbb API key (free)
 
 #### Social Media Images - Need Professional Quality
 - **Current:** Canvas-drawn gradients with logo overlay
@@ -133,11 +137,10 @@ The current Canvas mockups and social images are functional but look "generated"
 
 ## Research Items (For Next Session)
 
-1. **Mockup compositing API** - Which service can take a PNG logo and place it realistically onto a product photo? Need actual compositing, not AI-described logos.
-2. **ComfyUI/ControlNet pipeline** - Can we use inpainting to place a logo on a product photo? Would need self-hosted or API.
-3. **Placeit/Mediamodifier pricing** - Get actual API access and test quality
-4. **Google Imagen 3 vs FLUX.1** - Test both for logo quality, pick winner
-5. **Resend email setup** - Quick integration, should be <1 hour
+1. **Activate mockup APIs** - Sign up for Dynamic Mockups, get template UUIDs, test end-to-end
+2. **Google Imagen 3 vs FLUX.1** - Test both for logo quality, pick winner
+3. **Resend email setup** - Quick integration, should be <1 hour
+4. **SudoMock** - Evaluate for self-hosted high-volume use (other projects)
 
 ---
 
@@ -157,6 +160,11 @@ TOGETHER_API_KEY=from_together_xyz     # Logo generation
 IMAGE_GEN_PROVIDER=together            # together | replicate | fal | google | laozhang
 NEXT_PUBLIC_BASE_URL=https://yourdomain.com
 MODE=testing                           # testing | production
+
+# Mockup API (photo-realistic product mockups)
+MOCKUP_PROVIDER=dynamicmockups         # dynamicmockups | mockupsjar | mockcity
+DYNAMIC_MOCKUPS_API_KEY=your_key       # 1,000 free renders
+IMGBB_API_KEY=your_key                 # Free, needed for MockupsJar/MockCity only
 ```
 
 ---
@@ -165,15 +173,20 @@ MODE=testing                           # testing | production
 
 | File | Purpose |
 |------|---------|
-| `src/lib/services/image-generation.ts` | Provider abstraction (5 providers) |
+| `src/lib/services/image-generation.ts` | Logo provider abstraction (5 providers) |
+| `src/lib/services/mockup-generation.ts` | **Mockup API provider abstraction (3 providers)** |
+| `src/lib/services/ai-mockup-generator.ts` | **Smart routing (real API → AI fallback)** |
+| `src/lib/services/image-hosting.ts` | **Base64-to-URL bridge (imgbb + local temp serve)** |
 | `src/lib/services/logo-prompt-builder.ts` | Template-based logo prompts |
 | `src/lib/services/pdf-generator.ts` | PDF brand guide (jsPDF) |
-| `src/lib/services/order-processor.ts` | Order orchestration |
+| `src/lib/services/order-processor.ts` | Order orchestration (wired to mockup APIs) |
 | `src/hooks/useClientMockupGenerator.ts` | Canvas mockup rendering |
 | `src/hooks/useClientSocialGenerator.ts` | Canvas social rendering |
 | `src/app/admin/orders/[id]/page.tsx` | Admin order detail |
 | `src/app/api/orders/[id]/generate/route.ts` | Logo generation endpoint |
 | `src/app/api/orders/[id]/finalize/route.ts` | Phase 2 finalization |
+| `src/app/api/serve-image/[id]/route.ts` | **Temp image serving for mockup APIs** |
+| `src/app/api/test/mockup-generation/route.ts` | **Mockup provider test endpoint** |
 | `src/lib/types/typography.ts` | Typography types/schema |
 | `src/components/font-preview.tsx` | Font preview component |
 
@@ -190,7 +203,16 @@ MODE=testing                           # testing | production
 
 ## Session History
 
-### March 15, 2026 - Session 3 (This Session)
+### March 17, 2026 (This Session)
+- Mockup API provider system built (Dynamic Mockups, MockupsJar, MockCity)
+- Base64-to-URL bridge implemented (FormData binary for Dynamic Mockups, imgbb for others)
+- Smart routing: tries real mockup API first, falls back to AI-generated
+- Image hosting utility created (imgbb + local temp serve strategies)
+- Temp image serving endpoint created (/api/serve-image/[id])
+- Order processor wired to pass logoUrl to mockup generation pipeline
+- All documentation updated
+
+### March 15, 2026 - Session 3
 - PDF layout redesigned (branded cover, TOC, swatches, do/don't cards)
 - AI text post-processing added (banned phrases, better prompts)
 - Tier 3 templates re-enabled (colorPalette bug fixed)
@@ -215,4 +237,4 @@ MODE=testing                           # testing | production
 
 ---
 
-*Next: Research mockup compositing APIs, improve Canvas quality, then payments + launch*
+*Next: Sign up for Dynamic Mockups, populate template UUIDs, test end-to-end, then payments + launch*
