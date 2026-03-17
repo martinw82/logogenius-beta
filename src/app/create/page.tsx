@@ -370,16 +370,19 @@ export default function CreatePage() {
           expectedLogoCount={expectedLogoCount}
         />
 
-        {selectedLogoForBrandSheet && logoBatch && (
-          <div ref={brandSheetRef} className="mt-12">
-            <BrandGuideDisplay
-              selectedLogo={selectedLogoForBrandSheet}
-              brandDetails={logoBatch.generationInput}
-              brandNarrative={brandGuideText}
-              isLoadingNarrative={isGeneratingBrandText}
-            />
-          </div>
-        )}
+      {selectedLogoForBrandSheet && logoBatch && (
+  <div ref={brandSheetRef} className="mt-12">
+    <BrandSheet
+      selectedLogo={selectedLogoForBrandSheet}
+      brandDetails={logoBatch.generationInput}
+      onAssetsGenerated={(mockups, social) => {
+        // TODO: save these to your order state or DB here if you want
+        console.log("✅ Assets ready for order pipeline:", { mockups, social });
+        // Example: setPreGeneratedAssets({ mockups, social });
+      }}
+    />
+  </div>
+)}
       </main>
       <footer className="py-6 text-center text-sm text-muted-foreground border-t">
         © {new Date().getFullYear()} LogoGenius. All rights reserved. | Pretty-fied by bolt.new
