@@ -347,27 +347,101 @@ const drawInstagramPost = async (ctx, spec, options, colors) => {
 
 ---
 
+## API-Based Mockup Generation (Photo-Realistic)
+
+In addition to the Canvas-based mockups above, LogoGenius supports **3 switchable mockup API providers** for generating photo-realistic product mockups with pixel-perfect logo compositing.
+
+### Overview
+
+```
+Logo (base64 data URL) → Base64-to-URL Bridge → Mockup API → Photo-realistic mockup
+```
+
+The system uses a **smart routing** approach:
+1. If a mockup API key is configured, tries the real API first
+2. If no key or API fails, falls back to AI-generated product photography
+
+### Providers
+
+| Provider | Free Tier | Speed | Template Source |
+|----------|-----------|-------|-----------------|
+| **Dynamic Mockups** (default) | 1,000 renders forever | 0.6-2.8s | 100K+ built-in |
+| **MockupsJar** | 100/month | Fast | 700+ built-in |
+| **MockCity** | Credit-based | 15-20s spawn + 5-10s render | Any PSD file |
+
+Switch providers via env var:
+```bash
+MOCKUP_PROVIDER=dynamicmockups  # or: mockupsjar, mockcity
+```
+
+### Base64-to-URL Bridge
+
+Logos are stored as base64 data URLs in the database, but mockup APIs need publicly accessible URLs. The system handles this automatically:
+
+| Provider | Strategy | Extra Config Needed? |
+|----------|----------|---------------------|
+| **Dynamic Mockups** | FormData binary upload (decodes base64 to buffer, sends as file) | None |
+| **MockupsJar** | Auto-upload to imgbb or local temp serve | `IMGBB_API_KEY` or `NEXT_PUBLIC_BASE_URL` |
+| **MockCity** | Auto-upload to imgbb or local temp serve | `IMGBB_API_KEY` or `NEXT_PUBLIC_BASE_URL` |
+
+### Key Files
+
+| File | Purpose |
+|------|---------|
+| `src/lib/services/mockup-generation.ts` | Provider abstraction (3 providers, switchable via env var) |
+| `src/lib/services/ai-mockup-generator.ts` | Smart routing (real API first, AI fallback) |
+| `src/lib/services/image-hosting.ts` | Base64-to-URL bridge (imgbb + local temp serve) |
+| `src/app/api/serve-image/[id]/route.ts` | Temp image serving endpoint |
+| `src/app/api/test/mockup-generation/route.ts` | Test endpoint (GET for info, POST to render) |
+
+### Setup
+
+1. Sign up for a provider (Dynamic Mockups recommended: https://dynamicmockups.com)
+2. Set env vars:
+   ```bash
+   MOCKUP_PROVIDER=dynamicmockups
+   DYNAMIC_MOCKUPS_API_KEY=your_key
+   ```
+3. Browse template library and populate template UUIDs in `mockup-generation.ts`
+4. Test via `POST /api/test/mockup-generation`
+
+### Template Configuration
+
+Each provider needs template IDs mapped to product types. Edit `src/lib/services/mockup-generation.ts`:
+
+```typescript
+// Dynamic Mockups: UUID pairs from their template library
+const DYNAMIC_MOCKUPS_TEMPLATES = {
+  tshirt: { mockup_uuid: '...', smart_object_uuid: '...' },
+  mug: { mockup_uuid: '...', smart_object_uuid: '...' },
+  totebag: { mockup_uuid: '...', smart_object_uuid: '...' },
+};
+
+// MockupsJar: slugs from their template library
+const MOCKUPSJAR_TEMPLATES = {
+  tshirt: 'bella-canvas-3001-t-shirt-mockup',
+  mug: 'white-ceramic-mug-mockup',
+};
+
+// MockCity: PSD template URLs (or leave empty for built-in library)
+const MOCKCITY_PSD_URLS = {
+  tshirt: 'https://example.com/tshirt-template.psd',
+};
+```
+
+---
+
 ## Future Enhancements
 
-- [ ] Add more mockup templates (phone, laptop, signage)
+- [ ] Populate real template UUIDs/slugs after provider signup
+- [ ] Add more product types (phone case, hoodie, signage, packaging)
 - [ ] Generate mockups for all 4 logo variants (currently only variant 1)
 - [ ] Add animation support (GIF/MP4) for social assets
 - [ ] Add more social platforms (Snapchat, Twitch, etc.)
-- [ ] WebGL rendering for higher quality
-- [ ] SVG output option for mockups
+- [ ] Side-by-side quality comparison between providers
+- [ ] SudoMock self-hosted option for high-volume/other projects
 
 ---
 
-## Migration from Placeholders
-
-If you previously used placeholder images:
-
-1. **Old mockups** were from `placehold.co` (text images)
-2. **New mockups** are real rendered images with brand colors
-3. **Data format** is the same (base64 data URLs in OrderDetail)
-4. **No migration needed** - new orders will use new system automatically
-
----
-
-**Last Updated:** 2026-03-14  
-**Status:** ✅ Real rendering implemented and working
+**Last Updated:** 2026-03-17
+**Status:** Canvas mockups working, API mockup system implemented (needs API keys + template IDs to activate)

@@ -95,6 +95,56 @@ IMAGE_GEN_PROVIDER=google
 
 ## ⚙️ Optional Variables
 
+### Mockup Generation Provider
+
+LogoGenius supports 3 switchable mockup API providers for generating photo-realistic product mockups.
+
+```bash
+MOCKUP_PROVIDER=dynamicmockups
+```
+**Options:** `dynamicmockups` | `mockupsjar` | `mockcity`
+**Default:** `dynamicmockups`
+
+| Provider | Key | Cost | Free Tier | Notes |
+|----------|-----|------|-----------|-------|
+| Dynamic Mockups | `DYNAMIC_MOCKUPS_API_KEY` | ~$0.05/render | 1,000 renders forever | Best free tier, supports binary upload |
+| MockupsJar | `MOCKUPSJAR_API_KEY` | ~€0.045/render | 100/month | 700+ templates |
+| MockCity | `MOCKCITY_API_KEY` | Credit-based | Pay as you go | Any PSD template |
+
+```bash
+# Provider 1: Dynamic Mockups (Recommended)
+# Signup: https://dynamicmockups.com
+DYNAMIC_MOCKUPS_API_KEY=your_key_here
+
+# Provider 2: MockupsJar
+# Signup: https://mockupsjar.com/api
+MOCKUPSJAR_API_KEY=your_key_here
+
+# Provider 3: MockCity
+# Signup: https://mockcity.com
+MOCKCITY_API_KEY=your_key_here
+```
+
+**Smart Fallback:** If no mockup API key is configured, the system falls back to AI-generated product photography (Together AI).
+
+---
+
+### Image Hosting (for Mockup APIs)
+
+Logos are stored as base64 data URLs. External mockup APIs need public URLs. This utility bridges the gap.
+
+```bash
+IMGBB_API_KEY=your_imgbb_key_here
+```
+**Get from:** https://api.imgbb.com/ (free, unlimited uploads)
+
+**When is this needed?**
+- **Dynamic Mockups:** NOT needed (supports binary file upload via FormData)
+- **MockupsJar / MockCity:** REQUIRED (these APIs need a public image URL)
+- **Production with `NEXT_PUBLIC_BASE_URL`:** Not needed (uses local temp serve instead)
+
+---
+
 ### Application URLs
 ```bash
 NEXT_PUBLIC_BASE_URL=https://logogenius.com
@@ -182,6 +232,10 @@ IMAGE_GEN_PROVIDER=replicate
 NEXT_PUBLIC_BASE_URL=https://yourdomain.com
 MODE=production
 
+# Mockup Generation (photo-realistic product mockups)
+MOCKUP_PROVIDER=dynamicmockups
+DYNAMIC_MOCKUPS_API_KEY=your_key
+
 # Optional - for Tier 3 features
 FIGMA_API_TOKEN=your_figma_token
 CANVA_API_KEY=your_canva_key
@@ -258,9 +312,10 @@ CANVA_TEAM_ID=your_team_id
 | Hosting | VPS | $10-20 |
 | AI Form Fill | Google | $0 (free tier) |
 | Logo Generation | Replicate | $20 (400 images) |
-| Mockups | Puppeteer | $0 (self-hosted) |
-| Social Media | Canvas | $0 (self-hosted) |
-| **Total** | - | **$35-60/month** |
+| Canvas Mockups | Client-side | $0 |
+| API Mockups (3/order) | Dynamic Mockups | $15 (300 renders) |
+| Social Media | Canvas | $0 (client-side) |
+| **Total** | - | **$50-75/month** |
 
 ---
 

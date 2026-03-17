@@ -44,14 +44,17 @@ docs/
 | File | Purpose |
 |------|---------|
 | `src/lib/services/image-generation.ts` | AI provider abstraction (Together, Replicate, Fal, Google, Laozhang) |
-| `src/lib/services/mockup-generator.ts` | Mockup generator (client-side placeholder) |
-| `src/lib/services/social-media-generator.ts` | Social media generator (server-side placeholder - DEPRECATED) |
-| `src/hooks/useClientMockupGenerator.ts` | **NEW: Client-side mockup renderer** |
-| `src/hooks/useClientSocialGenerator.ts` | **NEW: Client-side social renderer** |
+| `src/lib/services/mockup-generation.ts` | **Mockup API provider abstraction (Dynamic Mockups, MockupsJar, MockCity)** |
+| `src/lib/services/ai-mockup-generator.ts` | **Smart routing: tries real mockup API first, falls back to AI-generated** |
+| `src/lib/services/image-hosting.ts` | **Base64-to-URL bridge (imgbb upload or local temp serve)** |
+| `src/hooks/useClientMockupGenerator.ts` | Client-side mockup renderer (Canvas) |
+| `src/hooks/useClientSocialGenerator.ts` | Client-side social renderer (Canvas) |
 | `src/lib/services/pdf-generator.ts` | PDF brand guide generator |
 | `src/lib/services/order-processor.ts` | Order processing orchestration |
 | `src/app/api/orders/[id]/generate/route.ts` | Logo/mockup/social generation API |
-| `src/app/api/orders/[id]/upload-mockups/route.ts` | **NEW: Client mockup upload API** |
+| `src/app/api/orders/[id]/upload-mockups/route.ts` | Client mockup upload API |
+| `src/app/api/serve-image/[id]/route.ts` | **Temp image serving for mockup APIs** |
+| `src/app/api/test/mockup-generation/route.ts` | **Test endpoint for mockup providers** |
 | `src/app/admin/orders/[id]/page.tsx` | Admin order detail with generation UI |
 
 ### Database
@@ -166,19 +169,35 @@ Admin clicks "Generate Logos"
 3. Client: Render 10 social assets (Canvas) ~5s [Tier 3 only]
    → Auto-upload to server
     ↓
-4. Server: Generate PDF with embedded mockups
+4. Server: Generate product mockups via API (if configured)
+   → Smart routing: tries real mockup API first, falls back to AI
+   → Base64 logos auto-converted to public URLs for API consumption
+    ↓
+5. Server: Generate PDF with embedded mockups
     ↓
 Done! Order status: "ready_for_review"
 ```
 
-### Cost Per Order
-| Tier | Logos | Mockups | Social | PDF | **Total** |
-|------|-------|---------|--------|-----|-----------|
-| 1 | $0.004 | FREE | - | FREE | **$0.004** |
-| 2 | $0.004 | FREE | - | FREE | **$0.004** |
-| 3 | $0.004 | FREE | FREE | FREE | **$0.004** |
+### Mockup Generation (Two Systems)
+```
+System 1: Canvas mockups (client-side, FREE)
+  → Business card, letterhead, t-shirt
+  → Generated in browser, uploaded to server
 
-**With $5 Together credit: 1,250 test orders!**
+System 2: API mockups (server-side, paid)
+  → Photo-realistic product mockups via 3rd-party API
+  → 3 switchable providers: Dynamic Mockups, MockupsJar, MockCity
+  → Base64 → URL bridge: Dynamic Mockups uses FormData binary upload,
+    others use imgbb or local temp serve
+  → Smart fallback: if no API key configured, falls back to AI-generated
+```
+
+### Cost Per Order
+| Tier | Logos | Canvas Mockups | API Mockups | Social | PDF | **Total** |
+|------|-------|---------------|-------------|--------|-----|-----------|
+| 1 | $0.004 | FREE | ~$0.15 (optional) | - | FREE | **$0.004-0.15** |
+| 2 | $0.004 | FREE | ~$0.15 (optional) | - | FREE | **$0.004-0.15** |
+| 3 | $0.004 | FREE | ~$0.15 (optional) | FREE | FREE | **$0.004-0.15** |
 
 ---
 
@@ -193,11 +212,20 @@ GOOGLE_API_KEY=from_ai.google_dev      # For form auto-fill
 TOGETHER_API_KEY=from_together_xyz     # For logo generation
 ```
 
-**Optional:**
+**Optional - Image Generation:**
 ```bash
-IMAGE_GEN_PROVIDER=together            # together | replicate | fal | google
+IMAGE_GEN_PROVIDER=together            # together | replicate | fal | google | laozhang
 MODE=testing                           # testing | production
 NEXT_PUBLIC_BASE_URL=http://localhost:3000
+```
+
+**Optional - Mockup Generation (API-based product mockups):**
+```bash
+MOCKUP_PROVIDER=dynamicmockups        # dynamicmockups | mockupsjar | mockcity
+DYNAMIC_MOCKUPS_API_KEY=xxx           # 1,000 free renders (best free tier)
+MOCKUPSJAR_API_KEY=xxx                # 100 free/month
+MOCKCITY_API_KEY=xxx                  # Credit-based, any PSD template
+IMGBB_API_KEY=xxx                     # Free image hosting (needed for MockupsJar/MockCity)
 ```
 
 See `docs/ENVIRONMENT_VARIABLES.md` for complete reference.
