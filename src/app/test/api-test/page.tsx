@@ -21,8 +21,11 @@ import {
   AlertTriangle,
   Info,
   Bug,
-  Copy
+  Copy,
+  Sparkles,
+  FlaskConical
 } from "lucide-react";
+import { PromptLabTab } from "./PromptLabTab";
 
 interface TestResult {
   success: boolean;
@@ -59,6 +62,8 @@ export default function ApiTestPage() {
   const [socialResult, setSocialResult] = useState<TestResult | null>(null);
   const [socialLoading, setSocialLoading] = useState(false);
   const [showSocialDebug, setShowSocialDebug] = useState(false);
+
+  // Prompt Lab component is defined below
 
   // Test Logo Generation (1 credit)
   const testLogoGeneration = async () => {
@@ -339,18 +344,22 @@ export default function ApiTestPage() {
         </Alert>
 
         <Tabs defaultValue="logo" className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="logo" className="flex items-center gap-2">
               <ImageIcon className="w-4 h-4" />
-              1. Logo (1 credit)
+              Logo
             </TabsTrigger>
             <TabsTrigger value="mockup" className="flex items-center gap-2">
               <Shirt className="w-4 h-4" />
-              2. Mockups (1 or 3)
+              Mockups
             </TabsTrigger>
             <TabsTrigger value="social" className="flex items-center gap-2">
               <Share2 className="w-4 h-4" />
-              3. Social (1 or 3)
+              Social
+            </TabsTrigger>
+            <TabsTrigger value="promptlab" className="flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
+              Prompt Lab
             </TabsTrigger>
           </TabsList>
 
@@ -979,6 +988,25 @@ export default function ApiTestPage() {
                     )}
                   </div>
                 )}
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* PROMPT LAB TAB */}
+          <TabsContent value="promptlab">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FlaskConical className="w-5 h-5" />
+                  Prompt Lab
+                  <Badge className="ml-2 bg-purple-500">Test & Refine</Badge>
+                </CardTitle>
+                <CardDescription>
+                  Edit prompt templates with placeholders, test variations, and save what works
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <PromptLabTab />
               </CardContent>
             </Card>
           </TabsContent>

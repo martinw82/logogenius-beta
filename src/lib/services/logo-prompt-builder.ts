@@ -22,7 +22,7 @@ export interface PromptVariables {
 /**
  * Style mapping: form values → descriptive text
  */
-const STYLE_MAP: Record<string, string> = {
+export const STYLE_MAP: Record<string, string> = {
   'minimalist': 'Minimalist, clean geometric shapes, simple lines, modern aesthetic',
   '3d-isometric': '3D isometric geometric, modern tech aesthetic, soft lighting, glassmorphism',
   'mascot': 'Character mascot, friendly illustration, approachable cartoon style',
@@ -36,7 +36,7 @@ const STYLE_MAP: Record<string, string> = {
 /**
  * Archetype mapping → visual direction
  */
-const ARCHETYPE_MAP: Record<string, string> = {
+export const ARCHETYPE_MAP: Record<string, string> = {
   'Creator': 'innovative, artistic, visionary',
   'Sage': 'wise, knowledgeable, trustworthy',
   'Explorer': 'adventurous, pioneering, free-spirited',
@@ -54,7 +54,7 @@ const ARCHETYPE_MAP: Record<string, string> = {
 /**
  * Composition mapping
  */
-const COMPOSITION_MAP: Record<string, string> = {
+export const COMPOSITION_MAP: Record<string, string> = {
   'horizontal': 'horizontal layout with icon left of text',
   'vertical': 'vertical layout with icon above text',
   'circular': 'circular enclosed composition',
@@ -163,7 +163,7 @@ export function buildPromptVariables(input: GenerateLogoConceptsInput): PromptVa
 /**
  * Logo prompt templates - 4 design directions
  */
-const LOGO_TEMPLATES = [
+export const LOGO_TEMPLATES = [
   {
     name: "Modern Minimalist",
     prompt: `Professional logo design for "{businessName}" in the {industry} industry.

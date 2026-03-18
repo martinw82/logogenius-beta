@@ -21,6 +21,17 @@
 - Order-processor has guard against re-generation (prevents double credit usage)
 - Test endpoint for single-call generation is available at /api/test/single-generation
 
+### Prompt Lab (Logo Testing)
+- **Location:** `/test/api-test` → Prompt Lab tab
+- **Features:**
+  - 4 base templates (Modern Minimalist, Bold & Iconic, Elegant, Creative)
+  - Editable prompt templates with live preview
+  - Placeholder variables: `{businessName}`, `{industry}`, `{style}`, `{keywords}`, `{colors}`, `{composition}`, `{target}`, `{archetype}`, `{mission}`
+  - Test generation (1 credit per test)
+  - Save custom templates to localStorage
+- **Purpose:** Rapid iteration on logo generation prompts without code changes
+- **Status:** ✅ COMPLETED
+
 ### Logo Generation
 - 4 logo variants per order via Together AI ($0.004/order)
 - Template-based prompts (deterministic, no AI prompt engineering)
@@ -104,9 +115,11 @@
 - Estimated: 4-6 hours
 
 ### PRIORITY 3: Logo Prompt Optimization
+**Status:** Infrastructure ready via Prompt Lab, needs prompt iteration
+- **Prompt Lab available** at `/test/api-test` for rapid iteration
 - Make prompts "super tight, super clean"
-- Style-specific templates per archetype
-- Add negative prompts
+- Style-specific templates per archetype (in progress via Prompt Lab)
+- Add negative prompts to templates
 - Consider upgrading to Google Imagen 3 (~$0.03/logo) or FLUX.1 (~$0.05/logo)
 
 ### PRIORITY 4: Email Integration
