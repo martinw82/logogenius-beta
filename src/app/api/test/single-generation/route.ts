@@ -10,8 +10,14 @@ export async function POST(request: NextRequest) {
     // Single logo generation (1 credit)
     if (testType === 'logo') {
       console.log('[Test API] Generating single logo...');
+      console.log('[Test API] Prompt:', body.prompt?.substring(0, 100) + '...');
+      if (body.negativePrompt) {
+        console.log('[Test API] Negative prompt:', body.negativePrompt?.substring(0, 100) + '...');
+      }
+      
       const result = await generateImage({
-        prompt: body.prompt || "Professional logo design for Test Company, modern minimalist style, clean vector, transparent background",
+        prompt: body.prompt || "Single isolated minimalist logomark for technology company, single abstract geometric shape, centered composition, isolated on pure white background, not a pattern, not repeating, one cohesive symbol only, blue and white solid flat colors, no gradients, 2D vector graphic, crisp clean edges, app icon design, favicon style",
+        negativePrompt: body.negativePrompt,
         width: 1024,
         height: 1024,
       });

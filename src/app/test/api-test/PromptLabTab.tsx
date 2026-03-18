@@ -8,6 +8,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { 
   Loader2, 
   CheckCircle2, 
@@ -15,7 +17,9 @@ import {
   Sparkles,
   Save,
   RotateCcw,
-  FlaskConical
+  FlaskConical,
+  Info,
+  Lightbulb
 } from "lucide-react";
 
 interface TestResult {
@@ -26,129 +30,128 @@ interface TestResult {
   provider?: string;
 }
 
+// FIXED TEMPLATES - SD/Flux Optimized (comma-separated, anti-pattern, quantity-locked)
 const baseTemplates: Record<string, string> = {
-  "modern-minimalist": `Professional logo design for "{businessName}" in the {industry} industry.
+  "modern-minimalist": `Single isolated minimalist logomark for {industry} company, 
+{elementCount} {graphicMotif} arranged in {arrangement}, 
+{centered} composition with generous white space on all sides, 
+isolated on {backgroundType} background, 
+not a pattern, not repeating, not tessellated, not scattered, one cohesive symbol only, 
+{colors} solid flat colors, no gradients, no shadows, 
+2D vector graphic style, crisp clean edges, perfect symmetry, 
+{styleReference} aesthetic, Paul Rand inspired, 
+{industry} sector, {keywords}, 
+app icon design, favicon style, centered logomark, 
+corporate identity symbol, timeless emblem, 
+{composition}`,
 
-VISUAL DIRECTION: Modern Minimalist - Clean geometric shapes, simple lines, refined elegance.
+  "bold-iconic": `Single bold iconic logomark for {industry} company, 
+{elementCount} strong {graphicMotif} arranged in {arrangement}, 
+{centered} composition with ample padding, 
+isolated on {backgroundType} background, 
+not a pattern, not repeating, not scattered, single focal point only, 
+{colors} solid flat colors, high contrast, no gradients, 
+2D vector graphic, bold shapes, crisp edges, immediate recognition, 
+{styleReference} aesthetic, 
+{industry} sector, {keywords}, 
+app icon style, favicon design, centered symbol, 
+distinctive memorable mark, 
+{composition}`,
 
-KEY ATTRIBUTES: {keywords}
+  "elegant": `Single elegant refined logomark for {industry} company, 
+{elementCount} sophisticated {graphicMotif} arranged in {arrangement}, 
+{centered} composition with elegant negative space, 
+isolated on {backgroundType} background, 
+not a pattern, not repeating, one cohesive refined symbol only, 
+{colors} solid flat colors, premium aesthetic, no gradients, 
+2D vector graphic, refined details, crisp clean lines, 
+{styleReference} aesthetic, luxury brand style, 
+{industry} sector, {keywords}, 
+app icon design, favicon style, centered mark, 
+sophisticated identity symbol, 
+{composition}`,
 
-COLOR PALETTE: {colors}
-
-COMPOSITION: {composition}
-
-TARGET AUDIENCE: {target}
-
-BRAND ESSENCE: {archetype} archetype. {mission}.
-
-TECHNICAL SPECIFICATIONS:
-- Vector-art style, flat design, crisp clean lines
-- Transparent or white background
-- Centered, balanced composition
-- Suitable for 1024×1024 output
-- Professional, scalable, print-ready
-- No photorealistic textures, no shadows, no gradients
-
-Create a sophisticated, timeless logo that embodies {businessName}'s commitment to excellence.`,
-
-  "bold-iconic": `Bold logo design for "{businessName}" in the {industry} industry.
-
-VISUAL DIRECTION: Bold & Iconic - Strong visual impact, memorable mark, distinctive presence.
-
-KEY ATTRIBUTES: {keywords}
-
-COLOR PALETTE: {colors}
-
-COMPOSITION: {composition}
-
-TARGET AUDIENCE: {target}
-
-BRAND ESSENCE: {archetype} archetype. {mission}.
-
-TECHNICAL SPECIFICATIONS:
-- Strong geometric forms, bold shapes
-- High contrast, immediately recognizable
-- Icon that works at small sizes (favicon)
-- Transparent or white background
-- 1024×1024 resolution
-- Flat design, no 3D effects
-- Vector style, clean edges
-
-Create an iconic logo that commands attention and builds instant brand recognition.`,
-
-  "elegant": `Elegant logo design for "{businessName}" in the {industry} industry.
-
-VISUAL DIRECTION: Elegant & Refined - Sophisticated, premium feel, luxurious details.
-
-KEY ATTRIBUTES: {keywords}
-
-COLOR PALETTE: {colors}
-
-COMPOSITION: {composition}
-
-TARGET AUDIENCE: {target}
-
-BRAND ESSENCE: {archetype} archetype. {mission}.
-
-TECHNICAL SPECIFICATIONS:
-- Refined typography, sophisticated letterforms
-- Subtle details, premium aesthetic
-- Balanced negative space
-- Transparent or white background
-- 1024×1024 resolution
-- Clean lines, no clutter
-- Luxury brand aesthetic
-
-Create an elegant logo that conveys premium quality and refined taste.`,
-
-  "creative": `Creative logo design for "{businessName}" in the {industry} industry.
-
-VISUAL DIRECTION: Creative & Unique - Distinctive, artistic, memorable concept.
-
-KEY ATTRIBUTES: {keywords}
-
-COLOR PALETTE: {colors}
-
-COMPOSITION: {composition}
-
-TARGET AUDIENCE: {target}
-
-BRAND ESSENCE: {archetype} archetype. {mission}.
-
-TECHNICAL SPECIFICATIONS:
-- Unique visual concept, creative interpretation
-- Artistic but professional
-- Memorable and distinctive
-- Transparent or white background
-- 1024×1024 resolution
-- Balanced composition
-- Vector style for scalability
-
-Create a unique, creative logo that stands out from competitors and captures {businessName}'s distinctive personality.`,
+  "creative": `Single creative unique logomark for {industry} company, 
+{elementCount} distinctive {graphicMotif} arranged in {arrangement}, 
+{centered} composition with balanced spacing, 
+isolated on {backgroundType} background, 
+not a pattern, not repeating, not scattered, one unique symbol only, 
+{colors} solid flat colors, artistic but professional, no gradients, 
+2D vector graphic, distinctive concept, crisp edges, 
+{styleReference} aesthetic, creative identity, 
+{industry} sector, {keywords}, 
+app icon style, favicon design, centered emblem, 
+memorable distinctive mark, 
+{composition}`,
 };
 
+// Default negative prompt to prevent patterns/wallpapers
+const DEFAULT_NEGATIVE_PROMPT = `text, words, letters, typography, font, watermark, signature, 
+mockup, 3d render, drop shadow, gradient, 
+multiple logos, collage, business cards, letterhead, scattered objects, 
+pattern, repeating, tessellation, wallpaper, textile, all-over print,
+photography, photorealistic texture, blurry, busy composition,
+many shapes, scattered elements, random placement`;
+
+// Options for dropdowns
 const styleOptions = [
   { value: "minimalist", label: "Minimalist" },
-  { value: "3d-isometric", label: "3D Isometric" },
-  { value: "mascot", label: "Mascot" },
-  { value: "vintage", label: "Vintage" },
+  { value: "modern", label: "Modern" },
+  { value: "geometric", label: "Geometric" },
   { value: "abstract", label: "Abstract" },
-  { value: "wordmark", label: "Wordmark" },
-  { value: "lettermark", label: "Lettermark" },
-  { value: "emblem", label: "Emblem" },
 ];
 
 const compositionOptions = [
+  { value: "icon-only", label: "Icon Only (Recommended)" },
   { value: "horizontal", label: "Horizontal" },
   { value: "vertical", label: "Vertical" },
   { value: "circular", label: "Circular" },
-  { value: "icon-only", label: "Icon Only" },
-  { value: "wordmark-only", label: "Wordmark Only" },
 ];
 
 const archetypeOptions = [
   "Creator", "Sage", "Explorer", "Hero", "Rebel", "Magician", 
   "Lover", "Jester", "Caregiver", "Ruler", "Everyman", "Innocent"
+];
+
+// NEW: Anti-pattern control options
+const elementCountOptions = [
+  { value: "single central icon", label: "Single Shape (Recommended)" },
+  { value: "2 overlapping forms", label: "2 Overlapping Forms" },
+  { value: "3 geometric elements", label: "3 Geometric Elements" },
+];
+
+const arrangementOptions = [
+  { value: "centered", label: "Centered (Recommended)" },
+  { value: "vertically stacked", label: "Vertically Stacked" },
+  { value: "enclosed circle", label: "Enclosed Circle" },
+  { value: "left-to-right flow", label: "Left-to-Right Flow" },
+  { value: "pyramid formation", label: "Pyramid Formation" },
+];
+
+const graphicMotifOptions = [
+  { value: "abstract geometric", label: "Abstract Geometric" },
+  { value: "nature-inspired", label: "Nature-Inspired" },
+  { value: "letter-based", label: "Letter-Based" },
+  { value: "tech circuit", label: "Tech Circuit" },
+  { value: "interlocking shapes", label: "Interlocking Shapes" },
+  { value: "continuous line", label: "Continuous Line" },
+  { value: "ascending triangles", label: "Ascending Triangles" },
+];
+
+const backgroundTypeOptions = [
+  { value: "pure white", label: "Pure White (Recommended)" },
+  { value: "transparent black", label: "Transparent Black" },
+  { value: "solid color block", label: "Solid Color Block" },
+];
+
+const styleReferenceOptions = [
+  { value: "Swiss International Style", label: "Swiss International" },
+  { value: "Y2K Tech", label: "Y2K Tech" },
+  { value: "Art Deco", label: "Art Deco" },
+  { value: "Brutalist", label: "Brutalist" },
+  { value: "Paul Rand", label: "Paul Rand" },
+  { value: "Mid-Century Modern", label: "Mid-Century Modern" },
+  { value: "Bauhaus", label: "Bauhaus" },
 ];
 
 export function PromptLabTab() {
@@ -160,17 +163,27 @@ export function PromptLabTab() {
   const [showSaveDialog, setShowSaveDialog] = useState(false);
   const [templateName, setTemplateName] = useState("");
   
-  // Template variables
+  // Negative prompt state
+  const [negativePrompt, setNegativePrompt] = useState(DEFAULT_NEGATIVE_PROMPT);
+  const [useNegativePrompt, setUseNegativePrompt] = useState(true);
+  
+  // Template variables - updated with new anti-pattern fields
   const [vars, setVars] = useState({
     businessName: "Acme Corporation",
     industry: "Technology",
     style: "minimalist",
     keywords: "innovative, modern, professional",
-    colors: "blue and white",
-    composition: "horizontal",
+    colors: "deep navy blue and white",
+    composition: "icon-only",
     target: "tech-savvy professionals",
     archetype: "Creator",
     mission: "Making technology accessible to everyone",
+    // NEW: Anti-pattern control fields
+    elementCount: "single central icon",
+    arrangement: "centered",
+    graphicMotif: "abstract geometric",
+    backgroundType: "pure white",
+    styleReference: "Swiss International Style",
   });
 
   // Load saved templates from localStorage on mount
@@ -196,7 +209,14 @@ export function PromptLabTab() {
     .replace(/{composition}/g, compositionOptions.find(c => c.value === vars.composition)?.label || vars.composition)
     .replace(/{target}/g, vars.target)
     .replace(/{archetype}/g, vars.archetype)
-    .replace(/{mission}/g, vars.mission);
+    .replace(/{mission}/g, vars.mission)
+    // NEW: Anti-pattern replacements
+    .replace(/{elementCount}/g, vars.elementCount)
+    .replace(/{arrangement}/g, vars.arrangement)
+    .replace(/{graphicMotif}/g, vars.graphicMotif)
+    .replace(/{backgroundType}/g, vars.backgroundType)
+    .replace(/{styleReference}/g, vars.styleReference)
+    .replace(/{centered}/g, vars.arrangement === "centered" ? "centered" : vars.arrangement);
 
   const handleTemplateChange = (value: string) => {
     setSelectedTemplate(value);
@@ -217,6 +237,7 @@ export function PromptLabTab() {
         body: JSON.stringify({
           testType: "logo",
           prompt: renderedPrompt,
+          negativePrompt: useNegativePrompt ? negativePrompt : undefined,
         }),
       });
 
@@ -265,6 +286,20 @@ export function PromptLabTab() {
 
   return (
     <div className="space-y-6">
+      {/* Educational Alert */}
+      <Alert className="bg-amber-50 border-amber-200">
+        <Lightbulb className="h-4 w-4 text-amber-600" />
+        <AlertTitle className="text-amber-800">Prompt Engineering Tips</AlertTitle>
+        <AlertDescription className="text-amber-700 text-sm">
+          <ul className="list-disc list-inside space-y-1 mt-2">
+            <li><strong>&quot;Single&quot;</strong> and <strong>&quot;not a pattern&quot;</strong> prevent wallpaper chaos</li>
+            <li><strong>&quot;Icon only&quot;</strong> avoids garbled text (SD can&apos;t reliably render words)</li>
+            <li><strong>&quot;App icon&quot;</strong> and <strong>&quot;favicon&quot;</strong> keywords force single centered objects</li>
+            <li><strong>Comma-separated</strong> format works better than paragraphs for SD/Flux</li>
+          </ul>
+        </AlertDescription>
+      </Alert>
+
       {/* Template Selection */}
       <div className="space-y-2">
         <Label>Base Template</Label>
@@ -320,43 +355,114 @@ export function PromptLabTab() {
             setCustomTemplate(e.target.value);
             setSelectedTemplate("custom");
           }}
-          rows={12}
+          rows={10}
           className="font-mono text-sm"
         />
         <p className="text-xs text-gray-500">
-          Use placeholders: {"{businessName}"}, {"{industry}"}, {"{style}"}, {"{keywords}"}, {"{colors}"}, {"{composition}"}, {"{target}"}, {"{archetype}"}, {"{mission}"}
+          Placeholders: {"{elementCount}"}, {"{graphicMotif}"}, {"{arrangement}"}, {"{backgroundType}"}, {"{styleReference}"}, {"{colors}"}, {"{keywords}"}, {"{industry}"}
         </p>
+      </div>
+
+      {/* Composition Control Section */}
+      <div className="border rounded-lg p-4 bg-gray-50 space-y-4">
+        <h4 className="font-semibold text-sm flex items-center gap-2">
+          <Info className="w-4 h-4" />
+          Composition Control (Prevents Pattern Chaos)
+        </h4>
+        
+        <div className="grid grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <Label className="text-xs">Element Count</Label>
+            <Select value={vars.elementCount} onValueChange={(v) => setVars({ ...vars, elementCount: v })}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {elementCountOptions.map(o => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label className="text-xs">Arrangement</Label>
+            <Select value={vars.arrangement} onValueChange={(v) => setVars({ ...vars, arrangement: v })}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {arrangementOptions.map(o => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label className="text-xs">Graphic Motif</Label>
+            <Select value={vars.graphicMotif} onValueChange={(v) => setVars({ ...vars, graphicMotif: v })}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {graphicMotifOptions.map(o => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div className="space-y-2">
+            <Label className="text-xs">Background</Label>
+            <Select value={vars.backgroundType} onValueChange={(v) => setVars({ ...vars, backgroundType: v })}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {backgroundTypeOptions.map(o => (
+                  <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
       </div>
 
       {/* Variable Inputs */}
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
-          <Label>Business Name</Label>
-          <Input
-            value={vars.businessName}
-            onChange={(e) => setVars({ ...vars, businessName: e.target.value })}
-          />
-        </div>
-        <div className="space-y-2">
           <Label>Industry</Label>
           <Input
             value={vars.industry}
             onChange={(e) => setVars({ ...vars, industry: e.target.value })}
+            placeholder="e.g., Technology, Healthcare"
           />
         </div>
+        
         <div className="space-y-2">
-          <Label>Style</Label>
-          <Select value={vars.style} onValueChange={(v) => setVars({ ...vars, style: v })}>
+          <Label>Style Reference</Label>
+          <Select value={vars.styleReference} onValueChange={(v) => setVars({ ...vars, styleReference: v })}>
             <SelectTrigger>
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
-              {styleOptions.map(s => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+              {styleReferenceOptions.map(o => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
               ))}
             </SelectContent>
           </Select>
         </div>
+        
+        <div className="space-y-2">
+          <Label>Colors</Label>
+          <Input
+            value={vars.colors}
+            onChange={(e) => setVars({ ...vars, colors: e.target.value })}
+            placeholder="e.g., deep navy blue and white"
+          />
+        </div>
+        
         <div className="space-y-2">
           <Label>Composition</Label>
           <Select value={vars.composition} onValueChange={(v) => setVars({ ...vars, composition: v })}>
@@ -370,27 +476,7 @@ export function PromptLabTab() {
             </SelectContent>
           </Select>
         </div>
-        <div className="space-y-2">
-          <Label>Archetype</Label>
-          <Select value={vars.archetype} onValueChange={(v) => setVars({ ...vars, archetype: v })}>
-            <SelectTrigger>
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {archetypeOptions.map(a => (
-                <SelectItem key={a} value={a}>{a}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        <div className="space-y-2">
-          <Label>Colors</Label>
-          <Input
-            value={vars.colors}
-            onChange={(e) => setVars({ ...vars, colors: e.target.value })}
-            placeholder="e.g., blue and gold"
-          />
-        </div>
+        
         <div className="space-y-2 col-span-2">
           <Label>Keywords</Label>
           <Input
@@ -399,21 +485,46 @@ export function PromptLabTab() {
             placeholder="innovative, modern, professional"
           />
         </div>
-        <div className="space-y-2 col-span-2">
-          <Label>Target Audience</Label>
-          <Input
-            value={vars.target}
-            onChange={(e) => setVars({ ...vars, target: e.target.value })}
+      </div>
+
+      {/* Negative Prompt Section */}
+      <div className="border rounded-lg p-4 space-y-4">
+        <div className="flex items-center gap-2">
+          <Checkbox 
+            id="useNegative"
+            checked={useNegativePrompt}
+            onCheckedChange={(checked) => setUseNegativePrompt(checked as boolean)}
           />
+          <Label htmlFor="useNegative" className="font-semibold cursor-pointer">
+            Use Negative Prompt (Recommended)
+          </Label>
+          <Badge variant="secondary" className="text-xs">Blocks patterns</Badge>
         </div>
-        <div className="space-y-2 col-span-2">
-          <Label>Mission Statement</Label>
-          <Textarea
-            value={vars.mission}
-            onChange={(e) => setVars({ ...vars, mission: e.target.value })}
-            rows={2}
-          />
-        </div>
+        
+        {useNegativePrompt && (
+          <div className="space-y-2">
+            <div className="flex justify-between items-center">
+              <Label className="text-xs text-gray-500">Negative Prompt (what to exclude)</Label>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setNegativePrompt(DEFAULT_NEGATIVE_PROMPT)}
+              >
+                <RotateCcw className="w-3 h-3 mr-1" />
+                Reset Default
+              </Button>
+            </div>
+            <Textarea
+              value={negativePrompt}
+              onChange={(e) => setNegativePrompt(e.target.value)}
+              rows={4}
+              className="font-mono text-xs"
+            />
+            <p className="text-xs text-gray-500">
+              These terms help prevent wallpapers, mockups, and scattered elements
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Rendered Prompt Preview */}
@@ -438,7 +549,7 @@ export function PromptLabTab() {
         ) : (
           <>
             <Sparkles className="w-4 h-4 mr-2" />
-            Generate with Custom Prompt (1 credit)
+            Generate with Anti-Pattern Prompt (1 credit)
           </>
         )}
       </Button>
@@ -491,7 +602,7 @@ export function PromptLabTab() {
           <Input
             value={templateName}
             onChange={(e) => setTemplateName(e.target.value)}
-            placeholder="e.g., My Custom Tech Prompt"
+            placeholder="e.g., My Anti-Pattern Tech Prompt"
           />
           <div className="flex gap-2">
             <Button onClick={handleSaveTemplate} disabled={!templateName.trim()}>

@@ -24,13 +24,20 @@
 ### Prompt Lab (Logo Testing)
 - **Location:** `/test/api-test` → Prompt Lab tab
 - **Features:**
-  - 4 base templates (Modern Minimalist, Bold & Iconic, Elegant, Creative)
-  - Editable prompt templates with live preview
-  - Placeholder variables: `{businessName}`, `{industry}`, `{style}`, `{keywords}`, `{colors}`, `{composition}`, `{target}`, `{archetype}`, `{mission}`
+  - 4 SD-optimized templates (comma-separated format, anti-pattern language)
+  - **Composition Control:** Element count, arrangement, graphic motif, background type
+  - **Negative Prompt Support:** Blocks patterns, mockups, text, 3D renders
+  - **Style References:** Swiss International, Paul Rand, Y2K Tech, Art Deco, Brutalist
+  - Variable placeholders with anti-pattern constraints
   - Test generation (1 credit per test)
   - Save custom templates to localStorage
-- **Purpose:** Rapid iteration on logo generation prompts without code changes
-- **Status:** ✅ COMPLETED
+- **Anti-Pattern Features:**
+  - "Single" / "One" / "Not a pattern" quantity locking
+  - "Isolated on background" for clean separation
+  - "App icon / favicon" keywords for centered single objects
+  - Default negative prompt blocks: text, patterns, collages, 3D renders
+- **Purpose:** Rapid iteration on logo generation prompts with SD/Flux best practices
+- **Status:** ✅ COMPLETED (v2 - Anti-Pattern Optimized)
 
 ### Logo Generation
 - 4 logo variants per order via Together AI ($0.004/order)
