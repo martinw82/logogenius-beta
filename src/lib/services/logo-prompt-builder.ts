@@ -1,11 +1,18 @@
 /**
- * Logo Prompt Builder - Template Based
+ * Logo Prompt Builder - Template Based with Provider Adaptation
  * 
  * Converts form data into optimized prompts for image generation
+ * Now supports provider-specific prompt formatting via Prompt Adapter
  * No AI prompt engineering needed - deterministic, debuggable, fast
  */
 
 import { GenerateLogoConceptsInput } from '@/ai/flows/generate-logo-concepts-v2';
+import { 
+  adaptPromptForProvider, 
+  buildGenerationOptions,
+  LogoFormData,
+  ProviderPromptStyle 
+} from './prompt-adapter';
 
 export interface PromptVariables {
   businessName: string;
@@ -320,3 +327,117 @@ export function debugPrompt(input: GenerateLogoConceptsInput): {
     })),
   };
 }
+
+// ==================== Provider-Aware Prompt Building ====================
+
+/**
+ * Convert GenerateLogoConceptsInput to LogoFormData for adapter
+ */
+function convertToFormData(input: GenerateLogoConceptsInput): LogoFormData {
+  return {
+    businessName: input.businessName,
+    industry: input.industry,
+    industrySubcategory: input.industrySubcategory,
+    aestheticKeywords: input.aestheticKeywords,
+    emotionalKeywords: input.emotionalKeywords,
+    functionalKeywords: input.functionalKeywords,
+    missionStatement: input.missionStatement,
+    brandPillars: input.brandPillars,
+    keyTagline: input.keyTagline,
+    primaryColors: input.preferredColorPalette,
+    colorPaletteMood: input.preferredColorPalette,
+    preferredLogoStyle: input.preferredLogoStyle,
+    composition: input.composition,
+    iconPlacement: input.iconPlacement,
+    iconComplexity: input.iconComplexity,
+    iconSpecifics: input.iconSpecifics,
+    fontStyle: input.fontStyle,
+    fontHeadings: input.fontHeadings,
+    fontBody: input.fontBody,
+    targetAudience: input.targetAudience,
+    inspirationReferences: input.inspirationReferences,
+    usageContext: input.usageContext,
+    negativeKeywords: input.negativeKeywords,
+    web3: input.web3,
+    web3BlockchainFocus: input.web3BlockchainFocus,
+    web3ProjectType: input.web3ProjectType,
+    // Anti-pattern controls (can be added to form later)
+    elementCount: 'single central icon',
+    arrangement: 'centered',
+    graphicMotif: 'abstract geometric',
+    backgroundType: 'pure white',
+    styleReference: 'Swiss International',
+    textTreatment: 'icon only (no text)',
+  };
+}
+
+/**
+ * Build logo prompt optimized for specific provider
+ * This is the RECOMMENDED function for production use
+ */
+export function buildLogoPromptForProvider(
+  input: GenerateLogoConceptsInput,
+  provider: string,
+  variantIndex?: number
+): string {
+  const formData = convertToFormData(input);
+  
+  // If provider is specified, use adapter
+  if (provider && provider !== 'together') {
+    return adaptPromptForProvider(formData, getPromptStyleForProvider(provider));
+  }
+  
+  // Fall back to legacy template for Together AI (SD/Flux)
+  return buildLogoPrompt(input, variantIndex || 0);
+}
+
+/**
+ * Get provider-specific generation options (prompt + settings)
+ */
+export function getProviderGenerationOptions(
+  input: GenerateLogoConceptsInput,
+  provider: string
+): {
+  prompt: string;
+  negativePrompt?: string;
+  width: number;
+  height: number;
+  model?: string;
+} {
+  const formData = convertToFormData(input);
+  return buildGenerationOptions(formData, provider);
+}
+
+/**
+ * Build all 4 prompts for logo generation with provider optimization
+ */
+export function buildAllLogoPromptsForProvider(
+  input: GenerateLogoConceptsInput,
+  provider: string
+): string[] {
+  // For providers that don't need variant templates, return 4 identical prompts
+  // The variation comes from the AI's natural variation, not prompt differences
+  const style = getPromptStyleForProvider(provider);
+  
+  if (style === 'imagen3' || style === 'recraft') {
+    // These providers handle variation naturally
+    const formData = convertToFormData(input);
+    const basePrompt = adaptPromptForProvider(formData, style);
+    
+    // Add slight variation hints for each
+    return [
+      `${basePrompt} Variation 1: Classic approach.`,
+      `${basePrompt} Variation 2: Bold approach.`,
+      `${basePrompt} Variation 3: Elegant approach.`,
+      `${basePrompt} Variation 4: Creative approach.`,
+    ];
+  }
+  
+  // For SD/Flux, use the legacy template-based approach
+  return buildAllLogoPrompts(input);
+}
+
+/**
+ * Helper to get prompt style from provider name
+ */
+export { getPromptStyleForProvider } from './prompt-adapter';

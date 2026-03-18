@@ -54,18 +54,61 @@ GOOGLE_API_KEY=your_google_ai_key_here
 
 ### 4. Image Generation (Pick ONE)
 
-You need at least one image generation provider. For testing, we recommend **Together AI** (cheapest).
+You need at least one image generation provider.
 
-#### Option A: Together AI (Recommended for Testing)
+| Provider | Cost | Best For | Output | Recommended |
+|----------|------|----------|--------|-------------|
+| **Recraft** | $0.044/image | Production logos | ✅ **SVG Vector** | ⭐ **YES** |
+| Together AI | $0.001/image | Testing only | ❌ Raster (artifacts) | ❌ No |
+| Replicate | $0.05/image | General images | ❌ Raster | Sometimes |
+| Fal.ai | $0.15/image | Fast generation | ❌ Raster | Sometimes |
+| Google | $0.04/image | Direct Imagen 3 | ❌ Raster | Sometimes |
+
+---
+
+#### ⭐ Option A: Recraft AI (RECOMMENDED for Production)
+```bash
+RECRAFT_API_KEY=your_recraft_api_key_here
+IMAGE_GEN_PROVIDER=recraft
+RECRAFT_VECTOR_MODE=true
+```
+**Cost:** $0.044/image (V2 Vector) | $0.04/image (V3 Raster)  
+**Signup:** https://www.recraft.ai  
+**Why Recraft?**
+- ✅ **Native SVG output** - Editable, scalable vector logos!
+- ✅ **Built for brand assets** - Trained specifically for logos/icons
+- ✅ **Professional quality** - No pattern artifacts like SD/Flux
+- ✅ **Style consistency** - Maintains brand style across generations
+
+**Cost Comparison (4 logos/order):**
+- Together AI: $0.004/order (poor quality)
+- Imagen 3: $0.16/order (good quality, raster)
+- **Recraft V2 Vector: $0.176/order** (best quality, SVG!) ⭐
+
+**Configuration:**
+```bash
+# VECTOR_MODE: true = SVG (editable), false = PNG (raster)
+RECRAFT_VECTOR_MODE=true
+
+# STYLE: vector_illustration | logo | icon | line_art
+RECRAFT_STYLE=vector_illustration
+```
+
+---
+
+#### Option B: Together AI (Testing Only - Poor Quality)
 ```bash
 TOGETHER_API_KEY=your_together_api_key_here
 IMAGE_GEN_PROVIDER=together
 ```
 **Cost:** ~$0.001/image  
 **Free Credit:** $5 on signup (~5000 images)  
-**Signup:** https://api.together.xyz
+**Signup:** https://api.together.xyz  
+**⚠️ Warning:** Produces repeating patterns, artifacts, poor logo quality. Only use for testing.
 
-#### Option B: Replicate (Recommended for Production)
+---
+
+#### Option C: Replicate (Google Imagen 3)
 ```bash
 REPLICATE_API_KEY=your_replicate_api_key_here
 IMAGE_GEN_PROVIDER=replicate
@@ -73,9 +116,11 @@ IMAGE_GEN_PROVIDER=replicate
 **Cost:** ~$0.05/image  
 **Free Credit:** $5 on signup (~100 images)  
 **Signup:** https://replicate.com  
-**Quality:** Google Imagen 3 (excellent logo quality)
+**Quality:** Good prompt adherence, but still raster output (not vector)
 
-#### Option C: Fal.ai (Fastest)
+---
+
+#### Option D: Fal.ai (Fastest)
 ```bash
 FAL_API_KEY=your_fal_api_key_here
 IMAGE_GEN_PROVIDER=fal
@@ -83,7 +128,9 @@ IMAGE_GEN_PROVIDER=fal
 **Cost:** ~$0.15/image  
 **Signup:** https://fal.ai
 
-#### Option D: Google Imagen (Direct)
+---
+
+#### Option E: Google Imagen (Direct)
 ```bash
 GOOGLE_API_KEY=your_google_api_key_here
 IMAGE_GEN_PROVIDER=google
@@ -142,6 +189,33 @@ IMGBB_API_KEY=your_imgbb_key_here
 - **Dynamic Mockups:** NOT needed (supports binary file upload via FormData)
 - **MockupsJar / MockCity:** REQUIRED (these APIs need a public image URL)
 - **Production with `NEXT_PUBLIC_BASE_URL`:** Not needed (uses local temp serve instead)
+
+---
+
+### Prompt Style Configuration (Advanced)
+
+Different AI providers interpret prompts differently. We automatically format prompts based on your provider, but you can override:
+
+```bash
+# Auto-detected from provider by default, but you can override:
+PROMPT_STYLE=recraft
+```
+
+| Style | Format | Best For |
+|-------|--------|----------|
+| `sd-flux` | Anti-pattern, comma-separated | Stable Diffusion, Flux models |
+| `imagen3` | Natural language descriptions | Google Imagen 3 |
+| `recraft` | Design brief style | Recraft AI |
+
+**Example of different prompt formats for same input:**
+
+**Input:** Tech company, minimalist, blue and white
+
+**sd-flux:** `Single isolated minimalist logomark for technology company, single central icon abstract geometric arranged in centered, not a pattern, not repeating, blue and white solid flat colors...`
+
+**imagen3:** `A professional minimalist logo for a technology company. The logo features clean geometric shapes in blue and white colors. Modern, simple design suitable for app icons...`
+
+**recraft:** `Vector logo design, minimalist style, technology company. Single abstract geometric icon, blue and white color palette. Clean vector lines, professional finish...`
 
 ---
 
