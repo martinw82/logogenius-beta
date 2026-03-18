@@ -42,6 +42,7 @@ export default function ApiTestPage() {
   const [logoPrompt, setLogoPrompt] = useState("Professional minimalist logo for a coffee shop called 'Bean There', flat design, warm brown and cream colors, clean vector style");
   const [logoResult, setLogoResult] = useState<TestResult | null>(null);
   const [logoLoading, setLogoLoading] = useState(false);
+  const [logoProvider, setLogoProvider] = useState<string>("together"); // together | recraft | replicate | google
 
   // Mockup test state
   const [mockupLogoUrl, setMockupLogoUrl] = useState("");
@@ -78,6 +79,7 @@ export default function ApiTestPage() {
         body: JSON.stringify({
           testType: "logo",
           prompt: logoPrompt,
+          provider: logoProvider, // Pass selected provider
         }),
       });
 
@@ -373,10 +375,37 @@ export default function ApiTestPage() {
                   <Badge className="ml-2 bg-green-500">1 Credit</Badge>
                 </CardTitle>
                 <CardDescription>
-                  Generates a single logo using the configured provider (Together AI by default)
+                  Test different AI providers. Recraft outputs editable SVG vectors!
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
+                {/* Provider Selector */}
+                <div className="space-y-2">
+                  <Label>Provider</Label>
+                  <Select value={logoProvider} onValueChange={setLogoProvider}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="together">
+                        Together AI (SD/Flux) - $0.001 ⚠️ Low Quality
+                      </SelectItem>
+                      <SelectItem value="recraft">
+                        Recraft AI - $0.044 ⭐ SVG Output
+                      </SelectItem>
+                      <SelectItem value="replicate">
+                        Replicate (Imagen 3) - $0.05
+                      </SelectItem>
+                      <SelectItem value="google">
+                        Google Imagen 3 - $0.04
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-xs text-gray-500">
+                    Select provider to test. Recraft outputs editable SVG vectors!
+                  </p>
+                </div>
+
                 <div className="space-y-2">
                   <Label htmlFor="logoPrompt">Prompt</Label>
                   <Textarea
@@ -425,8 +454,9 @@ export default function ApiTestPage() {
                     {logoResult.success && logoResult.data && (
                       <div className="space-y-3">
                         <p className="text-sm text-green-700">
-                          <strong>Provider:</strong> {logoResult.provider}<br />
-                          <strong>Model:</strong> {logoResult.data.model}
+                          <strong>Provider:</strong> {logoResult.provider} {logoResult.provider === 'recraft' && '⭐ SVG!'}<br />
+                          <strong>Model:</strong> {logoResult.data.model}<br />
+                          <strong>Cost:</strong> ${logoResult.data.cost}/image
                         </p>
                         {logoResult.data.imageUrl && (
                           <div className="border rounded-lg overflow-hidden bg-white">

@@ -10,19 +10,33 @@ export async function POST(request: NextRequest) {
     // Single logo generation (1 credit)
     if (testType === 'logo') {
       console.log('[Test API] Generating single logo...');
+      console.log('[Test API] Provider:', body.provider || 'default (from env)');
       console.log('[Test API] Prompt:', body.prompt?.substring(0, 100) + '...');
       if (body.negativePrompt) {
         console.log('[Test API] Negative prompt:', body.negativePrompt?.substring(0, 100) + '...');
       }
       
-      const result = await generateImage({
-        prompt: body.prompt || "Single isolated minimalist logomark for technology company, single abstract geometric shape, centered composition, isolated on pure white background, not a pattern, not repeating, one cohesive symbol only, blue and white solid flat colors, no gradients, 2D vector graphic, crisp clean edges, app icon design, favicon style",
-        negativePrompt: body.negativePrompt,
-        width: 1024,
-        height: 1024,
-      });
-      console.log('[Test API] Logo generated successfully');
-      return NextResponse.json({ success: true, result });
+      // Temporarily override provider if specified
+      const originalProvider = process.env.IMAGE_GEN_PROVIDER;
+      if (body.provider) {
+        process.env.IMAGE_GEN_PROVIDER = body.provider;
+      }
+      
+      try {
+        const result = await generateImage({
+          prompt: body.prompt || "Single isolated minimalist logomark for technology company, single abstract geometric shape, centered composition, isolated on pure white background, not a pattern, not repeating, one cohesive symbol only, blue and white solid flat colors, no gradients, 2D vector graphic, crisp clean edges, app icon design, favicon style",
+          negativePrompt: body.negativePrompt,
+          width: 1024,
+          height: 1024,
+        });
+        console.log('[Test API] Logo generated successfully');
+        return NextResponse.json({ success: true, result });
+      } finally {
+        // Restore original provider
+        if (body.provider && originalProvider) {
+          process.env.IMAGE_GEN_PROVIDER = originalProvider;
+        }
+      }
     }
 
     // Single mockup generation (1 credit) - NEW!
