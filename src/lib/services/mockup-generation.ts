@@ -333,15 +333,26 @@ async function generateWithDynamicMockups(options: MockupOptions): Promise<Mocku
   }
 
   const data = await response.json();
+  
+  console.log('[DynamicMockups] Raw API response:', JSON.stringify(data, null, 2));
+  
+  const imageUrl = data.url || data.image_url || data.data?.url || data.result?.url;
+  
+  if (!imageUrl) {
+    console.error('[DynamicMockups] No image URL found in response. Available keys:', Object.keys(data));
+  } else {
+    console.log('[DynamicMockups] Extracted imageUrl:', imageUrl.substring(0, 100) + '...');
+  }
 
   return {
-    imageUrl: data.url || data.image_url || data.data?.url,
+    imageUrl: imageUrl || '',
     provider: 'dynamicmockups',
     productType: options.productType,
     cost: 0, // Free tier: 1,000 renders (with watermark)
     metadata: {
       mockupUuid: template.mockup_uuid,
       renderTime: data.render_time,
+      rawResponse: data,
     },
   };
 }

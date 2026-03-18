@@ -619,73 +619,101 @@ export default function ApiTestPage() {
 
                     {mockupResult.success && mockupResult.data && (
                       <div className="space-y-4">
-                        {/* Debug info */}
-                        <div className="text-xs text-gray-500 mb-2">
-                          <strong>Provider:</strong> {mockupResult.provider || 'N/A'} | 
-                          <strong> Keys:</strong> {Object.keys(mockupResult.data).join(', ')}
+                        {/* Debug info - ALWAYS SHOW DATA STRUCTURE */}
+                        <div className="p-3 bg-blue-50 border border-blue-200 rounded text-sm">
+                          <p className="font-semibold text-blue-800 mb-1">Response Data Structure:</p>
+                          <p className="text-blue-700">
+                            <strong>Provider:</strong> {mockupResult.provider || mockupResult.data?._provider || 'N/A'}<br/>
+                            <strong>Product Type:</strong> {mockupResult.data?._productType || 'N/A'}<br/>
+                            <strong>Keys in data:</strong> {Object.keys(mockupResult.data).join(', ')}
+                          </p>
                         </div>
                         
+                        {/* Show the actual URL for debugging */}
+                        {(() => {
+                          // Find which key has the image URL
+                          const imageUrl = mockupResult.data.tshirt || 
+                                          mockupResult.data.mug || 
+                                          mockupResult.data.totebag || 
+                                          mockupResult.data.toteBag ||
+                                          Object.values(mockupResult.data).find(v => typeof v === 'string' && (v.startsWith('http') || v.startsWith('data:image')));
+                          
+                          return imageUrl ? (
+                            <div className="p-2 bg-gray-100 rounded text-xs">
+                              <p className="font-semibold">Image URL Preview:</p>
+                              <p className="truncate font-mono">{imageUrl.substring(0, 100)}...</p>
+                            </div>
+                          ) : (
+                            <div className="p-2 bg-red-100 rounded text-xs text-red-700">
+                              <p className="font-semibold">⚠️ No image URL found in response!</p>
+                              <p>Check Debug Info below for full response.</p>
+                            </div>
+                          );
+                        })()}
+                        
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {(mockupResult.data.tshirt || mockupResult.data.tshirt === '') && (
-                            <div className="text-center">
-                              <p className="text-sm font-medium mb-2 text-green-800">T-Shirt</p>
-                              {mockupResult.data.tshirt ? (
-                                <div className="border rounded-lg overflow-hidden bg-white">
-                                  <img 
-                                    src={mockupResult.data.tshirt} 
-                                    alt="T-shirt mockup"
-                                    className="w-full"
-                                    onError={(e) => {
-                                      console.error("T-shirt image failed to load:", e);
-                                      (e.target as HTMLImageElement).style.display = 'none';
-                                    }}
-                                  />
-                                </div>
-                              ) : (
-                                <p className="text-xs text-gray-500">No image returned</p>
-                              )}
-                            </div>
-                          )}
-                          {(mockupResult.data.coffeeMug || mockupResult.data.mug || mockupResult.data.coffeeMug === '' || mockupResult.data.mug === '') && (
-                            <div className="text-center">
-                              <p className="text-sm font-medium mb-2 text-green-800">Coffee Mug</p>
-                              {mockupResult.data.coffeeMug || mockupResult.data.mug ? (
-                                <div className="border rounded-lg overflow-hidden bg-white">
-                                  <img 
-                                    src={mockupResult.data.coffeeMug || mockupResult.data.mug} 
-                                    alt="Mug mockup"
-                                    className="w-full"
-                                    onError={(e) => {
-                                      console.error("Mug image failed to load:", e);
-                                      (e.target as HTMLImageElement).style.display = 'none';
-                                    }}
-                                  />
-                                </div>
-                              ) : (
-                                <p className="text-xs text-gray-500">No image returned</p>
-                              )}
-                            </div>
-                          )}
-                          {(mockupResult.data.toteBag || mockupResult.data.totebag || mockupResult.data.toteBag === '' || mockupResult.data.totebag === '') && (
-                            <div className="text-center">
-                              <p className="text-sm font-medium mb-2 text-green-800">Tote Bag</p>
-                              {mockupResult.data.toteBag || mockupResult.data.totebag ? (
-                                <div className="border rounded-lg overflow-hidden bg-white">
-                                  <img 
-                                    src={mockupResult.data.toteBag || mockupResult.data.totebag} 
-                                    alt="Tote bag mockup"
-                                    className="w-full"
-                                    onError={(e) => {
-                                      console.error("Tote image failed to load:", e);
-                                      (e.target as HTMLImageElement).style.display = 'none';
-                                    }}
-                                  />
-                                </div>
-                              ) : (
-                                <p className="text-xs text-gray-500">No image returned</p>
-                              )}
-                            </div>
-                          )}
+                          {/* T-Shirt */}
+                          <div className="text-center">
+                            <p className="text-sm font-medium mb-2 text-green-800">T-Shirt</p>
+                            {mockupResult.data.tshirt ? (
+                              <div className="border rounded-lg overflow-hidden bg-white">
+                                <img 
+                                  src={mockupResult.data.tshirt} 
+                                  alt="T-shirt mockup"
+                                  className="w-full"
+                                  onLoad={() => console.log("[Mockup] T-shirt image loaded successfully")}
+                                  onError={(e) => {
+                                    console.error("[Mockup] T-shirt image failed to load:", mockupResult.data.tshirt?.substring(0, 100));
+                                    (e.target as HTMLImageElement).parentElement!.innerHTML = '<p class="p-4 text-red-500 text-xs">Image failed to load</p>';
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              <p className="text-xs text-gray-500 p-4 bg-gray-50 rounded">No tshirt data</p>
+                            )}
+                          </div>
+                          
+                          {/* Coffee Mug */}
+                          <div className="text-center">
+                            <p className="text-sm font-medium mb-2 text-green-800">Coffee Mug</p>
+                            {(mockupResult.data.coffeeMug || mockupResult.data.mug) ? (
+                              <div className="border rounded-lg overflow-hidden bg-white">
+                                <img 
+                                  src={mockupResult.data.coffeeMug || mockupResult.data.mug} 
+                                  alt="Mug mockup"
+                                  className="w-full"
+                                  onLoad={() => console.log("[Mockup] Mug image loaded successfully")}
+                                  onError={(e) => {
+                                    console.error("[Mockup] Mug image failed to load");
+                                    (e.target as HTMLImageElement).parentElement!.innerHTML = '<p class="p-4 text-red-500 text-xs">Image failed to load</p>';
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              <p className="text-xs text-gray-500 p-4 bg-gray-50 rounded">No mug data</p>
+                            )}
+                          </div>
+                          
+                          {/* Tote Bag */}
+                          <div className="text-center">
+                            <p className="text-sm font-medium mb-2 text-green-800">Tote Bag</p>
+                            {(mockupResult.data.toteBag || mockupResult.data.totebag) ? (
+                              <div className="border rounded-lg overflow-hidden bg-white">
+                                <img 
+                                  src={mockupResult.data.toteBag || mockupResult.data.totebag} 
+                                  alt="Tote bag mockup"
+                                  className="w-full"
+                                  onLoad={() => console.log("[Mockup] Tote image loaded successfully")}
+                                  onError={(e) => {
+                                    console.error("[Mockup] Tote image failed to load");
+                                    (e.target as HTMLImageElement).parentElement!.innerHTML = '<p class="p-4 text-red-500 text-xs">Image failed to load</p>';
+                                  }}
+                                />
+                              </div>
+                            ) : (
+                              <p className="text-xs text-gray-500 p-4 bg-gray-50 rounded">No tote data</p>
+                            )}
+                          </div>
                         </div>
 
                         {/* Debug Toggle */}
@@ -696,11 +724,11 @@ export default function ApiTestPage() {
                           className="text-xs"
                         >
                           <Bug className="w-3 h-3 mr-1" />
-                          {showMockupDebug ? 'Hide' : 'Show'} Debug Info
+                          {showMockupDebug ? 'Hide' : 'Show'} Full Debug Info
                         </Button>
 
                         {showMockupDebug && mockupResult.rawResponse && (
-                          <div className="mt-2 p-2 bg-gray-100 rounded text-xs font-mono overflow-auto max-h-40">
+                          <div className="mt-2 p-2 bg-gray-100 rounded text-xs font-mono overflow-auto max-h-60">
                             <pre>{JSON.stringify(mockupResult.rawResponse, null, 2)}</pre>
                           </div>
                         )}
