@@ -49,6 +49,9 @@ export async function POST(request: NextRequest) {
           _provider: result.provider,
           _productType: result.productType,
           _cost: result.cost,
+          _imageUrlEmpty: !result.imageUrl,
+          _imageUrlLength: result.imageUrl?.length || 0,
+          _rawMetadata: result.metadata,
         } 
       });
     }

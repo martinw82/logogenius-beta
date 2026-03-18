@@ -336,10 +336,19 @@ async function generateWithDynamicMockups(options: MockupOptions): Promise<Mocku
   
   console.log('[DynamicMockups] Raw API response:', JSON.stringify(data, null, 2));
   
-  const imageUrl = data.url || data.image_url || data.data?.url || data.result?.url;
+  // Try multiple possible field names for the image URL
+  const imageUrl = data.url || 
+                   data.image_url || 
+                   data.imageUrl || 
+                   data.render_url ||
+                   data.result?.url ||
+                   data.data?.url ||
+                   data.output?.url ||
+                   data.file?.url;
   
   if (!imageUrl) {
-    console.error('[DynamicMockups] No image URL found in response. Available keys:', Object.keys(data));
+    console.error('[DynamicMockups] No image URL found in response. Full response:', JSON.stringify(data));
+    console.error('[DynamicMockups] Available top-level keys:', Object.keys(data));
   } else {
     console.log('[DynamicMockups] Extracted imageUrl:', imageUrl.substring(0, 100) + '...');
   }
