@@ -2,12 +2,21 @@
  * Image Generation Service - Provider Agnostic
  * 
  * Supports multiple providers:
- * - together (current)
- * - replicate
- * - fal
- * - google (imagen)
+ * - together (current) - SD/Flux via Together AI
+ * - replicate - Various models via Replicate
+ * - fal - Imagen 3 via Fal.ai
+ * - google - Imagen 3 direct
+ * - laozhang - OpenAI-compatible API
+ * - recraft - RECOMMENDED for logos (SVG output!)
  * 
  * Switch providers by setting IMAGE_GEN_PROVIDER env var
+ * 
+ * NOTE: For logo generation, Recraft is recommended because it outputs
+ * native SVG vectors that are editable and scalable. See generateWithRecraft()
+ * below and docs/ENVIRONMENT_VARIABLES.md for setup instructions.
+ * 
+ * TODO: When testing is complete, consider making Recraft the default provider
+ * for logo generation instead of Together AI (SD/Flux).
  */
 
 export type ImageGenProvider = 'together' | 'replicate' | 'fal' | 'google' | 'laozhang' | 'recraft';
@@ -314,6 +323,30 @@ async function generateWithLaozhang(options: ImageGenOptions): Promise<ImageGenR
 
 // ==================== Recraft Provider ====================
 
+/**
+ * Recraft AI Logo Generation
+ * 
+ * RECOMMENDED for logo generation because it outputs native SVG vectors!
+ * 
+ * Cost: $0.044/image (V2 Vector) | $0.04/image (V3 Raster)
+ * Signup: https://www.recraft.ai
+ * 
+ * Setup:
+ * 1. Get API key from Recraft dashboard
+ * 2. Set RECRAFT_API_KEY in .env.local
+ * 3. Set RECRAFT_VECTOR_MODE=true for SVG output
+ * 4. Set IMAGE_GEN_PROVIDER=recraft
+ * 
+ * TODO: After testing confirms quality improvement:
+ * - Consider making Recraft the default provider for logos
+ * - Update storage logic to handle SVG files
+ * - Update customer download package to include SVG files
+ * - Document SVG editing workflow for customers
+ * 
+ * NOTE: This function returns SVG data when VECTOR_MODE=true. The imageUrl
+ * will be an SVG URL or base64-encoded SVG content. Make sure your storage
+ * and display logic can handle SVG files!
+ */
 async function generateWithRecraft(options: ImageGenOptions): Promise<ImageGenResult> {
   const apiKey = process.env.RECRAFT_API_KEY;
   if (!apiKey) throw new Error('RECRAFT_API_KEY not set');

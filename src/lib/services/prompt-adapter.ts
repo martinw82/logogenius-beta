@@ -2,10 +2,27 @@
  * Prompt Adapter Service
  * 
  * Converts logo form data into provider-optimized prompts.
- * Different AI providers interpret prompts very differently:
- * - SD/Flux: Needs anti-pattern, comma-separated, explicit constraints
- * - Imagen 3: Natural language, descriptive
- * - Recraft: Design brief style, professional
+ * Different AI providers interpret prompts very differently!
+ * 
+ * Provider Styles:
+ * - SD/Flux: Anti-pattern, comma-separated (prevents pattern chaos)
+ * - Imagen 3: Natural language, descriptive (good prompt adherence)
+ * - Recraft: Design brief style, professional (built for brand assets)
+ * 
+ * Usage:
+ *   const prompt = adaptPromptForProvider(formData, 'recraft');
+ * 
+ * Or use buildGenerationOptions() to get full options including negative prompts:
+ *   const options = buildGenerationOptions(formData, 'recraft');
+ *   // Returns: { prompt, negativePrompt?, width, height, model? }
+ * 
+ * NOTE: This adapter is integrated into logo-prompt-builder.ts and will be
+ * used automatically when IMAGE_GEN_PROVIDER is set to a specific provider.
+ * 
+ * TODO: After Recraft testing is complete, we may want to:
+ * - Fine-tune the Recraft prompt format based on test results
+ * - Add more style options for Recraft (vector_illustration, logo, icon, etc.)
+ * - Consider removing SD/Flux anti-pattern prompts if we fully migrate to Recraft
  */
 
 export type ProviderPromptStyle = 'sd-flux' | 'imagen3' | 'recraft';
