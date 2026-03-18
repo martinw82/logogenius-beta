@@ -336,19 +336,16 @@ async function generateWithDynamicMockups(options: MockupOptions): Promise<Mocku
   
   console.log('[DynamicMockups] Raw API response:', JSON.stringify(data, null, 2));
   
-  // Try multiple possible field names for the image URL
-  const imageUrl = data.url || 
-                   data.image_url || 
-                   data.imageUrl || 
-                   data.render_url ||
-                   data.result?.url ||
-                   data.data?.url ||
-                   data.output?.url ||
-                   data.file?.url;
+  // Dynamic Mockups returns the image URL at data.data.export_path
+  // Example: {"success": true, "data": {"export_path": "https://..."}}
+  const imageUrl = data.data?.export_path || 
+                   data.data?.export_url ||
+                   data.url || 
+                   data.image_url;
   
   if (!imageUrl) {
-    console.error('[DynamicMockups] No image URL found in response. Full response:', JSON.stringify(data));
-    console.error('[DynamicMockups] Available top-level keys:', Object.keys(data));
+    console.error('[DynamicMockups] No image URL found. Full response:', JSON.stringify(data));
+    console.error('[DynamicMockups] Available keys:', Object.keys(data));
   } else {
     console.log('[DynamicMockups] Extracted imageUrl:', imageUrl.substring(0, 100) + '...');
   }
@@ -361,7 +358,6 @@ async function generateWithDynamicMockups(options: MockupOptions): Promise<Mocku
     metadata: {
       mockupUuid: template.mockup_uuid,
       renderTime: data.render_time,
-      rawResponse: data,
     },
   };
 }
