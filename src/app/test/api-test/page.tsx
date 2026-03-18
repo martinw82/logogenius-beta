@@ -10,6 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { 
   ImageIcon, 
   Shirt, 
@@ -18,7 +19,9 @@ import {
   CheckCircle2, 
   XCircle,
   AlertTriangle,
-  Info
+  Info,
+  Bug,
+  Copy
 } from "lucide-react";
 
 interface TestResult {
@@ -27,6 +30,8 @@ interface TestResult {
   error?: string;
   duration?: number;
   provider?: string;
+  rawResponse?: any; // For debugging
+  creditWarning?: string;
 }
 
 export default function ApiTestPage() {
@@ -40,18 +45,22 @@ export default function ApiTestPage() {
   const [mockupBusinessName, setMockupBusinessName] = useState("Test Company");
   const [mockupColors, setMockupColors] = useState("#2563eb, #1e40af, #f59e0b");
   const [mockupIndustry, setMockupIndustry] = useState("technology");
+  const [mockupProductType, setMockupProductType] = useState<string>("tshirt");
   const [mockupResult, setMockupResult] = useState<TestResult | null>(null);
   const [mockupLoading, setMockupLoading] = useState(false);
+  const [showMockupDebug, setShowMockupDebug] = useState(false);
 
   // Social test state
   const [socialBusinessName, setSocialBusinessName] = useState("Test Company");
   const [socialColors, setSocialColors] = useState("#2563eb, #1e40af, #f59e0b");
   const [socialIndustry, setSocialIndustry] = useState("technology");
   const [socialTagline, setSocialTagline] = useState("Innovation for everyone");
+  const [socialPlatform, setSocialPlatform] = useState<string>("instagramPost");
   const [socialResult, setSocialResult] = useState<TestResult | null>(null);
   const [socialLoading, setSocialLoading] = useState(false);
+  const [showSocialDebug, setShowSocialDebug] = useState(false);
 
-  // Test Logo Generation
+  // Test Logo Generation (1 credit)
   const testLogoGeneration = async () => {
     setLogoLoading(true);
     setLogoResult(null);
@@ -63,6 +72,7 @@ export default function ApiTestPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           testType: "logo",
+          prompt: logoPrompt,
         }),
       });
 
@@ -75,12 +85,14 @@ export default function ApiTestPage() {
           data: data.result,
           duration,
           provider: data.result?.provider,
+          rawResponse: data,
         });
       } else {
         setLogoResult({
           success: false,
           error: data.error || "Unknown error",
           duration,
+          rawResponse: data,
         });
       }
     } catch (err) {
@@ -94,10 +106,11 @@ export default function ApiTestPage() {
     }
   };
 
-  // Test Mockup Generation
-  const testMockupGeneration = async () => {
+  // Test Single Mockup Generation (1 credit) - CREDIT SAVER!
+  const testSingleMockup = async () => {
     setMockupLoading(true);
     setMockupResult(null);
+    setShowMockupDebug(false);
     const startTime = Date.now();
 
     try {
@@ -105,25 +118,34 @@ export default function ApiTestPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          testType: "mockup",
-          logoUrl: mockupLogoUrl || undefined,
+          testType: "single-mockup",
+          logoUrl: mockupLogoUrl,
+          productType: mockupProductType,
+          businessName: mockupBusinessName,
+          industry: mockupIndustry,
+          brandColors: mockupColors.split(",").map(c => c.trim()),
         }),
       });
 
       const data = await response.json();
       const duration = Date.now() - startTime;
 
+      console.log("[Mockup Test] Raw response:", data);
+
       if (data.success) {
         setMockupResult({
           success: true,
           data: data.result,
           duration,
+          provider: data.result?._provider,
+          rawResponse: data,
         });
       } else {
         setMockupResult({
           success: false,
           error: data.error || "Unknown error",
           duration,
+          rawResponse: data,
         });
       }
     } catch (err) {
@@ -137,10 +159,115 @@ export default function ApiTestPage() {
     }
   };
 
-  // Test Social Generation
-  const testSocialGeneration = async () => {
+  // Test All Mockups Generation (3 credits)
+  const testAllMockups = async () => {
+    setMockupLoading(true);
+    setMockupResult(null);
+    setShowMockupDebug(false);
+    const startTime = Date.now();
+
+    try {
+      const response = await fetch("/api/test/single-generation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          testType: "mockup",
+          logoUrl: mockupLogoUrl,
+          businessName: mockupBusinessName,
+          industry: mockupIndustry,
+          brandColors: mockupColors.split(",").map(c => c.trim()),
+        }),
+      });
+
+      const data = await response.json();
+      const duration = Date.now() - startTime;
+
+      console.log("[All Mockups Test] Raw response:", data);
+
+      if (data.success) {
+        setMockupResult({
+          success: true,
+          data: data.result,
+          duration,
+          creditWarning: data._creditWarning,
+          rawResponse: data,
+        });
+      } else {
+        setMockupResult({
+          success: false,
+          error: data.error || "Unknown error",
+          duration,
+          rawResponse: data,
+        });
+      }
+    } catch (err) {
+      setMockupResult({
+        success: false,
+        error: err instanceof Error ? err.message : "Failed to fetch",
+        duration: Date.now() - startTime,
+      });
+    } finally {
+      setMockupLoading(false);
+    }
+  };
+
+  // Test Single Social Asset (1 credit) - CREDIT SAVER!
+  const testSingleSocial = async () => {
     setSocialLoading(true);
     setSocialResult(null);
+    setShowSocialDebug(false);
+    const startTime = Date.now();
+
+    try {
+      const response = await fetch("/api/test/single-generation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          testType: "single-social",
+          platform: socialPlatform,
+          businessName: socialBusinessName,
+          industry: socialIndustry,
+          tagline: socialTagline,
+          brandColors: socialColors.split(",").map(c => c.trim()),
+        }),
+      });
+
+      const data = await response.json();
+      const duration = Date.now() - startTime;
+
+      console.log("[Social Test] Raw response:", data);
+
+      if (data.success) {
+        setSocialResult({
+          success: true,
+          data: data.result,
+          duration,
+          rawResponse: data,
+        });
+      } else {
+        setSocialResult({
+          success: false,
+          error: data.error || "Unknown error",
+          duration,
+          rawResponse: data,
+        });
+      }
+    } catch (err) {
+      setSocialResult({
+        success: false,
+        error: err instanceof Error ? err.message : "Failed to fetch",
+        duration: Date.now() - startTime,
+      });
+    } finally {
+      setSocialLoading(false);
+    }
+  };
+
+  // Test All Social Assets (3 credits)
+  const testAllSocial = async () => {
+    setSocialLoading(true);
+    setSocialResult(null);
+    setShowSocialDebug(false);
     const startTime = Date.now();
 
     try {
@@ -149,23 +276,32 @@ export default function ApiTestPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           testType: "social",
+          businessName: socialBusinessName,
+          industry: socialIndustry,
+          tagline: socialTagline,
+          brandColors: socialColors.split(",").map(c => c.trim()),
         }),
       });
 
       const data = await response.json();
       const duration = Date.now() - startTime;
 
+      console.log("[All Social Test] Raw response:", data);
+
       if (data.success) {
         setSocialResult({
           success: true,
           data: data.result,
           duration,
+          creditWarning: data._creditWarning,
+          rawResponse: data,
         });
       } else {
         setSocialResult({
           success: false,
           error: data.error || "Unknown error",
           duration,
+          rawResponse: data,
         });
       }
     } catch (err) {
@@ -186,16 +322,19 @@ export default function ApiTestPage() {
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold mb-2">🔧 API Component Testing</h1>
           <p className="text-gray-600">
-            Test each generation API individually with single calls. Perfect for debugging and credit conservation.
+            Test each generation API individually. <strong>New:</strong> Single-item testing to save credits!
           </p>
         </div>
 
-        {/* Cost Info */}
-        <Alert className="bg-blue-50 border-blue-200">
-          <Info className="h-4 w-4 text-blue-600" />
-          <AlertTitle className="text-blue-800">Credit-Efficient Testing</AlertTitle>
-          <AlertDescription className="text-blue-700">
-            Each test makes exactly <strong>one API call</strong>. Estimated costs: Logo ~$0.001 | Mockup ~$0.01-0.15 | Social ~$0.003
+        {/* Credit Info */}
+        <Alert className="bg-green-50 border-green-200">
+          <Info className="h-4 w-4 text-green-600" />
+          <AlertTitle className="text-green-800">Credit-Efficient Testing Options</AlertTitle>
+          <AlertDescription className="text-green-700">
+            <strong>NEW:</strong> Test single items (1 credit each) or all items (3 credits). 
+            Use single-item tests to conserve credits! | 
+            Logo: 1 credit | Single Mockup: 1 credit | All Mockups: 3 credits | 
+            Single Social: 1 credit | All Social: 3 credits
           </AlertDescription>
         </Alert>
 
@@ -203,15 +342,15 @@ export default function ApiTestPage() {
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="logo" className="flex items-center gap-2">
               <ImageIcon className="w-4 h-4" />
-              1. Logo Generation
+              1. Logo (1 credit)
             </TabsTrigger>
             <TabsTrigger value="mockup" className="flex items-center gap-2">
               <Shirt className="w-4 h-4" />
-              2. Mockup Generation
+              2. Mockups (1 or 3)
             </TabsTrigger>
             <TabsTrigger value="social" className="flex items-center gap-2">
               <Share2 className="w-4 h-4" />
-              3. Social Assets
+              3. Social (1 or 3)
             </TabsTrigger>
           </TabsList>
 
@@ -222,6 +361,7 @@ export default function ApiTestPage() {
                 <CardTitle className="flex items-center gap-2">
                   <ImageIcon className="w-5 h-5" />
                   Test Logo Generation
+                  <Badge className="ml-2 bg-green-500">1 Credit</Badge>
                 </CardTitle>
                 <CardDescription>
                   Generates a single logo using the configured provider (Together AI by default)
@@ -229,7 +369,7 @@ export default function ApiTestPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <Label htmlFor="logoPrompt">Prompt (Optional)</Label>
+                  <Label htmlFor="logoPrompt">Prompt</Label>
                   <Textarea
                     id="logoPrompt"
                     value={logoPrompt}
@@ -237,9 +377,6 @@ export default function ApiTestPage() {
                     rows={3}
                     placeholder="Describe the logo you want to generate..."
                   />
-                  <p className="text-xs text-gray-500">
-                    Uses a default test prompt if left empty
-                  </p>
                 </div>
 
                 <Button 
@@ -250,10 +387,10 @@ export default function ApiTestPage() {
                   {logoLoading ? (
                     <>
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Generating Logo...
+                      Generating Logo (1 credit)...
                     </>
                   ) : (
-                    <>Test Logo Generation</>
+                    <>Generate Logo (1 credit)</>
                   )}
                 </Button>
 
@@ -288,6 +425,10 @@ export default function ApiTestPage() {
                               src={logoResult.data.imageUrl} 
                               alt="Generated logo"
                               className="w-full max-w-md mx-auto"
+                              onError={(e) => {
+                                console.error("Logo image failed to load:", e);
+                                (e.target as HTMLImageElement).style.display = 'none';
+                              }}
                             />
                           </div>
                         )}
@@ -325,7 +466,7 @@ export default function ApiTestPage() {
                   Test Mockup Generation
                 </CardTitle>
                 <CardDescription>
-                  Generates product mockups (t-shirt, mug, tote bag) using Dynamic Mockups API or AI fallback
+                  Test with 1 credit (single) or 3 credits (all). Use single to save credits!
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -333,8 +474,7 @@ export default function ApiTestPage() {
                   <AlertTriangle className="h-4 w-4 text-amber-600" />
                   <AlertTitle className="text-amber-800">Requires Logo URL</AlertTitle>
                   <AlertDescription className="text-amber-700">
-                    You need a logo image URL to test mockup generation. 
-                    Generate a logo first, or paste a public URL below.
+                    You need a logo image URL. Generate a logo first, or paste a public URL below.
                   </AlertDescription>
                 </Alert>
 
@@ -377,20 +517,71 @@ export default function ApiTestPage() {
                   />
                 </div>
 
-                <Button 
-                  onClick={testMockupGeneration} 
-                  disabled={mockupLoading || !mockupLogoUrl}
-                  className="w-full"
-                >
-                  {mockupLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Generating Mockups...
-                    </>
-                  ) : (
-                    <>Test Mockup Generation</>
-                  )}
-                </Button>
+                {/* SINGLE MOCKUP TEST (1 CREDIT) */}
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-green-500">RECOMMENDED - 1 Credit</Badge>
+                    <span className="text-sm font-medium text-green-800">Test Single Mockup</span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Select Product Type</Label>
+                    <Select value={mockupProductType} onValueChange={setMockupProductType}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select product..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="tshirt">👕 T-Shirt</SelectItem>
+                        <SelectItem value="mug">☕ Coffee Mug</SelectItem>
+                        <SelectItem value="totebag">🛍️ Tote Bag</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button 
+                    onClick={testSingleMockup} 
+                    disabled={mockupLoading || !mockupLogoUrl}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    {mockupLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Generating {mockupProductType} (1 credit)...
+                      </>
+                    ) : (
+                      <>Generate Single Mockup (1 credit)</>
+                    )}
+                  </Button>
+                </div>
+
+                <Separator />
+
+                {/* ALL MOCKUPS TEST (3 CREDITS) */}
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="destructive">3 Credits</Badge>
+                    <span className="text-sm font-medium text-amber-800">Test All Mockups</span>
+                  </div>
+                  <p className="text-xs text-amber-700">
+                    Generates T-Shirt + Mug + Tote Bag in one call. Uses 3 API credits.
+                  </p>
+
+                  <Button 
+                    onClick={testAllMockups} 
+                    disabled={mockupLoading || !mockupLogoUrl}
+                    variant="outline"
+                    className="w-full border-amber-400 text-amber-800 hover:bg-amber-100"
+                  >
+                    {mockupLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Generating All Mockups (3 credits)...
+                      </>
+                    ) : (
+                      <>Generate All Mockups (3 credits)</>
+                    )}
+                  </Button>
+                </div>
 
                 {!mockupLogoUrl && (
                   <p className="text-xs text-amber-600 text-center">
@@ -417,46 +608,102 @@ export default function ApiTestPage() {
                       )}
                     </div>
 
+                    {mockupResult.creditWarning && (
+                      <Alert className="mb-3 bg-amber-50 border-amber-200">
+                        <AlertTriangle className="h-4 w-4 text-amber-600" />
+                        <AlertDescription className="text-amber-700">
+                          {mockupResult.creditWarning}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
                     {mockupResult.success && mockupResult.data && (
                       <div className="space-y-4">
+                        {/* Debug info */}
+                        <div className="text-xs text-gray-500 mb-2">
+                          <strong>Provider:</strong> {mockupResult.provider || 'N/A'} | 
+                          <strong> Keys:</strong> {Object.keys(mockupResult.data).join(', ')}
+                        </div>
+                        
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {mockupResult.data.tshirt && (
+                          {(mockupResult.data.tshirt || mockupResult.data.tshirt === '') && (
                             <div className="text-center">
                               <p className="text-sm font-medium mb-2 text-green-800">T-Shirt</p>
-                              <div className="border rounded-lg overflow-hidden bg-white">
-                                <img 
-                                  src={mockupResult.data.tshirt} 
-                                  alt="T-shirt mockup"
-                                  className="w-full"
-                                />
-                              </div>
+                              {mockupResult.data.tshirt ? (
+                                <div className="border rounded-lg overflow-hidden bg-white">
+                                  <img 
+                                    src={mockupResult.data.tshirt} 
+                                    alt="T-shirt mockup"
+                                    className="w-full"
+                                    onError={(e) => {
+                                      console.error("T-shirt image failed to load:", e);
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <p className="text-xs text-gray-500">No image returned</p>
+                              )}
                             </div>
                           )}
-                          {mockupResult.data.coffeeMug && (
+                          {(mockupResult.data.coffeeMug || mockupResult.data.mug || mockupResult.data.coffeeMug === '' || mockupResult.data.mug === '') && (
                             <div className="text-center">
                               <p className="text-sm font-medium mb-2 text-green-800">Coffee Mug</p>
-                              <div className="border rounded-lg overflow-hidden bg-white">
-                                <img 
-                                  src={mockupResult.data.coffeeMug} 
-                                  alt="Mug mockup"
-                                  className="w-full"
-                                />
-                              </div>
+                              {mockupResult.data.coffeeMug || mockupResult.data.mug ? (
+                                <div className="border rounded-lg overflow-hidden bg-white">
+                                  <img 
+                                    src={mockupResult.data.coffeeMug || mockupResult.data.mug} 
+                                    alt="Mug mockup"
+                                    className="w-full"
+                                    onError={(e) => {
+                                      console.error("Mug image failed to load:", e);
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <p className="text-xs text-gray-500">No image returned</p>
+                              )}
                             </div>
                           )}
-                          {mockupResult.data.toteBag && (
+                          {(mockupResult.data.toteBag || mockupResult.data.totebag || mockupResult.data.toteBag === '' || mockupResult.data.totebag === '') && (
                             <div className="text-center">
                               <p className="text-sm font-medium mb-2 text-green-800">Tote Bag</p>
-                              <div className="border rounded-lg overflow-hidden bg-white">
-                                <img 
-                                  src={mockupResult.data.toteBag} 
-                                  alt="Tote bag mockup"
-                                  className="w-full"
-                                />
-                              </div>
+                              {mockupResult.data.toteBag || mockupResult.data.totebag ? (
+                                <div className="border rounded-lg overflow-hidden bg-white">
+                                  <img 
+                                    src={mockupResult.data.toteBag || mockupResult.data.totebag} 
+                                    alt="Tote bag mockup"
+                                    className="w-full"
+                                    onError={(e) => {
+                                      console.error("Tote image failed to load:", e);
+                                      (e.target as HTMLImageElement).style.display = 'none';
+                                    }}
+                                  />
+                                </div>
+                              ) : (
+                                <p className="text-xs text-gray-500">No image returned</p>
+                              )}
                             </div>
                           )}
                         </div>
+
+                        {/* Debug Toggle */}
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setShowMockupDebug(!showMockupDebug)}
+                          className="text-xs"
+                        >
+                          <Bug className="w-3 h-3 mr-1" />
+                          {showMockupDebug ? 'Hide' : 'Show'} Debug Info
+                        </Button>
+
+                        {showMockupDebug && mockupResult.rawResponse && (
+                          <div className="mt-2 p-2 bg-gray-100 rounded text-xs font-mono overflow-auto max-h-40">
+                            <pre>{JSON.stringify(mockupResult.rawResponse, null, 2)}</pre>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -465,8 +712,8 @@ export default function ApiTestPage() {
                         <p><strong>Error:</strong> {mockupResult.error}</p>
                         {mockupResult.error.includes("DYNAMIC_MOCKUPS_API_KEY") && (
                           <p className="text-xs mt-2">
-                            Make sure DYNAMIC_MOCKUPS_API_KEY is set in your .env.local file.
-                            Without it, the system will fall back to AI-generated mockups.
+                            Make sure DYNAMIC_MOCKUPS_API_KEY is set in your Vercel dashboard.
+                            Without it, the system falls back to AI-generated mockups (still works, just not pixel-perfect).
                           </p>
                         )}
                       </div>
@@ -486,7 +733,7 @@ export default function ApiTestPage() {
                   Test Social Asset Generation
                 </CardTitle>
                 <CardDescription>
-                  Generates social media assets (Instagram Post, YouTube Thumbnail, Website Hero)
+                  Test with 1 credit (single) or 3 credits (all platforms)
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -529,20 +776,71 @@ export default function ApiTestPage() {
                   />
                 </div>
 
-                <Button 
-                  onClick={testSocialGeneration} 
-                  disabled={socialLoading}
-                  className="w-full"
-                >
-                  {socialLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Generating Social Assets...
-                    </>
-                  ) : (
-                    <>Test Social Generation</>
-                  )}
-                </Button>
+                {/* SINGLE SOCIAL TEST (1 CREDIT) */}
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Badge className="bg-green-500">RECOMMENDED - 1 Credit</Badge>
+                    <span className="text-sm font-medium text-green-800">Test Single Social Asset</span>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Select Platform</Label>
+                    <Select value={socialPlatform} onValueChange={setSocialPlatform}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select platform..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="instagramPost">📷 Instagram Post (1:1)</SelectItem>
+                        <SelectItem value="youtubeThumbnail">🎬 YouTube Thumbnail (16:9)</SelectItem>
+                        <SelectItem value="websiteHero">🌐 Website Hero (16:9)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <Button 
+                    onClick={testSingleSocial} 
+                    disabled={socialLoading}
+                    className="w-full bg-green-600 hover:bg-green-700"
+                  >
+                    {socialLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Generating {socialPlatform} (1 credit)...
+                      </>
+                    ) : (
+                      <>Generate Single Social Asset (1 credit)</>
+                    )}
+                  </Button>
+                </div>
+
+                <Separator />
+
+                {/* ALL SOCIAL TEST (3 CREDITS) */}
+                <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg space-y-3">
+                  <div className="flex items-center gap-2">
+                    <Badge variant="destructive">3 Credits</Badge>
+                    <span className="text-sm font-medium text-amber-800">Test All Social Assets</span>
+                  </div>
+                  <p className="text-xs text-amber-700">
+                    Generates Instagram + YouTube + Website Hero in one call. Uses 3 API credits.
+                  </p>
+
+                  <Button 
+                    onClick={testAllSocial} 
+                    disabled={socialLoading}
+                    variant="outline"
+                    className="w-full border-amber-400 text-amber-800 hover:bg-amber-100"
+                  >
+                    {socialLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                        Generating All Social Assets (3 credits)...
+                      </>
+                    ) : (
+                      <>Generate All Social Assets (3 credits)</>
+                    )}
+                  </Button>
+                </div>
 
                 {/* Results */}
                 {socialResult && (
@@ -563,46 +861,88 @@ export default function ApiTestPage() {
                       )}
                     </div>
 
+                    {socialResult.creditWarning && (
+                      <Alert className="mb-3 bg-amber-50 border-amber-200">
+                        <AlertTriangle className="h-4 w-4 text-amber-600" />
+                        <AlertDescription className="text-amber-700">
+                          {socialResult.creditWarning}
+                        </AlertDescription>
+                      </Alert>
+                    )}
+
                     {socialResult.success && socialResult.data && (
                       <div className="space-y-4">
+                        <div className="text-xs text-gray-500 mb-2">
+                          <strong>Keys:</strong> {Object.keys(socialResult.data).join(', ')}
+                        </div>
+                        
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                          {socialResult.data.instagramPost && (
+                          {(socialResult.data.instagramPost || socialResult.data.instagram_post) && (
                             <div className="text-center">
                               <p className="text-sm font-medium mb-2 text-green-800">Instagram Post</p>
                               <div className="border rounded-lg overflow-hidden bg-white">
                                 <img 
-                                  src={socialResult.data.instagramPost} 
+                                  src={socialResult.data.instagramPost || socialResult.data.instagram_post} 
                                   alt="Instagram Post"
                                   className="w-full"
+                                  onError={(e) => {
+                                    console.error("Instagram image failed to load:", e);
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
                                 />
                               </div>
                             </div>
                           )}
-                          {socialResult.data.youtubeThumbnail && (
+                          {(socialResult.data.youtubeThumbnail || socialResult.data.youtube_thumbnail) && (
                             <div className="text-center">
                               <p className="text-sm font-medium mb-2 text-green-800">YouTube Thumbnail</p>
                               <div className="border rounded-lg overflow-hidden bg-white">
                                 <img 
-                                  src={socialResult.data.youtubeThumbnail} 
+                                  src={socialResult.data.youtubeThumbnail || socialResult.data.youtube_thumbnail} 
                                   alt="YouTube Thumbnail"
                                   className="w-full"
+                                  onError={(e) => {
+                                    console.error("YouTube image failed to load:", e);
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
                                 />
                               </div>
                             </div>
                           )}
-                          {socialResult.data.websiteHero && (
+                          {(socialResult.data.websiteHero || socialResult.data.website_hero) && (
                             <div className="text-center">
                               <p className="text-sm font-medium mb-2 text-green-800">Website Hero</p>
                               <div className="border rounded-lg overflow-hidden bg-white">
                                 <img 
-                                  src={socialResult.data.websiteHero} 
+                                  src={socialResult.data.websiteHero || socialResult.data.website_hero} 
                                   alt="Website Hero"
                                   className="w-full"
+                                  onError={(e) => {
+                                    console.error("Hero image failed to load:", e);
+                                    (e.target as HTMLImageElement).style.display = 'none';
+                                  }}
                                 />
                               </div>
                             </div>
                           )}
                         </div>
+
+                        {/* Debug Toggle */}
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          onClick={() => setShowSocialDebug(!showSocialDebug)}
+                          className="text-xs"
+                        >
+                          <Bug className="w-3 h-3 mr-1" />
+                          {showSocialDebug ? 'Hide' : 'Show'} Debug Info
+                        </Button>
+
+                        {showSocialDebug && socialResult.rawResponse && (
+                          <div className="mt-2 p-2 bg-gray-100 rounded text-xs font-mono overflow-auto max-h-40">
+                            <pre>{JSON.stringify(socialResult.rawResponse, null, 2)}</pre>
+                          </div>
+                        )}
                       </div>
                     )}
 
@@ -616,19 +956,19 @@ export default function ApiTestPage() {
           </TabsContent>
         </Tabs>
 
-        {/* Additional Test Links */}
+        {/* Footer Links */}
         <Separator className="my-6" />
         
         <Card>
           <CardHeader>
-            <CardTitle>Other Test Pages</CardTitle>
+            <CardTitle>Quick Links</CardTitle>
           </CardHeader>
           <CardContent className="space-y-2">
             <div className="flex flex-wrap gap-2">
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild size="sm">
                 <a href="/test">Logo Provider Test</a>
               </Button>
-              <Button variant="outline" asChild>
+              <Button variant="outline" asChild size="sm">
                 <a href="/api/test/mockup-generation" target="_blank">Mockup API Info</a>
               </Button>
             </div>
