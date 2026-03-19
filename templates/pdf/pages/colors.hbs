@@ -1,0 +1,79 @@
+<!-- Color Palette Page -->
+<div class="page page-content">
+  <div class="section-header">
+    <div class="accent-bar"></div>
+    <h1>Color Palette</h1>
+    <p class="subtitle">Brand colors with specifications</p>
+  </div>
+  
+  <div class="section-body">
+    <p>{{colorPaletteText}}</p>
+    
+    {{#if primaryColors.length}}
+    <h2>Primary Colors</h2>
+    <p>Core brand colors that define your visual identity. Use for dominant elements and key brand touchpoints.</p>
+    <div class="color-grid">
+      {{#each primaryColors}}
+      <div class="color-swatch">
+        <div class="color-block" style="background: {{this}};">
+          <span style="color: {{contrastColor this}}; font-size: 8pt;">{{this}}</span>
+        </div>
+        <div class="color-info">
+          <div class="color-hex">{{this}}</div>
+          <div class="color-values">{{hexToRgb this}}</div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+    
+    {{#if secondaryColors.length}}
+    <h2>Secondary Colors</h2>
+    <p>Supporting colors that complement your primary palette.</p>
+    <div class="color-grid">
+      {{#each secondaryColors}}
+      <div class="color-swatch">
+        <div class="color-block" style="background: {{this}};">
+          <span style="color: {{contrastColor this}}; font-size: 8pt;">{{this}}</span>
+        </div>
+        <div class="color-info">
+          <div class="color-hex">{{this}}</div>
+          <div class="color-values">{{hexToRgb this}}</div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+    
+    {{#if accentColors.length}}
+    <h2>Accent Colors</h2>
+    <p>Use sparingly for highlights, calls-to-action, and emphasis.</p>
+    <div class="color-grid">
+      {{#each accentColors}}
+      <div class="color-swatch">
+        <div class="color-block" style="background: {{this}};">
+          <span style="color: {{contrastColor this}}; font-size: 8pt;">{{this}}</span>
+        </div>
+        <div class="color-info">
+          <div class="color-hex">{{this}}</div>
+          <div class="color-values">{{hexToRgb this}}</div>
+        </div>
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+    
+    <h2>Color Usage Proportions</h2>
+    <p>Follow the 60-30-10 rule for balanced color application:</p>
+    <ul>
+      <li><strong>60% Primary:</strong> Backgrounds, major UI elements</li>
+      <li><strong>30% Secondary:</strong> Supporting elements, sections</li>
+      <li><strong>10% Accent:</strong> CTAs, highlights, emphasis</li>
+    </ul>
+  </div>
+  
+  <div class="page-footer">
+    <span>{{businessName}} Brand Guidelines</span>
+    <span>{{pageNumber}}</span>
+  </div>
+</div>

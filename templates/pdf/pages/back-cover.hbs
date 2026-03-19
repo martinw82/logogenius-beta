@@ -1,0 +1,19 @@
+<!-- Back Cover -->
+<div class="page page-back-cover">
+  {{#if logoSvg}}
+    <div class="logo-mark">
+      {{{logoSvg}}}
+    </div>
+  {{/if}}
+  
+  <div class="business-name">{{businessName}}</div>
+  
+  {{#if tagline}}
+  <div class="tagline">{{tagline}}</div>
+  {{/if}}
+  
+  <div class="meta">
+    Brand Guidelines v1.0 | {{formatDate createdAt}}
+    {{#if authorEmail}}<br>{{authorEmail}}{{/if}}
+  </div>
+</div>

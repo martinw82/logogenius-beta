@@ -1,0 +1,64 @@
+<!-- Mockups Page -->
+<div class="page page-content">
+  <div class="section-header">
+    <div class="accent-bar"></div>
+    <h1>Logo Mockups</h1>
+    <p class="subtitle">Real-world applications of your brand</p>
+  </div>
+  
+  <div class="section-body">
+    <p>Your logo applied across various media and products. These mockups demonstrate how your brand maintains consistency while adapting to different contexts.</p>
+    
+    <div class="mockup-grid">
+      {{#if mockups.businesscard}}
+      <div class="mockup-item">
+        <img src="{{mockups.businesscard}}" alt="Business Card Mockup">
+        <div class="mockup-label">Business Card</div>
+      </div>
+      {{/if}}
+      
+      {{#if mockups.letterhead}}
+      <div class="mockup-item">
+        <img src="{{mockups.letterhead}}" alt="Letterhead Mockup">
+        <div class="mockup-label">Letterhead</div>
+      </div>
+      {{/if}}
+      
+      {{#if mockups.tshirt}}
+      <div class="mockup-item">
+        <img src="{{mockups.tshirt}}" alt="T-Shirt Mockup">
+        <div class="mockup-label">Apparel</div>
+      </div>
+      {{/if}}
+      
+      {{#if mockups.coffeeMug}}
+      <div class="mockup-item">
+        <img src="{{mockups.coffeeMug}}" alt="Coffee Mug Mockup">
+        <div class="mockup-label">Coffee Mug</div>
+      </div>
+      {{/if}}
+      
+      {{#if mockups.toteBag}}
+      <div class="mockup-item">
+        <img src="{{mockups.toteBag}}" alt="Tote Bag Mockup">
+        <div class="mockup-label">Tote Bag</div>
+      </div>
+      {{/if}}
+    </div>
+    
+    <h2>Mockup Guidelines</h2>
+    <p>When creating new mockups or applying your brand to physical products:</p>
+    <ul>
+      <li>Ensure adequate contrast between logo and background</li>
+      <li>Maintain minimum clear space around the logo</li>
+      <li>Use approved color variations only</li>
+      <li>Consider the viewing distance and context</li>
+      <li>Test at multiple sizes before final production</li>
+    </ul>
+  </div>
+  
+  <div class="page-footer">
+    <span>{{businessName}} Brand Guidelines</span>
+    <span>{{pageNumber}}</span>
+  </div>
+</div>

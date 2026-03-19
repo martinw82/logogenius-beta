@@ -5,6 +5,9 @@ import { createBrandAssetZip } from './zip-packager';
 import { saveFile, saveTextFile, generateFileName } from './file-manager';
 import { generateAIMockups } from './ai-mockup-generator';
 import { generateAISocialAssets } from './ai-social-generator';
+import { getRandomBrandAssets } from './brand-assets';
+import { transformOrderDataToPDFData } from './pdf-data-transformer';
+import type { PuppeteerPDFData } from './pdf-data-transformer';
 
 function hexToRgbSafe(hex: string): { r: number; g: number; b: number } {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
@@ -214,43 +217,89 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
     console.log(`[${input.orderId}] Mockups present:`, Object.keys(mockupData).filter(k => !!mockupData[k]));
     
     let pdfBuffer;
-    try {
-      pdfBuffer = await generateBrandGuidePDF({
-      businessName: input.businessName,
-      tagline: orderData.tagline,
-      logo: logoVariant?.svgData ? {
-        url: logoVariant.svgData,
-        colors: orderData.colorPalette?.primary || []
-      } : undefined,
-      mockups: {
-        letterhead: mockupData['letterhead'],
-        businesscard: mockupData['businesscard'],
-        tshirt: mockupData['ai_tshirt'] || mockupData['tshirt'],
-        coffeeMug: mockupData['ai_mug'],
-        toteBag: mockupData['ai_tote'],
-      },
-      fonts: orderData.fonts,
-      sections: {
-        projectOverview: orderData.projectOverview,
-        brandIdentity: orderData.brandIdentity,
-        logoPhilosophy: orderData.logoPhilosophy,
-        colorPalette: orderData.colorPalette,
-        colorAccessibility: orderData.colorAccessibility,
-        typography: orderData.typography,
-        imageryStyle: orderData.imageryStyle,
-        graphicElements: orderData.graphicElements,
-        brandVoice: orderData.brandVoice,
-        visualStyleGuide: orderData.visualStyleGuide,
-        usageRulesAndDonts: orderData.usageRulesAndDonts,
-        web3Section: orderData.web3Section,
-        appendix: orderData.appendix,
-      },
-      createdAt: new Date(),
-      authorEmail: order.customerEmail,
-    });
-    } catch (pdfGenError) {
-      console.error(`[${input.orderId}] PDF generation error:`, pdfGenError);
-      throw pdfGenError;
+    
+    // Use Puppeteer PDF generator if enabled
+    if (process.env.USE_PUPPETEER_PDF === 'true') {
+      console.log(`[${input.orderId}] Using Puppeteer PDF generator...`);
+      try {
+        // Get archetype-based brand assets
+        const brandAssets = await getRandomBrandAssets(
+          orderData.brandArchetype || 'The Hero',
+          input.orderId
+        );
+        console.log(`[${input.orderId}] Archetype assets: ${brandAssets.packName}`, {
+          texture: brandAssets.selectedTexture,
+          accent: brandAssets.selectedAccent,
+        });
+        
+        // Transform data for Puppeteer
+        const pdfData: PuppeteerPDFData = transformOrderDataToPDFData(
+          orderData,
+          logoVariant?.svgData || null,
+          {
+            letterhead: mockupData['letterhead'],
+            businesscard: mockupData['businesscard'],
+            tshirt: mockupData['ai_tshirt'] || mockupData['tshirt'],
+            coffeeMug: mockupData['ai_mug'],
+            toteBag: mockupData['ai_tote'],
+          },
+          {}, // social assets (not in PDF)
+          brandAssets,
+          input.orderId,
+          order.customerEmail || undefined
+        );
+        
+        // Generate PDF with Puppeteer
+        const { generateBrandGuidePDFPuppeteer } = await import('./pdf-generator-puppeteer');
+        pdfBuffer = await generateBrandGuidePDFPuppeteer(pdfData);
+        console.log(`[${input.orderId}] Puppeteer PDF generated successfully`);
+      } catch (puppeteerError) {
+        console.error(`[${input.orderId}] Puppeteer PDF failed, falling back to jsPDF:`, puppeteerError);
+        // Fall through to jsPDF fallback
+      }
+    }
+    
+    // Fallback to jsPDF if Puppeteer not enabled or failed
+    if (!pdfBuffer) {
+      console.log(`[${input.orderId}] Using jsPDF generator...`);
+      try {
+        pdfBuffer = await generateBrandGuidePDF({
+          businessName: input.businessName,
+          tagline: orderData.tagline,
+          logo: logoVariant?.svgData ? {
+            url: logoVariant.svgData,
+            colors: orderData.colorPalette?.primary || []
+          } : undefined,
+          mockups: {
+            letterhead: mockupData['letterhead'],
+            businesscard: mockupData['businesscard'],
+            tshirt: mockupData['ai_tshirt'] || mockupData['tshirt'],
+            coffeeMug: mockupData['ai_mug'],
+            toteBag: mockupData['ai_tote'],
+          },
+          fonts: orderData.fonts,
+          sections: {
+            projectOverview: orderData.projectOverview,
+            brandIdentity: orderData.brandIdentity,
+            logoPhilosophy: orderData.logoPhilosophy,
+            colorPalette: orderData.colorPalette,
+            colorAccessibility: orderData.colorAccessibility,
+            typography: orderData.typography,
+            imageryStyle: orderData.imageryStyle,
+            graphicElements: orderData.graphicElements,
+            brandVoice: orderData.brandVoice,
+            visualStyleGuide: orderData.visualStyleGuide,
+            usageRulesAndDonts: orderData.usageRulesAndDonts,
+            web3Section: orderData.web3Section,
+            appendix: orderData.appendix,
+          },
+          createdAt: new Date(),
+          authorEmail: order.customerEmail,
+        });
+      } catch (pdfGenError) {
+        console.error(`[${input.orderId}] PDF generation error:`, pdfGenError);
+        throw pdfGenError;
+      }
     }
 
     console.log(`[${input.orderId}] PDF buffer generated, size: ${pdfBuffer?.length || 0} bytes`);

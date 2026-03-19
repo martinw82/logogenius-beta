@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{businessName}} - Brand Guidelines</title>
+  <style>
+    /* Google Fonts import - using user's selected fonts */
+    @import url('https://fonts.googleapis.com/css2?family={{googleFontHeadings}}:wght@400;500;600;700&family={{googleFontBody}}:wght@400;500&display=swap');
+    
+    :root {
+      --primary: {{primaryColor}};
+      --secondary: {{secondaryColor}};
+      --accent: {{accentColor}};
+      --primary-rgb: {{primaryColorRgb}};
+      --text-dark: #1a1a1a;
+      --text-light: #666666;
+      --text-muted: #999999;
+      --bg-light: #f8f8f8;
+      --border-light: #e5e5e5;
+      --font-heading: '{{fontHeadings}}', 'Georgia', serif;
+      --font-body: '{{fontBody}}', 'Helvetica Neue', Arial, sans-serif;
+      
+      /* A4 dimensions */
+      --page-width: 210mm;
+      --page-height: 297mm;
+      --margin: 20mm;
+      --content-width: 170mm;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: var(--font-body);
+      font-size: 10pt;
+      line-height: 1.6;
+      color: var(--text-dark);
+      background: white;
+    }
+    
+    /* Page container - A4 size */
+    .page {
+      width: var(--page-width);
+      height: var(--page-height);
+      position: relative;
+      overflow: hidden;
+      page-break-after: always;
+      background: white;
+    }
+    
+    .page:last-child {
+      page-break-after: auto;
+    }
+    
+    /* Cover page specific */
+    .page-cover {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .page-cover .texture-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.15;
+      mix-blend-mode: overlay;
+    }
+    
+    .page-cover .logo-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60%;
+      text-align: center;
+    }
+    
+    .page-cover .logo-svg {
+      max-width: 100%;
+      max-height: 200px;
+      filter: drop-shadow(0 10px 30px rgba(0,0,0,0.3));
+    }
+    
+    .page-cover .business-name {
+      position: absolute;
+      bottom: 60mm;
+      left: var(--margin);
+      font-family: var(--font-heading);
+      font-size: 48pt;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      max-width: calc(100% - var(--margin) * 2);
+    }
+    
+    .page-cover .tagline {
+      position: absolute;
+      bottom: 45mm;
+      left: var(--margin);
+      font-family: var(--font-body);
+      font-size: 14pt;
+      font-weight: 400;
+      opacity: 0.9;
+    }
+    
+    .page-cover .guidelines-label {
+      position: absolute;
+      top: var(--margin);
+      right: var(--margin);
+      font-family: var(--font-body);
+      font-size: 9pt;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      opacity: 0.7;
+      transform: rotate(90deg);
+      transform-origin: right top;
+    }
+    
+    .page-cover .accent-element {
+      position: absolute;
+      {{accentSide}}: 15mm;
+      top: 30mm;
+      width: 80mm;
+      opacity: {{accentOpacity}}%;
+      transform: rotate({{accentRotation}}deg);
+      pointer-events: none;
+    }
+    
+    .page-cover .date-footer {
+      position: absolute;
+      bottom: var(--margin);
+      left: var(--margin);
+      font-size: 8pt;
+      opacity: 0.6;
+    }
+    
+    /* Content pages */
+    .page-content {
+      padding: var(--margin);
+    }
+    
+    /* Section header */
+    .section-header {
+      margin-bottom: 15mm;
+      padding-bottom: 5mm;
+      border-bottom: 1pt solid var(--border-light);
+    }
+    
+    .section-header .accent-bar {
+      width: 15mm;
+      height: 4pt;
+      background: var(--primary);
+      margin-bottom: 4mm;
+    }
+    
+    .section-header h1 {
+      font-family: var(--font-heading);
+      font-size: 24pt;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 2mm;
+      letter-spacing: -0.01em;
+    }
+    
+    .section-header .subtitle {
+      font-family: var(--font-body);
+      font-size: 10pt;
+      color: var(--text-light);
+      font-weight: 400;
+    }
+    
+    /* Body content */
+    .section-body {
+      font-family: var(--font-body);
+      font-size: 10pt;
+      line-height: 1.7;
+      color: var(--text-dark);
+    }
+    
+    .section-body p {
+      margin-bottom: 4mm;
+      text-align: justify;
+    }
+    
+    .section-body h2 {
+      font-family: var(--font-heading);
+      font-size: 14pt;
+      font-weight: 600;
+      color: var(--primary);
+      margin: 6mm 0 3mm 0;
+    }
+    
+    .section-body h3 {
+      font-family: var(--font-heading);
+      font-size: 11pt;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin: 4mm 0 2mm 0;
+    }
+    
+    /* Page footer */
+    .page-footer {
+      position: absolute;
+      bottom: 10mm;
+      left: var(--margin);
+      right: var(--margin);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8pt;
+      color: var(--text-muted);
+      border-top: 0.5pt solid var(--border-light);
+      padding-top: 3mm;
+    }
+    
+    /* Table of contents */
+    .toc-list {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .toc-item {
+      display: flex;
+      align-items: baseline;
+      padding: 3mm 0;
+      border-bottom: 0.5pt dotted var(--border-light);
+    }
+    
+    .toc-number {
+      font-family: var(--font-heading);
+      font-size: 12pt;
+      font-weight: 700;
+      color: var(--primary);
+      width: 15mm;
+      flex-shrink: 0;
+    }
+    
+    .toc-title {
+      font-size: 11pt;
+      color: var(--text-dark);
+      flex-grow: 1;
+    }
+    
+    .toc-page {
+      font-size: 10pt;
+      color: var(--text-light);
+    }
+    
+    /* Color palette */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5mm;
+      margin: 5mm 0;
+    }
+    
+    .color-swatch {
+      border-radius: 2mm;
+      overflow: hidden;
+      border: 0.5pt solid var(--border-light);
+    }
+    
+    .color-swatch .color-block {
+      height: 25mm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .color-swatch .color-info {
+      padding: 3mm;
+      background: white;
+    }
+    
+    .color-swatch .color-hex {
+      font-family: var(--font-heading);
+      font-size: 10pt;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    
+    .color-swatch .color-values {
+      font-size: 7pt;
+      color: var(--text-light);
+      margin-top: 1mm;
+    }
+    
+    /* Typography showcase */
+    .type-showcase {
+      margin: 5mm 0;
+    }
+    
+    .type-sample {
+      padding: 4mm 0;
+      border-bottom: 0.5pt solid var(--border-light);
+    }
+    
+    .type-sample .sample-text {
+      font-size: 24pt;
+      margin-bottom: 1mm;
+    }
+    
+    .type-sample .sample-label {
+      font-size: 8pt;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    /* Mockup grid */
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 5mm;
+      margin: 5mm 0;
+    }
+    
+    .mockup-item {
+      border-radius: 2mm;
+      overflow: hidden;
+      border: 0.5pt solid var(--border-light);
+    }
+    
+    .mockup-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    
+    .mockup-item .mockup-label {
+      padding: 2mm 3mm;
+      font-size: 8pt;
+      color: var(--text-light);
+      background: var(--bg-light);
+    }
+    
+    /* Do/Don't cards */
+    .dos-donts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5mm;
+      margin: 5mm 0;
+    }
+    
+    .dd-card {
+      padding: 4mm;
+      border-radius: 2mm;
+    }
+    
+    .dd-card.do {
+      background: #f0fdf4;
+      border: 0.5pt solid #86efac;
+    }
+    
+    .dd-card.dont {
+      background: #fef2f2;
+      border: 0.5pt solid #fca5a5;
+    }
+    
+    .dd-card .dd-title {
+      font-family: var(--font-heading);
+      font-size: 11pt;
+      font-weight: 700;
+      margin-bottom: 2mm;
+    }
+    
+    .dd-card.do .dd-title { color: #16a34a; }
+    .dd-card.dont .dd-title { color: #dc2626; }
+    
+    .dd-card .dd-list {
+      list-style: none;
+      font-size: 9pt;
+      color: var(--text-dark);
+    }
+    
+    .dd-card .dd-list li {
+      padding: 1mm 0;
+      padding-left: 4mm;
+      position: relative;
+    }
+    
+    .dd-card .dd-list li::before {
+      position: absolute;
+      left: 0;
+    }
+    
+    .dd-card.do .dd-list li::before { content: "✓"; color: #16a34a; }
+    .dd-card.dont .dd-list li::before { content: "✕"; color: #dc2626; }
+    
+    /* Back cover */
+    .page-back-cover {
+      background: var(--primary);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    
+    .page-back-cover .logo-mark {
+      width: 40mm;
+      margin-bottom: 10mm;
+      opacity: 0.9;
+    }
+    
+    .page-back-cover .business-name {
+      font-family: var(--font-heading);
+      font-size: 24pt;
+      font-weight: 700;
+      margin-bottom: 3mm;
+    }
+    
+    .page-back-cover .tagline {
+      font-size: 11pt;
+      opacity: 0.8;
+      margin-bottom: 8mm;
+    }
+    
+    .page-back-cover .meta {
+      font-size: 8pt;
+      opacity: 0.6;
+    }
+    
+    /* Utility classes */
+    .text-center { text-align: center; }
+    .mt-1 { margin-top: 2mm; }
+    .mt-2 { margin-top: 4mm; }
+    .mb-1 { margin-bottom: 2mm; }
+    .mb-2 { margin-bottom: 4mm; }
+  </style>
+</head>
+<body>
+  {{{body}}}
+</body>
+</html>

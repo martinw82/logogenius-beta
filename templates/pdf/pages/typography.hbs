@@ -1,0 +1,87 @@
+<!-- Typography Page -->
+<div class="page page-content">
+  <div class="section-header">
+    <div class="accent-bar"></div>
+    <h1>Typography Guide</h1>
+    <p class="subtitle">Font families, hierarchy, and usage</p>
+  </div>
+  
+  <div class="section-body">
+    <p>{{typographyText}}</p>
+    
+    <h2>Selected Fonts</h2>
+    
+    {{#if fontHeadings}}
+    <div class="type-showcase">
+      <div class="type-sample">
+        <div class="sample-text" style="font-family: '{{fontHeadings}}', serif;">
+          {{fontHeadings}}
+        </div>
+        <div class="sample-label">Heading Font — Used for titles and headlines</div>
+        <div style="font-family: '{{fontHeadings}}', serif; font-size: 14pt; margin-top: 2mm;">
+          Aa Bb Cc Dd Ee Ff 123
+        </div>
+      </div>
+    </div>
+    {{/if}}
+    
+    {{#if fontBody}}
+    <div class="type-showcase">
+      <div class="type-sample">
+        <div class="sample-text" style="font-family: '{{fontBody}}', sans-serif;">
+          {{fontBody}}
+        </div>
+        <div class="sample-label">Body Font — Used for paragraphs and body text</div>
+        <div style="font-family: '{{fontBody}}', sans-serif; font-size: 11pt; margin-top: 2mm;">
+          The quick brown fox jumps over the lazy dog
+        </div>
+      </div>
+    </div>
+    {{/if}}
+    
+    {{#if fontOther}}
+    <div class="type-showcase">
+      <div class="type-sample">
+        <div class="sample-text" style="font-family: '{{fontOther}}', sans-serif;">
+          {{fontOther}}
+        </div>
+        <div class="sample-label">Accent Font — Used for special elements</div>
+      </div>
+    </div>
+    {{/if}}
+    
+    <h2>Type Hierarchy</h2>
+    
+    <div class="type-showcase">
+      <div class="type-sample">
+        <div style="font-family: '{{fontHeadings}}', serif; font-size: 28pt; font-weight: 700;">Display Heading</div>
+        <div class="sample-label">H1 — 28pt / Bold / {{fontHeadings}}</div>
+      </div>
+      
+      <div class="type-sample">
+        <div style="font-family: '{{fontHeadings}}', serif; font-size: 20pt; font-weight: 600;">Section Title</div>
+        <div class="sample-label">H2 — 20pt / Semi-bold / {{fontHeadings}}</div>
+      </div>
+      
+      <div class="type-sample">
+        <div style="font-family: '{{fontHeadings}}', serif; font-size: 14pt; font-weight: 600;">Subsection</div>
+        <div class="sample-label">H3 — 14pt / Semi-bold / {{fontHeadings}}</div>
+      </div>
+      
+      <div class="type-sample">
+        <div style="font-family: '{{fontBody}}', sans-serif; font-size: 11pt;">Body text for paragraphs and general content</div>
+        <div class="sample-label">Body — 11pt / Regular / {{fontBody}}</div>
+      </div>
+      
+      <div class="type-sample">
+        <div style="font-family: '{{fontBody}}', sans-serif; font-size: 8pt; color: #666;">Small text for captions and metadata</div>
+        <div class="sample-label">Caption — 8pt / Regular / {{fontBody}}</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="page-footer">
+    <span>{{businessName}} Brand Guidelines</span>
+    <span>{{pageNumber}}</span>
+  </div>
+</div>

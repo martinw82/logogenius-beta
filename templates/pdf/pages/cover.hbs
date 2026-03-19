@@ -1,0 +1,29 @@
+<!-- Cover Page -->
+<div class="page page-cover">
+  {{#if brandAssets.selectedTexture}}
+  <img src="{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedTexture}}" class="texture-bg" alt="">
+  {{/if}}
+  
+  {{#if brandAssets.selectedAccent}}
+  <img src="{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedAccent}}" class="accent-element" alt="" 
+       style="opacity: {{brandAssets.accentOpacity}}%; transform: rotate({{brandAssets.accentRotation}}deg); {{brandAssets.accentSide}}: 15mm;">
+  {{/if}}
+  
+  <div class="guidelines-label">Brand Guidelines</div>
+  
+  <div class="logo-container">
+    {{#if logoSvg}}
+      {{{logoSvg}}}
+    {{else}}
+      <div style="font-family: var(--font-heading); font-size: 36pt; font-weight: 700;">{{businessName}}</div>
+    {{/if}}
+  </div>
+  
+  <div class="business-name">{{businessName}}</div>
+  
+  {{#if tagline}}
+  <div class="tagline">{{tagline}}</div>
+  {{/if}}
+  
+  <div class="date-footer">{{formatDate createdAt}}</div>
+</div>
