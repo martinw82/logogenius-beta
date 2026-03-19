@@ -2,15 +2,24 @@
  * Image Generation Service - Provider Agnostic
  * 
  * Supports multiple providers:
- * - together (current)
- * - replicate
- * - fal
- * - google (imagen)
+ * - together (current) - SD/Flux via Together AI
+ * - replicate - Various models via Replicate
+ * - fal - Imagen 3 via Fal.ai
+ * - google - Imagen 3 direct
+ * - laozhang - OpenAI-compatible API
+ * - recraft - RECOMMENDED for logos (SVG output!)
  * 
  * Switch providers by setting IMAGE_GEN_PROVIDER env var
+ * 
+ * NOTE: For logo generation, Recraft is recommended because it outputs
+ * native SVG vectors that are editable and scalable. See generateWithRecraft()
+ * below and docs/ENVIRONMENT_VARIABLES.md for setup instructions.
+ * 
+ * TODO: When testing is complete, consider making Recraft the default provider
+ * for logo generation instead of Together AI (SD/Flux).
  */
 
-export type ImageGenProvider = 'together' | 'replicate' | 'fal' | 'google' | 'laozhang';
+export type ImageGenProvider = 'together' | 'replicate' | 'fal' | 'google' | 'laozhang' | 'recraft';
 
 export interface ImageGenOptions {
   prompt: string;
@@ -46,6 +55,8 @@ export async function generateImage(
       return generateWithGoogle(options);
     case 'laozhang':
       return generateWithLaozhang(options);
+    case 'recraft':
+      return generateWithRecraft(options);
     case 'together':
     default:
       return generateWithTogether(options);
@@ -308,4 +319,104 @@ async function generateWithLaozhang(options: ImageGenOptions): Promise<ImageGenR
     model: options.model || 'imagen-3',
     cost: 0.05, // ~$0.05 per image (similar to Replicate)
   };
+}
+
+// ==================== Recraft Provider ====================
+
+/**
+ * Recraft AI Logo Generation
+ * 
+ * RECOMMENDED for logo generation because it outputs native SVG vectors!
+ * 
+ * Cost: $0.044/image (V2 Vector) | $0.04/image (V3 Raster)
+ * Signup: https://www.recraft.ai
+ * 
+ * Setup:
+ * 1. Get API key from Recraft dashboard
+ * 2. Set RECRAFT_API_KEY in .env.local
+ * 3. Set RECRAFT_VECTOR_MODE=true for SVG output
+ * 4. Set IMAGE_GEN_PROVIDER=recraft
+ * 
+ * TODO: After testing confirms quality improvement:
+ * - Consider making Recraft the default provider for logos
+ * - Update storage logic to handle SVG files
+ * - Update customer download package to include SVG files
+ * - Document SVG editing workflow for customers
+ * 
+ * NOTE: This function returns SVG data when VECTOR_MODE=true. The imageUrl
+ * will be an SVG URL or base64-encoded SVG content. Make sure your storage
+ * and display logic can handle SVG files!
+ */
+async function generateWithRecraft(options: ImageGenOptions): Promise<ImageGenResult> {
+  const apiKey = process.env.RECRAFT_API_KEY;
+  if (!apiKey) throw new Error('RECRAFT_API_KEY not set');
+
+  // Determine if we want vector or raster output
+  const useVector = process.env.RECRAFT_VECTOR_MODE === 'true';
+  const recraftStyle = process.env.RECRAFT_STYLE || 'vector_illustration';
+  
+  // Recraft V2 for vector (cheaper), V3 for raster
+  const model = useVector ? 'recraftv2' : 'recraftv3';
+  
+  try {
+    const response = await fetch('https://external.api.recraft.ai/v1/images/generations', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        prompt: options.prompt,
+        model: model,
+        size: `${options.width || 1024}x${options.height || 1024}`,
+        // For vector generation, specify response format
+        ...(useVector && { response_format: 'svg' }),
+        // Style control
+        style: recraftStyle,
+      }),
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`Recraft API error: ${errorText}`);
+    }
+
+    const data = await response.json();
+    
+    // Recraft returns data in different formats depending on vector/raster
+    if (useVector) {
+      // Vector: Returns SVG URL or content
+      const svgUrl = data.data?.[0]?.url;
+      const svgContent = data.data?.[0]?.content;
+      
+      if (!svgUrl && !svgContent) {
+        throw new Error('No SVG data returned from Recraft');
+      }
+      
+      return {
+        imageUrl: svgUrl || `data:image/svg+xml;base64,${Buffer.from(svgContent).toString('base64')}`,
+        provider: 'recraft',
+        model: 'recraft-v2-vector',
+        cost: 0.044, // V2 vector pricing
+      };
+    } else {
+      // Raster: Returns base64 or URL
+      const imageUrl = data.data?.[0]?.url;
+      const b64Data = data.data?.[0]?.b64_json;
+      
+      if (!imageUrl && !b64Data) {
+        throw new Error('No image data returned from Recraft');
+      }
+      
+      return {
+        imageUrl: imageUrl || `data:image/png;base64,${b64Data}`,
+        provider: 'recraft',
+        model: 'recraft-v3-raster',
+        cost: 0.04, // V3 raster pricing
+      };
+    }
+  } catch (error) {
+    console.error('[Recraft] Generation failed:', error);
+    throw error;
+  }
 }

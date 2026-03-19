@@ -87,13 +87,23 @@ export async function POST(request: NextRequest) {
     const body = await request.json();
     const {
       tier, customerEmail, businessName, industry,
+      // Brand Identity
       aestheticKeywords, emotionalKeywords, functionalKeywords,
-      primaryColors, secondaryColors, accentColors,
-      preferredLogoStyle, composition, iconPlacement, iconComplexity,
-      fontStyle, fontHeadings, fontBody, fontOther,
+      missionStatement, brandPillars, brandArchetype, keyTagline,
+      // Colors
+      colorPaletteMood, primaryColors, secondaryColors, accentColors,
+      // Logo Style
+      preferredLogoStyle, composition, iconPlacement, iconComplexity, iconSpecifics, fontStyle,
+      // Typography
+      fontHeadings, fontBody, fontOther,
       useHeadingsFontForLogo, useBodyFontForLogo, useOtherFontForLogo,
-      missionStatement, brandPillars, brandArchetype, keyTagline, targetAudience,
-      web3, web3ProjectType, logoPreferences
+      // Brand Details
+      targetAudience, inspirationReferences, usageContext, negativeKeywords, competitorsToAvoid,
+      // Generation Settings
+      variationInstructions, numberOfLogos,
+      // Web3
+      web3, web3BlockchainFocus, web3ProjectType, web3EnsDomainIdeas, 
+      web3TokenSymbolIdea, web3CommunityValues, web3NftAesthetic,
     } = body;
 
     // Validate required fields
@@ -121,30 +131,49 @@ export async function POST(request: NextRequest) {
 
     // Add optional fields if provided
     const optionalFields: Record<string, string | undefined> = {
+      // Brand Identity
       aestheticKeywords,
       emotionalKeywords,
       functionalKeywords,
+      missionStatement,
+      brandPillars,
+      brandArchetype,
+      keyTagline,
+      // Colors
+      colorPaletteMood,
       primaryColors,
       secondaryColors,
       accentColors,
+      // Logo Style
       preferredLogoStyle,
       composition,
       iconPlacement,
       iconComplexity,
+      iconSpecifics,
       fontStyle,
+      // Typography
       fontHeadings,
       fontBody,
       fontOther,
       useHeadingsFontForLogo: useHeadingsFontForLogo ? 'true' : undefined,
       useBodyFontForLogo: useBodyFontForLogo ? 'true' : undefined,
       useOtherFontForLogo: useOtherFontForLogo ? 'true' : undefined,
-      missionStatement,
-      brandPillars,
-      brandArchetype,
-      keyTagline,
+      // Brand Details
       targetAudience,
+      inspirationReferences,
+      usageContext,
+      negativeKeywords,
+      competitorsToAvoid,
+      // Generation Settings
+      variationInstructions,
+      numberOfLogos: numberOfLogos?.toString(),
+      // Web3
+      web3BlockchainFocus,
       web3ProjectType,
-      logoPreferences,
+      web3EnsDomainIdeas,
+      web3TokenSymbolIdea,
+      web3CommunityValues,
+      web3NftAesthetic,
     };
 
     for (const [key, value] of Object.entries(optionalFields)) {
@@ -153,10 +182,9 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Add web3 flag
+    // Add web3 flag and related fields
     if (web3) {
       details.push({ fieldName: 'web3', fieldValue: 'true' });
-      details.push({ fieldName: 'web3BlockchainFocus', fieldValue: 'true' });
     }
 
     // Create order

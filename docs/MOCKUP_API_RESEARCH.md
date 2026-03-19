@@ -26,7 +26,7 @@ Find an API that takes a **PNG logo file** and composites it onto **photo-realis
 | **Templates** | BYO PSD | **100K+ built-in** + BYO PSD | 5,000+ built-in | 3,600+ built-in | AI-generated (unlimited) |
 | **Per-Render Cost** | **$0.002** | ~$0.05 | ~$0.04 | ~$0.10 | ~$0.06 |
 | **Monthly Plan** | Credit packs | From $49/mo (API) | ~$20/mo | $499/mo (5K renders) | From $12 (1K credits) |
-| **Free Tier** | 500 credits | 50 credits | 50 credits | 100 renders | Limited |
+| **Free Tier** | 500 credits | **50 credits** ⚠️ | 50 credits | 100 renders | Limited |
 | **Logo Fidelity** | Pixel-perfect | Pixel-perfect | Pixel-perfect | Pixel-perfect | Variable (AI) |
 | **Render Speed** | <1s | <1s | Fast | Fast | Slower |
 
@@ -38,7 +38,7 @@ Find an API that takes a **PNG logo file** and composites it onto **photo-realis
 - **100K+ built-in templates** — no need to source PSDs
 - JS SDK for easy Next.js integration
 - $0.05/render = ~$0.15 for 3 product mockups per order
-- 50 free credits to prototype
+- **50 free credits only** (not 1,000 as previously documented) ⚠️
 - Direct e-commerce integrations (Shopify, Etsy)
 
 ### Scale option: SudoMock ($0.002/render)
@@ -132,14 +132,36 @@ A full **3-provider switchable mockup system** has been implemented, mirroring t
 4. Results stored as base64 data URLs in OrderDetail
 ```
 
+### Dynamic Mockups API Response Format
+
+**Important:** The API returns the image URL at a nested path:
+
+```json
+{
+  "success": true,
+  "data": {
+    "export_path": "https://app-dynamicmockups-psd-engine-production.s3.eu-central-1.amazonaws.com/...",
+    "export_label": null
+  },
+  "message": ""
+}
+```
+
+**Extract the URL from:** `response.data.export_path`
+
+NOT from `response.url` or `response.image_url` as you might expect.
+
+---
+
 ### What Still Needs Doing
 
-- [ ] Sign up for Dynamic Mockups (1,000 free renders) — https://dynamicmockups.com
-- [ ] Browse template library and copy mockup_uuid + smart_object_uuid for t-shirt, mug, tote bag
-- [ ] Populate template UUIDs in `mockup-generation.ts`
+- [x] Sign up for Dynamic Mockups (**50 free credits only**) — https://dynamicmockups.com
+- [x] Browse template library and copy mockup_uuid + smart_object_uuid for t-shirt, mug, tote bag
+- [x] Populate template UUIDs in `mockup-generation.ts`
+- [x] Fix API response parsing (use `data.data.export_path`)
+- [x] Test end-to-end with a real logo ✅ **WORKING!**
 - [ ] Optionally sign up for MockupsJar (100 free/month) — https://mockupsjar.com/api
 - [ ] Optionally get imgbb API key (free) — https://api.imgbb.com/
-- [ ] Test end-to-end with a real logo
 - [ ] Compare quality across providers
 - [ ] Consider SudoMock for future self-hosted high-volume use
 

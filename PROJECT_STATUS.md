@@ -1,9 +1,44 @@
 # LogoGenius Project Status
 
-**Date:** 2026-03-17
-**Branch:** claude/analyze-codebase-plan-g5Vfs
-**Status:** Mockup API System Implemented - Needs API Keys + Template IDs
-**Completion:** ~85% (core product working, mockup APIs built, quality + polish remaining)
+**Date:** 2026-03-18 (Session End)
+**Branch:** kimi-does-it-best
+**Status:** Recraft AI Integration Complete - Ready for API Key Testing
+**Completion:** ~90% (logo provider upgrade coded, needs testing)
+
+---
+
+## 🎯 NEXT STEPS (When You Return)
+
+### Immediate (First Priority)
+1. **Get Recraft API Key**
+   - Go to https://www.recraft.ai
+   - Sign up and buy $5 credits
+   - Copy API key
+
+2. **Test Recraft Integration**
+   - Add to `.env.local`: `RECRAFT_API_KEY=your_key`
+   - Visit `/test/api-test` → Logo tab
+   - Select "Recraft AI" from provider dropdown
+   - Generate test logo
+   - Verify SVG output (should show ⭐ SVG! in results)
+
+3. **Compare Providers**
+   - Test same prompt with Together AI (current) vs Recraft
+   - Compare: quality, artifacts, pattern chaos, file format
+   - Decide: Is Recraft worth $0.172/order extra?
+
+### If Recraft Tests Pass
+4. **Update Production Logo Generation**
+   - Switch `IMAGE_GEN_PROVIDER=recraft` in production
+   - Update `logo-prompt-builder.ts` to use Recraft as default
+   - Test full order flow end-to-end
+
+5. **Handle SVG Files**
+   - Decide: Store SVG directly or generate both PNG+SVG?
+   - Update file upload/storage logic for SVG files
+   - Ensure customer can download editable logo files
+
+---
 
 ---
 
@@ -21,10 +56,40 @@
 - Order-processor has guard against re-generation (prevents double credit usage)
 - Test endpoint for single-call generation is available at /api/test/single-generation
 
+### Prompt Lab (Logo Testing)
+- **Location:** `/test/api-test` → Prompt Lab tab
+- **Features:**
+  - 4 SD-optimized templates (comma-separated format, anti-pattern language)
+  - **Composition Control:** Element count, arrangement, graphic motif, background type
+  - **Negative Prompt Support:** Blocks patterns, mockups, text, 3D renders
+  - **Style References:** Swiss International, Paul Rand, Y2K Tech, Art Deco, Brutalist
+  - Variable placeholders with anti-pattern constraints
+  - Test generation (1 credit per test)
+  - Save custom templates to localStorage
+- **Anti-Pattern Features:**
+  - "Single" / "One" / "Not a pattern" quantity locking
+  - "Isolated on background" for clean separation
+  - "App icon / favicon" keywords for centered single objects
+  - Default negative prompt blocks: text, patterns, collages, 3D renders
+- **Purpose:** Rapid iteration on logo generation prompts with SD/Flux best practices
+- **Status:** ✅ COMPLETED (v2 - Anti-Pattern Optimized)
+
 ### Logo Generation
-- 4 logo variants per order via Together AI ($0.004/order)
-- Template-based prompts (deterministic, no AI prompt engineering)
-- Provider abstraction - switch via env var
+- **Recraft AI Integration:** ✅ COMPLETED - Native SVG output, $0.044/image
+- **Prompt Adapter:** ✅ COMPLETED - Provider-specific prompt formatting (sd-flux, imagen3, recraft)
+- **Test Page:** ✅ COMPLETED - Provider selector dropdown for easy comparison
+- Legacy: 4 logo variants via Together AI ($0.004/order) - POOR QUALITY
+
+### Recraft AI (NEW - Ready for Testing)
+- **Status:** Coded, needs API key to test
+- **Cost:** $0.044/image (V2 Vector) | $0.04/image (V3 Raster)
+- **Output:** Native SVG vectors (infinitely scalable, editable!)
+- **Files:** 
+  - `src/lib/services/prompt-adapter.ts` - Provider-specific prompt formatting
+  - `src/lib/services/image-generation.ts` - Recraft provider implementation
+- **Env Vars:** `RECRAFT_API_KEY`, `RECRAFT_VECTOR_MODE=true`, `IMAGE_GEN_PROVIDER=recraft`
+- **Test Page:** `/test/api-test` → Logo tab → Select "Recraft AI" from dropdown
+- **Next Step:** Get API key, test generation, compare quality
 
 ### Mockups - Two Systems
 #### Canvas Mockups (Client-Side, FREE)
@@ -37,7 +102,7 @@
 - Photo-realistic product mockups with pixel-perfect logo compositing
 - Smart routing: tries real API first, falls back to AI-generated
 - Base64-to-URL bridge: Dynamic Mockups uses FormData binary upload, others use imgbb
-- **Status: Code complete, needs API keys + template UUIDs to activate**
+- **Status: ✅ WORKING!** API keys configured, template UUIDs populated, generating real mockups
 
 ### Social Media Assets (Canvas - Tier 3)
 - 10 platforms: Instagram Post/Story, Facebook Cover, Twitter Header, LinkedIn Banner, YouTube Thumbnail, Pinterest Pin, TikTok Cover, Email Header, Website Hero
@@ -75,13 +140,15 @@
 - Test endpoint at `/api/test/mockup-generation`
 - Full integration with order processor pipeline
 
-#### What Still Needs Doing
-1. **Sign up for Dynamic Mockups** (https://dynamicmockups.com) — 1,000 free renders
-2. **Browse template library** and copy `mockup_uuid` + `smart_object_uuid` for each product
-3. **Populate template UUIDs** in `src/lib/services/mockup-generation.ts`
-4. **Set `DYNAMIC_MOCKUPS_API_KEY`** in `.env.local`
-5. **Test end-to-end** with a real logo
-6. Optionally: sign up for MockupsJar (100 free/month), get imgbb API key (free)
+#### ✅ COMPLETED - March 18, 2026
+1. **Sign up for Dynamic Mockups** (https://dynamicmockups.com) — **50 free renders** (not 1,000!)
+2. **Browse template library** and copy `mockup_uuid` + `smart_object_uuid` for each product ✅
+3. **Populate template UUIDs** in `src/lib/services/mockup-generation.ts` ✅
+4. **Set `DYNAMIC_MOCKUPS_API_KEY`** in Vercel dashboard ✅
+5. **Test end-to-end** with a real logo ✅ **WORKING!**
+6. **Fixed API response parsing** - Dynamic Mockups returns URL at `data.data.export_path` ✅
+
+**Note:** Only 50 free renders from Dynamic Mockups (not 1,000 as originally documented). Use sparingly for testing!
 
 #### Social Media Images - Need Professional Quality
 - **Current:** Canvas-drawn gradients with logo overlay
@@ -102,9 +169,11 @@
 - Estimated: 4-6 hours
 
 ### PRIORITY 3: Logo Prompt Optimization
+**Status:** Infrastructure ready via Prompt Lab, needs prompt iteration
+- **Prompt Lab available** at `/test/api-test` for rapid iteration
 - Make prompts "super tight, super clean"
-- Style-specific templates per archetype
-- Add negative prompts
+- Style-specific templates per archetype (in progress via Prompt Lab)
+- Add negative prompts to templates
 - Consider upgrading to Google Imagen 3 (~$0.03/logo) or FLUX.1 (~$0.05/logo)
 
 ### PRIORITY 4: Email Integration
