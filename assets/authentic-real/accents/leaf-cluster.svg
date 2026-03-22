@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <!-- Organic leaf cluster / botanical shapes -->
+  <!-- Main large leaf -->
+  <path d="M150 280 C80 240 40 180 60 100 C80 20 150 10 150 10 C150 10 220 20 240 100 C260 180 220 240 150 280Z"
+        fill="none" stroke="#ffffff" stroke-width="2.5"/>
+  <!-- Center vein -->
+  <line x1="150" y1="280" x2="150" y2="10" stroke="#ffffff" stroke-width="1.5"/>
+  <!-- Side veins left -->
+  <line x1="150" y1="220" x2="80" y2="180" stroke="#ffffff" stroke-width="0.8"/>
+  <line x1="150" y1="180" x2="70" y2="150" stroke="#ffffff" stroke-width="0.8"/>
+  <line x1="150" y1="140" x2="75" y2="115" stroke="#ffffff" stroke-width="0.8"/>
+  <line x1="150" y1="100" x2="88" y2="82" stroke="#ffffff" stroke-width="0.8"/>
+  <!-- Side veins right -->
+  <line x1="150" y1="220" x2="220" y2="180" stroke="#ffffff" stroke-width="0.8"/>
+  <line x1="150" y1="180" x2="230" y2="150" stroke="#ffffff" stroke-width="0.8"/>
+  <line x1="150" y1="140" x2="225" y2="115" stroke="#ffffff" stroke-width="0.8"/>
+  <line x1="150" y1="100" x2="212" y2="82" stroke="#ffffff" stroke-width="0.8"/>
+  <!-- Small leaves -->
+  <path d="M60 90 C40 70 30 45 50 30 C70 15 80 40 60 90Z"
+        fill="none" stroke="#ffffff" stroke-width="1.5"/>
+  <line x1="60" y1="90" x2="50" y2="30" stroke="#ffffff" stroke-width="0.7"/>
+  <path d="M240 90 C260 70 270 45 250 30 C230 15 220 40 240 90Z"
+        fill="none" stroke="#ffffff" stroke-width="1.5"/>
+  <line x1="240" y1="90" x2="250" y2="30" stroke="#ffffff" stroke-width="0.7"/>
+  <!-- Small berry dots -->
+  <circle cx="35" cy="110" r="4" fill="#ffffff"/>
+  <circle cx="25" cy="130" r="3" fill="#ffffff"/>
+  <circle cx="45" cy="135" r="3.5" fill="#ffffff"/>
+  <circle cx="265" cy="110" r="4" fill="#ffffff"/>
+  <circle cx="275" cy="130" r="3" fill="#ffffff"/>
+  <circle cx="255" cy="135" r="3.5" fill="#ffffff"/>
+</svg>

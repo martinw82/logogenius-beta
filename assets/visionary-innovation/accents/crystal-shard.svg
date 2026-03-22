@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <!-- Abstract crystal/diamond shard cluster -->
+  <!-- Main large diamond -->
+  <polygon points="150,20 230,130 150,260 70,130" fill="none" stroke="#ffffff" stroke-width="2.5"/>
+  <!-- Inner facet lines -->
+  <line x1="150" y1="20" x2="150" y2="260" stroke="#ffffff" stroke-width="1"/>
+  <line x1="70" y1="130" x2="230" y2="130" stroke="#ffffff" stroke-width="1"/>
+  <line x1="150" y1="20" x2="110" y2="130" stroke="#ffffff" stroke-width="0.6"/>
+  <line x1="150" y1="20" x2="190" y2="130" stroke="#ffffff" stroke-width="0.6"/>
+  <line x1="70" y1="130" x2="150" y2="200" stroke="#ffffff" stroke-width="0.6"/>
+  <line x1="230" y1="130" x2="150" y2="200" stroke="#ffffff" stroke-width="0.6"/>
+  <!-- Small shard top-right -->
+  <polygon points="235,30 275,60 255,110 215,80" fill="none" stroke="#ffffff" stroke-width="1.5"/>
+  <line x1="235" y1="30" x2="255" y2="110" stroke="#ffffff" stroke-width="0.5"/>
+  <!-- Small shard bottom-left -->
+  <polygon points="25,190 65,220 50,270 10,240" fill="none" stroke="#ffffff" stroke-width="1.5"/>
+  <line x1="25" y1="190" x2="50" y2="270" stroke="#ffffff" stroke-width="0.5"/>
+  <!-- Small shard top-left -->
+  <polygon points="15,40 50,30 60,70 25,80" fill="none" stroke="#ffffff" stroke-width="1.2"/>
+  <!-- Glint marks -->
+  <line x1="220" y1="45" x2="220" y2="35" stroke="#ffffff" stroke-width="1.5"/>
+  <line x1="215" y1="40" x2="225" y2="40" stroke="#ffffff" stroke-width="1.5"/>
+  <line x1="80" y1="250" x2="80" y2="240" stroke="#ffffff" stroke-width="1.5"/>
+  <line x1="75" y1="245" x2="85" y2="245" stroke="#ffffff" stroke-width="1.5"/>
+</svg>

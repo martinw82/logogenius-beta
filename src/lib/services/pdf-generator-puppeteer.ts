@@ -248,18 +248,24 @@ async function launchBrowser(headless: boolean = true) {
         ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
         : '/usr/bin/chromium-browser');
   
+  const args = [
+    '--no-sandbox',
+    '--disable-setuid-sandbox',
+    '--disable-dev-shm-usage',
+    // Note: --disable-gpu omitted intentionally — it prevents Page.printToPDF in headless mode
+    '--font-render-hinting=none',
+  ];
+
+  if (headless) {
+    // Pass --headless=new explicitly for Chromium 112+ PDF generation support
+    args.push('--headless=new');
+  }
+
   return puppeteer.launch({
-    headless,
+    headless: false, // Managed via --headless=new in args above
     executablePath,
-    args: [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--disable-gpu',
-      '--font-render-hinting=none',
-    ],
-  });
+    args,
+  } as Parameters<typeof puppeteer.launch>[0]);
 }
 
 /**
@@ -281,13 +287,17 @@ export async function generateBrandGuidePDFPuppeteer(
     // Generate HTML
     const html = await generateHTML(data, options);
     
-    // Set content and wait for fonts/images to load
+    // Set content and wait for DOM to be ready.
+    // 'domcontentloaded' fires before external stylesheets/fonts resolve, avoiding
+    // timeouts in environments without internet access. Fallback fonts in CSS ensure
+    // the PDF renders correctly even without Google Fonts.
     await page.setContent(html, {
-      waitUntil: ['networkidle0', 'load', 'domcontentloaded'],
+      waitUntil: 'domcontentloaded',
+      timeout: 30000,
     });
-    
-    // Additional wait for Google Fonts to load
-    await page.waitForTimeout(2000);
+
+    // Brief wait for any synchronous rendering to complete
+    await page.waitForTimeout(500);
     
     // Generate PDF
     const pdfBuffer = await page.pdf({
@@ -346,16 +356,20 @@ export async function generateCoverPagePDF(
     });
     
     await page.setContent(html, {
-      waitUntil: ['networkidle0', 'load'],
+      waitUntil: 'domcontentloaded',
+      timeout: 30000,
     });
-    
-    await page.waitForTimeout(2000);
-    
-    return page.pdf({
+
+    await page.waitForTimeout(500);
+
+    // Must await here — returning a pending Promise inside try/finally causes
+    // browser.close() to run before PDF generation completes, killing the browser
+    const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
     });
+    return pdfBuffer;
   } finally {
     await browser.close();
   }

@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <!-- Compass / measurement circle -->
+  <!-- Outer circle -->
+  <circle cx="150" cy="150" r="130" fill="none" stroke="#ffffff" stroke-width="2"/>
+  <!-- Inner circle -->
+  <circle cx="150" cy="150" r="110" fill="none" stroke="#ffffff" stroke-width="0.8"/>
+  <!-- Center circle -->
+  <circle cx="150" cy="150" r="8" fill="none" stroke="#ffffff" stroke-width="2"/>
+  <circle cx="150" cy="150" r="2" fill="#ffffff"/>
+  <!-- Major tick marks (every 90°) -->
+  <line x1="150" y1="20" x2="150" y2="40" stroke="#ffffff" stroke-width="3"/>
+  <line x1="280" y1="150" x2="260" y2="150" stroke="#ffffff" stroke-width="3"/>
+  <line x1="150" y1="280" x2="150" y2="260" stroke="#ffffff" stroke-width="3"/>
+  <line x1="20" y1="150" x2="40" y2="150" stroke="#ffffff" stroke-width="3"/>
+  <!-- Minor tick marks (every 30°) -->
+  <line x1="215" y1="37" x2="207" y2="51" stroke="#ffffff" stroke-width="1.5"/>
+  <line x1="263" y1="85" x2="249" y2="93" stroke="#ffffff" stroke-width="1.5"/>
+  <line x1="263" y1="215" x2="249" y2="207" stroke="#ffffff" stroke-width="1.5"/>
+  <line x1="215" y1="263" x2="207" y2="249" stroke="#ffffff" stroke-width="1.5"/>
+  <line x1="85" y1="263" x2="93" y2="249" stroke="#ffffff" stroke-width="1.5"/>
+  <line x1="37" y1="215" x2="51" y2="207" stroke="#ffffff" stroke-width="1.5"/>
+  <line x1="37" y1="85" x2="51" y2="93" stroke="#ffffff" stroke-width="1.5"/>
+  <line x1="85" y1="37" x2="93" y2="51" stroke="#ffffff" stroke-width="1.5"/>
+  <!-- Fine tick marks (every 10°) -->
+  <line x1="176" y1="22" x2="173" y2="32" stroke="#ffffff" stroke-width="0.8"/>
+  <line x1="202" y1="28" x2="197" y2="37" stroke="#ffffff" stroke-width="0.8"/>
+  <line x1="227" y1="40" x2="220" y2="48" stroke="#ffffff" stroke-width="0.8"/>
+  <line x1="248" y1="57" x2="239" y2="63" stroke="#ffffff" stroke-width="0.8"/>
+  <line x1="264" y1="77" x2="255" y2="82" stroke="#ffffff" stroke-width="0.8"/>
+  <line x1="275" y1="100" x2="265" y2="103" stroke="#ffffff" stroke-width="0.8"/>
+  <line x1="278" y1="125" x2="268" y2="126" stroke="#ffffff" stroke-width="0.8"/>
+  <!-- Compass needle -->
+  <polygon points="150,50 145,150 150,155 155,150" fill="#ffffff" opacity="0.9"/>
+  <polygon points="150,250 145,150 150,145 155,150" fill="#ffffff" opacity="0.4"/>
+  <!-- Cardinal letters -->
+  <text x="146" y="16" font-size="10" fill="#ffffff" font-family="sans-serif" font-weight="bold">N</text>
+  <text x="146" y="294" font-size="10" fill="#ffffff" font-family="sans-serif" font-weight="bold">S</text>
+  <text x="286" y="155" font-size="10" fill="#ffffff" font-family="sans-serif" font-weight="bold">E</text>
+  <text x="8" y="155" font-size="10" fill="#ffffff" font-family="sans-serif" font-weight="bold">W</text>
+</svg>

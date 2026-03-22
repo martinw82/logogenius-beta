@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1120" width="800" height="1120">
+  <defs>
+    <style>circle { fill: none; stroke: #ffffff; }</style>
+  </defs>
+  <!-- Overlapping soft circles tiled across the page -->
+  <circle cx="80" cy="80" r="60" stroke-width="1.5"/>
+  <circle cx="200" cy="60" r="90" stroke-width="1"/>
+  <circle cx="350" cy="100" r="70" stroke-width="1.5"/>
+  <circle cx="500" cy="50" r="50" stroke-width="1"/>
+  <circle cx="650" cy="90" r="80" stroke-width="1.5"/>
+  <circle cx="760" cy="40" r="55" stroke-width="1"/>
+  <circle cx="40" cy="240" r="100" stroke-width="1"/>
+  <circle cx="180" cy="220" r="60" stroke-width="1.5"/>
+  <circle cx="310" cy="260" r="85" stroke-width="1"/>
+  <circle cx="460" cy="200" r="70" stroke-width="1.5"/>
+  <circle cx="600" cy="250" r="55" stroke-width="1"/>
+  <circle cx="730" cy="210" r="90" stroke-width="1.5"/>
+  <circle cx="100" cy="420" r="75" stroke-width="1"/>
+  <circle cx="250" cy="400" r="50" stroke-width="1.5"/>
+  <circle cx="400" cy="440" r="95" stroke-width="1"/>
+  <circle cx="550" cy="390" r="65" stroke-width="1.5"/>
+  <circle cx="690" cy="430" r="80" stroke-width="1"/>
+  <circle cx="790" cy="380" r="45" stroke-width="1.5"/>
+  <circle cx="60" cy="600" r="85" stroke-width="1"/>
+  <circle cx="210" cy="580" r="60" stroke-width="1.5"/>
+  <circle cx="360" cy="620" r="70" stroke-width="1"/>
+  <circle cx="510" cy="570" r="90" stroke-width="1.5"/>
+  <circle cx="660" cy="610" r="55" stroke-width="1"/>
+  <circle cx="770" cy="560" r="75" stroke-width="1.5"/>
+  <circle cx="120" cy="780" r="65" stroke-width="1"/>
+  <circle cx="270" cy="760" r="95" stroke-width="1.5"/>
+  <circle cx="420" cy="800" r="50" stroke-width="1"/>
+  <circle cx="570" cy="750" r="80" stroke-width="1.5"/>
+  <circle cx="710" cy="790" r="70" stroke-width="1"/>
+  <circle cx="50" cy="960" r="90" stroke-width="1.5"/>
+  <circle cx="200" cy="940" r="60" stroke-width="1"/>
+  <circle cx="350" cy="980" r="75" stroke-width="1.5"/>
+  <circle cx="500" cy="930" r="55" stroke-width="1"/>
+  <circle cx="650" cy="970" r="85" stroke-width="1.5"/>
+  <circle cx="780" cy="920" r="65" stroke-width="1"/>
+  <circle cx="140" cy="1090" r="70" stroke-width="1.5"/>
+  <circle cx="290" cy="1070" r="80" stroke-width="1"/>
+  <circle cx="450" cy="1100" r="50" stroke-width="1.5"/>
+  <circle cx="610" cy="1060" r="90" stroke-width="1"/>
+  <circle cx="750" cy="1090" r="60" stroke-width="1.5"/>
+</svg>

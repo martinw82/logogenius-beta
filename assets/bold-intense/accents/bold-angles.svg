@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <!-- Dynamic angular shapes — bold geometric corner element -->
+  <polygon points="0,0 200,0 0,200" fill="#ffffff" opacity="0.9"/>
+  <polygon points="300,300 100,300 300,100" fill="#ffffff" opacity="0.5"/>
+  <polygon points="0,0 80,0 0,80" fill="#ffffff" opacity="0.3"/>
+  <line x1="0" y1="240" x2="240" y2="0" stroke="#ffffff" stroke-width="4"/>
+  <line x1="0" y1="280" x2="280" y2="0" stroke="#ffffff" stroke-width="2"/>
+  <line x1="60" y1="300" x2="300" y2="60" stroke="#ffffff" stroke-width="2"/>
+</svg>

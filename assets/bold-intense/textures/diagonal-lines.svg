@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1120" width="800" height="1120">
+  <defs>
+    <style>line { stroke: #ffffff; stroke-linecap: square; }</style>
+  </defs>
+  <!-- Bold diagonal stripe pattern at 45 degrees -->
+  <line x1="-50" y1="0" x2="250" y2="300" stroke-width="3"/>
+  <line x1="30" y1="0" x2="330" y2="300" stroke-width="1.5"/>
+  <line x1="110" y1="0" x2="410" y2="300" stroke-width="3"/>
+  <line x1="190" y1="0" x2="490" y2="300" stroke-width="1.5"/>
+  <line x1="270" y1="0" x2="570" y2="300" stroke-width="3"/>
+  <line x1="350" y1="0" x2="650" y2="300" stroke-width="1.5"/>
+  <line x1="430" y1="0" x2="730" y2="300" stroke-width="3"/>
+  <line x1="510" y1="0" x2="810" y2="300" stroke-width="1.5"/>
+  <line x1="590" y1="0" x2="890" y2="300" stroke-width="3"/>
+  <line x1="670" y1="0" x2="970" y2="300" stroke-width="1.5"/>
+  <line x1="750" y1="0" x2="1050" y2="300" stroke-width="3"/>
+  <line x1="-50" y1="300" x2="250" y2="600" stroke-width="3"/>
+  <line x1="30" y1="300" x2="330" y2="600" stroke-width="1.5"/>
+  <line x1="110" y1="300" x2="410" y2="600" stroke-width="3"/>
+  <line x1="190" y1="300" x2="490" y2="600" stroke-width="1.5"/>
+  <line x1="270" y1="300" x2="570" y2="600" stroke-width="3"/>
+  <line x1="350" y1="300" x2="650" y2="600" stroke-width="1.5"/>
+  <line x1="430" y1="300" x2="730" y2="600" stroke-width="3"/>
+  <line x1="510" y1="300" x2="810" y2="600" stroke-width="1.5"/>
+  <line x1="590" y1="300" x2="890" y2="600" stroke-width="3"/>
+  <line x1="670" y1="300" x2="970" y2="600" stroke-width="1.5"/>
+  <line x1="-50" y1="600" x2="250" y2="900" stroke-width="3"/>
+  <line x1="30" y1="600" x2="330" y2="900" stroke-width="1.5"/>
+  <line x1="110" y1="600" x2="410" y2="900" stroke-width="3"/>
+  <line x1="190" y1="600" x2="490" y2="900" stroke-width="1.5"/>
+  <line x1="270" y1="600" x2="570" y2="900" stroke-width="3"/>
+  <line x1="350" y1="600" x2="650" y2="900" stroke-width="1.5"/>
+  <line x1="430" y1="600" x2="730" y2="900" stroke-width="3"/>
+  <line x1="510" y1="600" x2="810" y2="900" stroke-width="1.5"/>
+  <line x1="590" y1="600" x2="890" y2="900" stroke-width="3"/>
+  <line x1="-50" y1="900" x2="250" y2="1200" stroke-width="3"/>
+  <line x1="30" y1="900" x2="330" y2="1200" stroke-width="1.5"/>
+  <line x1="110" y1="900" x2="410" y2="1200" stroke-width="3"/>
+  <line x1="190" y1="900" x2="490" y2="1200" stroke-width="1.5"/>
+  <line x1="270" y1="900" x2="570" y2="1200" stroke-width="3"/>
+  <line x1="350" y1="900" x2="650" y2="1200" stroke-width="1.5"/>
+  <line x1="430" y1="900" x2="730" y2="1200" stroke-width="3"/>
+  <line x1="510" y1="900" x2="810" y2="1200" stroke-width="1.5"/>
+  <line x1="590" y1="900" x2="890" y2="1200" stroke-width="3"/>
+</svg>

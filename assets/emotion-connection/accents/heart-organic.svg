@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <!-- Organic heart / loop shape — flowing, not geometric -->
+  <!-- Main heart path -->
+  <path d="M150 240 C60 180 20 130 20 90 C20 50 50 30 85 30 C110 30 135 45 150 65 C165 45 190 30 215 30 C250 30 280 50 280 90 C280 130 240 180 150 240Z"
+        fill="none" stroke="#ffffff" stroke-width="3" stroke-linejoin="round"/>
+  <!-- Inner decorative loops -->
+  <path d="M150 200 C90 165 60 135 65 105 C70 82 88 72 105 76 C122 80 137 95 150 115 C163 95 178 80 195 76 C212 72 230 82 235 105 C240 135 210 165 150 200Z"
+        fill="none" stroke="#ffffff" stroke-width="1.5"/>
+  <!-- Small accent hearts -->
+  <path d="M50 250 C35 240 28 230 28 222 C28 214 34 210 40 210 C44 210 48 213 50 217 C52 213 56 210 60 210 C66 210 72 214 72 222 C72 230 65 240 50 250Z"
+        fill="none" stroke="#ffffff" stroke-width="1.5"/>
+  <path d="M250 50 C240 42 235 35 235 28 C235 21 239 17 244 17 C247 17 250 19 252 22 C254 19 257 17 260 17 C265 17 269 21 269 28 C269 35 264 42 252 50Z"
+        fill="none" stroke="#ffffff" stroke-width="1.5"/>
+  <!-- Decorative dots -->
+  <circle cx="150" cy="270" r="5" fill="#ffffff"/>
+  <circle cx="130" cy="265" r="3" fill="#ffffff"/>
+  <circle cx="170" cy="265" r="3" fill="#ffffff"/>
+  <circle cx="110" cy="255" r="2" fill="#ffffff"/>
+  <circle cx="190" cy="255" r="2" fill="#ffffff"/>
+</svg>

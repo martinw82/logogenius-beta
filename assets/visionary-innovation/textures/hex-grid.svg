@@ -1,0 +1,175 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1120" width="800" height="1120">
+  <defs>
+    <!-- Hexagon: flat-top, size 40 -->
+    <polygon id="hex" points="40,0 20,34.6 -20,34.6 -40,0 -20,-34.6 20,-34.6"
+             fill="none" stroke="#ffffff" stroke-width="1"/>
+  </defs>
+  <!-- Row 0 -->
+  <use href="#hex" transform="translate(40,40)"/>
+  <use href="#hex" transform="translate(120,40)"/>
+  <use href="#hex" transform="translate(200,40)"/>
+  <use href="#hex" transform="translate(280,40)"/>
+  <use href="#hex" transform="translate(360,40)"/>
+  <use href="#hex" transform="translate(440,40)"/>
+  <use href="#hex" transform="translate(520,40)"/>
+  <use href="#hex" transform="translate(600,40)"/>
+  <use href="#hex" transform="translate(680,40)"/>
+  <use href="#hex" transform="translate(760,40)"/>
+  <!-- Row 1 (offset) -->
+  <use href="#hex" transform="translate(80,109.3)"/>
+  <use href="#hex" transform="translate(160,109.3)"/>
+  <use href="#hex" transform="translate(240,109.3)"/>
+  <use href="#hex" transform="translate(320,109.3)"/>
+  <use href="#hex" transform="translate(400,109.3)"/>
+  <use href="#hex" transform="translate(480,109.3)"/>
+  <use href="#hex" transform="translate(560,109.3)"/>
+  <use href="#hex" transform="translate(640,109.3)"/>
+  <use href="#hex" transform="translate(720,109.3)"/>
+  <!-- Row 2 -->
+  <use href="#hex" transform="translate(40,178.6)"/>
+  <use href="#hex" transform="translate(120,178.6)"/>
+  <use href="#hex" transform="translate(200,178.6)"/>
+  <use href="#hex" transform="translate(280,178.6)"/>
+  <use href="#hex" transform="translate(360,178.6)"/>
+  <use href="#hex" transform="translate(440,178.6)"/>
+  <use href="#hex" transform="translate(520,178.6)"/>
+  <use href="#hex" transform="translate(600,178.6)"/>
+  <use href="#hex" transform="translate(680,178.6)"/>
+  <use href="#hex" transform="translate(760,178.6)"/>
+  <!-- Row 3 (offset) -->
+  <use href="#hex" transform="translate(80,247.9)"/>
+  <use href="#hex" transform="translate(160,247.9)"/>
+  <use href="#hex" transform="translate(240,247.9)"/>
+  <use href="#hex" transform="translate(320,247.9)"/>
+  <use href="#hex" transform="translate(400,247.9)"/>
+  <use href="#hex" transform="translate(480,247.9)"/>
+  <use href="#hex" transform="translate(560,247.9)"/>
+  <use href="#hex" transform="translate(640,247.9)"/>
+  <use href="#hex" transform="translate(720,247.9)"/>
+  <!-- Row 4 -->
+  <use href="#hex" transform="translate(40,317.2)"/>
+  <use href="#hex" transform="translate(120,317.2)"/>
+  <use href="#hex" transform="translate(200,317.2)"/>
+  <use href="#hex" transform="translate(280,317.2)"/>
+  <use href="#hex" transform="translate(360,317.2)"/>
+  <use href="#hex" transform="translate(440,317.2)"/>
+  <use href="#hex" transform="translate(520,317.2)"/>
+  <use href="#hex" transform="translate(600,317.2)"/>
+  <use href="#hex" transform="translate(680,317.2)"/>
+  <use href="#hex" transform="translate(760,317.2)"/>
+  <!-- Row 5 (offset) -->
+  <use href="#hex" transform="translate(80,386.5)"/>
+  <use href="#hex" transform="translate(160,386.5)"/>
+  <use href="#hex" transform="translate(240,386.5)"/>
+  <use href="#hex" transform="translate(320,386.5)"/>
+  <use href="#hex" transform="translate(400,386.5)"/>
+  <use href="#hex" transform="translate(480,386.5)"/>
+  <use href="#hex" transform="translate(560,386.5)"/>
+  <use href="#hex" transform="translate(640,386.5)"/>
+  <use href="#hex" transform="translate(720,386.5)"/>
+  <!-- Row 6 -->
+  <use href="#hex" transform="translate(40,455.8)"/>
+  <use href="#hex" transform="translate(120,455.8)"/>
+  <use href="#hex" transform="translate(200,455.8)"/>
+  <use href="#hex" transform="translate(280,455.8)"/>
+  <use href="#hex" transform="translate(360,455.8)"/>
+  <use href="#hex" transform="translate(440,455.8)"/>
+  <use href="#hex" transform="translate(520,455.8)"/>
+  <use href="#hex" transform="translate(600,455.8)"/>
+  <use href="#hex" transform="translate(680,455.8)"/>
+  <use href="#hex" transform="translate(760,455.8)"/>
+  <!-- Row 7 (offset) -->
+  <use href="#hex" transform="translate(80,525.1)"/>
+  <use href="#hex" transform="translate(160,525.1)"/>
+  <use href="#hex" transform="translate(240,525.1)"/>
+  <use href="#hex" transform="translate(320,525.1)"/>
+  <use href="#hex" transform="translate(400,525.1)"/>
+  <use href="#hex" transform="translate(480,525.1)"/>
+  <use href="#hex" transform="translate(560,525.1)"/>
+  <use href="#hex" transform="translate(640,525.1)"/>
+  <use href="#hex" transform="translate(720,525.1)"/>
+  <!-- Row 8 -->
+  <use href="#hex" transform="translate(40,594.4)"/>
+  <use href="#hex" transform="translate(120,594.4)"/>
+  <use href="#hex" transform="translate(200,594.4)"/>
+  <use href="#hex" transform="translate(280,594.4)"/>
+  <use href="#hex" transform="translate(360,594.4)"/>
+  <use href="#hex" transform="translate(440,594.4)"/>
+  <use href="#hex" transform="translate(520,594.4)"/>
+  <use href="#hex" transform="translate(600,594.4)"/>
+  <use href="#hex" transform="translate(680,594.4)"/>
+  <use href="#hex" transform="translate(760,594.4)"/>
+  <!-- Row 9 (offset) -->
+  <use href="#hex" transform="translate(80,663.7)"/>
+  <use href="#hex" transform="translate(160,663.7)"/>
+  <use href="#hex" transform="translate(240,663.7)"/>
+  <use href="#hex" transform="translate(320,663.7)"/>
+  <use href="#hex" transform="translate(400,663.7)"/>
+  <use href="#hex" transform="translate(480,663.7)"/>
+  <use href="#hex" transform="translate(560,663.7)"/>
+  <use href="#hex" transform="translate(640,663.7)"/>
+  <use href="#hex" transform="translate(720,663.7)"/>
+  <!-- Row 10 -->
+  <use href="#hex" transform="translate(40,733)"/>
+  <use href="#hex" transform="translate(120,733)"/>
+  <use href="#hex" transform="translate(200,733)"/>
+  <use href="#hex" transform="translate(280,733)"/>
+  <use href="#hex" transform="translate(360,733)"/>
+  <use href="#hex" transform="translate(440,733)"/>
+  <use href="#hex" transform="translate(520,733)"/>
+  <use href="#hex" transform="translate(600,733)"/>
+  <use href="#hex" transform="translate(680,733)"/>
+  <use href="#hex" transform="translate(760,733)"/>
+  <!-- Row 11 (offset) -->
+  <use href="#hex" transform="translate(80,802.3)"/>
+  <use href="#hex" transform="translate(160,802.3)"/>
+  <use href="#hex" transform="translate(240,802.3)"/>
+  <use href="#hex" transform="translate(320,802.3)"/>
+  <use href="#hex" transform="translate(400,802.3)"/>
+  <use href="#hex" transform="translate(480,802.3)"/>
+  <use href="#hex" transform="translate(560,802.3)"/>
+  <use href="#hex" transform="translate(640,802.3)"/>
+  <use href="#hex" transform="translate(720,802.3)"/>
+  <!-- Row 12 -->
+  <use href="#hex" transform="translate(40,871.6)"/>
+  <use href="#hex" transform="translate(120,871.6)"/>
+  <use href="#hex" transform="translate(200,871.6)"/>
+  <use href="#hex" transform="translate(280,871.6)"/>
+  <use href="#hex" transform="translate(360,871.6)"/>
+  <use href="#hex" transform="translate(440,871.6)"/>
+  <use href="#hex" transform="translate(520,871.6)"/>
+  <use href="#hex" transform="translate(600,871.6)"/>
+  <use href="#hex" transform="translate(680,871.6)"/>
+  <use href="#hex" transform="translate(760,871.6)"/>
+  <!-- Row 13 (offset) -->
+  <use href="#hex" transform="translate(80,940.9)"/>
+  <use href="#hex" transform="translate(160,940.9)"/>
+  <use href="#hex" transform="translate(240,940.9)"/>
+  <use href="#hex" transform="translate(320,940.9)"/>
+  <use href="#hex" transform="translate(400,940.9)"/>
+  <use href="#hex" transform="translate(480,940.9)"/>
+  <use href="#hex" transform="translate(560,940.9)"/>
+  <use href="#hex" transform="translate(640,940.9)"/>
+  <use href="#hex" transform="translate(720,940.9)"/>
+  <!-- Row 14 -->
+  <use href="#hex" transform="translate(40,1010.2)"/>
+  <use href="#hex" transform="translate(120,1010.2)"/>
+  <use href="#hex" transform="translate(200,1010.2)"/>
+  <use href="#hex" transform="translate(280,1010.2)"/>
+  <use href="#hex" transform="translate(360,1010.2)"/>
+  <use href="#hex" transform="translate(440,1010.2)"/>
+  <use href="#hex" transform="translate(520,1010.2)"/>
+  <use href="#hex" transform="translate(600,1010.2)"/>
+  <use href="#hex" transform="translate(680,1010.2)"/>
+  <use href="#hex" transform="translate(760,1010.2)"/>
+  <!-- Row 15 (offset) -->
+  <use href="#hex" transform="translate(80,1079.5)"/>
+  <use href="#hex" transform="translate(160,1079.5)"/>
+  <use href="#hex" transform="translate(240,1079.5)"/>
+  <use href="#hex" transform="translate(320,1079.5)"/>
+  <use href="#hex" transform="translate(400,1079.5)"/>
+  <use href="#hex" transform="translate(480,1079.5)"/>
+  <use href="#hex" transform="translate(560,1079.5)"/>
+  <use href="#hex" transform="translate(640,1079.5)"/>
+  <use href="#hex" transform="translate(720,1079.5)"/>
+</svg>

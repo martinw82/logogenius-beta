@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <!-- Topographic contour lines — organic terrain-like curves -->
+  <path d="M10 290 C40 270 80 280 120 260 C160 240 200 255 240 235 C265 225 280 215 295 210"
+        fill="none" stroke="#ffffff" stroke-width="1.5"/>
+  <path d="M10 260 C45 240 90 250 130 228 C170 206 210 220 250 200 C270 192 285 185 295 180"
+        fill="none" stroke="#ffffff" stroke-width="1.2"/>
+  <path d="M10 230 C50 208 95 220 140 196 C180 174 220 186 260 164 C278 155 290 148 295 145"
+        fill="none" stroke="#ffffff" stroke-width="1.5"/>
+  <path d="M10 200 C55 178 100 192 148 165 C192 140 232 155 268 128 C284 118 292 110 295 105"
+        fill="none" stroke="#ffffff" stroke-width="1.2"/>
+  <path d="M10 170 C60 148 108 165 158 135 C204 107 244 124 275 92 C288 80 294 72 295 68"
+        fill="none" stroke="#ffffff" stroke-width="1.5"/>
+  <path d="M10 140 C65 118 115 138 168 104 C216 72 255 92 280 56 C290 44 294 36 295 32"
+        fill="none" stroke="#ffffff" stroke-width="1.2"/>
+  <path d="M10 110 C72 88 126 110 180 73 C228 39 266 62 285 20 C290 12 293 6 295 2"
+        fill="none" stroke="#ffffff" stroke-width="1.5"/>
+  <path d="M10 80 C80 58 138 82 196 44 C238 16 272 35 290 -5"
+        fill="none" stroke="#ffffff" stroke-width="1.2"/>
+  <path d="M10 50 C90 28 152 55 212 12 C240 -4 268 10 290 -30"
+        fill="none" stroke="#ffffff" stroke-width="1.5"/>
+  <!-- Elevation markers -->
+  <circle cx="150" cy="148" r="3" fill="#ffffff"/>
+  <circle cx="220" cy="115" r="2.5" fill="#ffffff"/>
+  <circle cx="80" cy="175" r="2.5" fill="#ffffff"/>
+</svg>
