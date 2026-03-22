@@ -251,6 +251,7 @@ async function launchBrowser(headless: boolean = true) {
   const args = [
     '--no-sandbox',
     '--disable-setuid-sandbox',
+    '--no-zygote',           // Required for restricted container environments (prevents EACCES on spawn)
     '--disable-dev-shm-usage',
     // Note: --disable-gpu omitted intentionally — it prevents Page.printToPDF in headless mode
     '--font-render-hinting=none',
