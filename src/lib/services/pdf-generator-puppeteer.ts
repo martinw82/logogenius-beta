@@ -238,32 +238,46 @@ function formatContent(text: string): string {
 
 /**
  * Launch Puppeteer browser
+ *
+ * Two paths:
+ *  - Local dev: CHROMIUM_PATH env var points to a local Chromium binary.
+ *  - Vercel / serverless: @sparticuz/chromium downloads + caches a compatible
+ *    binary in /tmp (no env var needed on the host).
  */
 async function launchBrowser(headless: boolean = true) {
-  // For local development with Chrome/Chromium
-  const executablePath = process.env.CHROMIUM_PATH || 
-    (process.platform === 'win32' 
-      ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
-      : process.platform === 'darwin'
-        ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-        : '/usr/bin/chromium-browser');
-  
+  const localPath = process.env.CHROMIUM_PATH;
+
+  if (localPath) {
+    // ── Local development ──────────────────────────────────────────────────
+    const args = [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--no-zygote',
+      '--disable-dev-shm-usage',
+      // Note: --disable-gpu omitted intentionally — it prevents Page.printToPDF in headless mode
+      '--font-render-hinting=none',
+    ];
+    if (headless) args.push('--headless=new');
+
+    return puppeteer.launch({
+      headless: false, // Managed via --headless=new in args above
+      executablePath: localPath,
+      args,
+    } as Parameters<typeof puppeteer.launch>[0]);
+  }
+
+  // ── Vercel / serverless ──────────────────────────────────────────────────
+  // @sparticuz/chromium handles binary download + /tmp caching automatically.
+  // --disable-gpu is filtered out because it blocks Page.printToPDF.
+  const chromium = (await import('@sparticuz/chromium')).default;
+  const executablePath = await chromium.executablePath();
   const args = [
-    '--no-sandbox',
-    '--disable-setuid-sandbox',
-    '--no-zygote',           // Required for restricted container environments (prevents EACCES on spawn)
-    '--disable-dev-shm-usage',
-    // Note: --disable-gpu omitted intentionally — it prevents Page.printToPDF in headless mode
+    ...chromium.args.filter((a: string) => a !== '--disable-gpu'),
     '--font-render-hinting=none',
   ];
 
-  if (headless) {
-    // Pass --headless=new explicitly for Chromium 112+ PDF generation support
-    args.push('--headless=new');
-  }
-
   return puppeteer.launch({
-    headless: false, // Managed via --headless=new in args above
+    headless: true, // chromium.headless causes type issues; true = new headless in puppeteer-core v21
     executablePath,
     args,
   } as Parameters<typeof puppeteer.launch>[0]);
