@@ -376,6 +376,16 @@ export async function generateCoverPagePDF(
 }
 
 /**
+ * Get HTML preview string (for API use without writing to disk)
+ */
+export async function getHTMLPreview(
+  data: PuppeteerPDFData,
+  options: PDFGenerationOptions = {}
+): Promise<string> {
+  return generateHTML(data, options);
+}
+
+/**
  * Save HTML preview for debugging
  */
 export async function saveHTMLPreview(

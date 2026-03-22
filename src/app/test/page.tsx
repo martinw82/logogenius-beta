@@ -303,6 +303,32 @@ export default function TestPage() {
           </CardContent>
         </Card>
 
+        <Card className="border-purple-200 bg-purple-50">
+          <CardHeader>
+            <CardTitle>📄 PDF Brand Guide Test Suite</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3 text-sm text-gray-700">
+            <p>
+              Interactive test page for the Puppeteer PDF generator. Fill in brand data, pick a logo,
+              and preview the rendered HTML or generate a full PDF in-browser.
+            </p>
+            <ul className="list-disc list-inside space-y-1 text-gray-600">
+              <li>3 presets: THUNDERFORGE (Hero/Tech), LUMINA (Caregiver/Wellness), NEXUS (Creator/Design)</li>
+              <li>Edit all 12 brand copy sections live</li>
+              <li>Pick from 4 sample SVG logos or paste your own</li>
+              <li>HTML preview renders instantly; PDF generation uses Puppeteer</li>
+              <li>&quot;Cover only&quot; mode for fast iteration on cover design</li>
+              <li>HTML source tab for debugging Handlebars templates</li>
+            </ul>
+            <a
+              href="/test/pdf-test"
+              className="inline-block mt-2 px-4 py-2 bg-purple-600 text-white rounded-md text-sm font-medium hover:bg-purple-700 transition-colors"
+            >
+              Open PDF Test Suite →
+            </a>
+          </CardContent>
+        </Card>
+
         <Card>
           <CardHeader>
             <CardTitle>Next Steps</CardTitle>
