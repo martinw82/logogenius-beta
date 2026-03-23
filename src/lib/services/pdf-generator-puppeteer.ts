@@ -276,6 +276,14 @@ async function launchBrowser(headless: boolean = true) {
     '--font-render-hinting=none',
   ];
 
+  // Vercel/Lambda runs on Amazon Linux 2 where NSS libs (libnss3, etc.) live in
+  // /usr/lib64. Chrome's dynamic linker won't find them unless we add that path.
+  // Setting LD_LIBRARY_PATH here is inherited by the spawned Chrome child process.
+  const existingLdPath = process.env.LD_LIBRARY_PATH ?? '';
+  if (!existingLdPath.includes('/usr/lib64')) {
+    process.env.LD_LIBRARY_PATH = `/usr/lib64:/lib64${existingLdPath ? `:${existingLdPath}` : ''}`;
+  }
+
   return puppeteer.launch({
     headless: true, // chromium.headless causes type issues; true = new headless in puppeteer-core v21
     executablePath,
