@@ -1,0 +1,16 @@
+<!-- Section Divider Page -->
+<div class="page page-divider">
+  <!-- Layer 3: Pattern motif at 8% opacity -->
+  {{#if brandAssets.selectedPattern}}
+  <div class="layer-pattern" style="background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedPattern}}'); opacity: 0.08;"></div>
+  {{/if}}
+
+  <!-- Large faded section number -->
+  <div class="divider-number">{{padZero sectionNumber}}</div>
+
+  <!-- Section title -->
+  <div class="divider-title">{{sectionTitle}}</div>
+  {{#if sectionSubtitle}}
+  <div class="divider-subtitle">{{sectionSubtitle}}</div>
+  {{/if}}
+</div>

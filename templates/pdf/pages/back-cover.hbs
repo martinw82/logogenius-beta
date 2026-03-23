@@ -1,19 +1,35 @@
 <!-- Back Cover -->
 <div class="page page-back-cover">
+  <!-- Layer 1: Texture -->
+  {{#if brandAssets.selectedTexture}}
+  <div class="layer-texture" style="background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedTexture}}'); opacity: 0.10;"></div>
+  {{/if}}
+
+  <!-- Layer 2: Geometric accent (mirrored from cover) -->
+  {{#if brandAssets.selectedAccent}}
+  <div class="layer-accent layer-accent--{{brandAssets.accentSide}}" style="background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedAccent}}'); opacity: {{divide brandAssets.accentOpacity 100}}; transform: rotate({{brandAssets.accentRotation}}deg);"></div>
+  {{/if}}
+
+  <!-- Logo -->
   {{#if logoSvg}}
-    <div class="logo-mark">
-      {{{logoSvg}}}
-    </div>
-  {{/if}}
-  
-  <div class="business-name">{{businessName}}</div>
-  
-  {{#if tagline}}
-  <div class="tagline">{{tagline}}</div>
-  {{/if}}
-  
-  <div class="meta">
-    Brand Guidelines v1.0 | {{formatDate createdAt}}
-    {{#if authorEmail}}<br>{{authorEmail}}{{/if}}
+  <div class="back-cover-logo" style="position: relative; z-index: 10;">
+    {{{logoSvg}}}
   </div>
+  {{/if}}
+
+  <!-- Business name + tagline -->
+  <div class="back-cover-name" style="position: relative; z-index: 10;">{{businessName}}</div>
+  {{#if tagline}}
+  <div class="back-cover-tagline" style="position: relative; z-index: 10;">{{tagline}}</div>
+  {{/if}}
+
+  <!-- Contact info -->
+  <div class="back-cover-contact" style="position: relative; z-index: 10;">
+    {{#if authorEmail}}{{authorEmail}}<br>{{/if}}
+    Brand Guidelines v1.0<br>
+    {{formatDateShort createdAt}}
+  </div>
+
+  <!-- Credit -->
+  <div class="back-cover-credit">Prepared by LogoGenius</div>
 </div>

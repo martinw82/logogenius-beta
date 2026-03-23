@@ -1,0 +1,65 @@
+<!-- Logo Showcase Page (GL-05) -->
+<div class="page">
+  <!-- Section number overlay -->
+  <div class="section-number-overlay">{{padZero sectionNumber}}</div>
+
+  <!-- Page header chrome -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Logo</span>
+  </div>
+
+  <div class="content">
+    <!-- Section heading -->
+    <div class="section-heading">
+      <div class="section-heading-text">
+        <h1>Logo</h1>
+        <p class="subtitle">Primary mark and usage specifications</p>
+      </div>
+    </div>
+
+    <!-- Large logo on 5% primary tint background -->
+    <div class="logo-showcase-container">
+      {{#if logoSvg}}
+        {{{logoSvg}}}
+      {{else}}
+        <div style="font-family: var(--heading-font); font-size: 48px; font-weight: 700; color: var(--primary);">{{businessName}}</div>
+      {{/if}}
+    </div>
+
+    {{#if logoPhilosophy}}
+    <div class="callout">
+      <p>{{logoPhilosophy}}</p>
+    </div>
+    {{/if}}
+
+    <!-- Logo at 3 sizes -->
+    <h3>Logo Variations</h3>
+    <div class="logo-sizes-grid">
+      <div class="logo-size-item" style="background: var(--primary-tint);">
+        {{#if logoSvg}}
+          <div style="transform: scale(0.8);">{{{logoSvg}}}</div>
+        {{/if}}
+        <div class="micro-label" style="margin-top: 12px;">Full Lockup</div>
+      </div>
+      <div class="logo-size-item" style="background: var(--primary-tint);">
+        {{#if logoSvg}}
+          <div style="transform: scale(0.5);">{{{logoSvg}}}</div>
+        {{/if}}
+        <div class="micro-label" style="margin-top: 12px;">Reduced</div>
+      </div>
+      <div class="logo-size-item on-dark">
+        {{#if logoSvg}}
+          <div style="transform: scale(0.6);">{{{logoSvg}}}</div>
+        {{/if}}
+        <div class="micro-label" style="margin-top: 12px; color: rgba(255,255,255,0.5);">Reversed</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page footer -->
+  <div class="page-footer">
+    <span>Brand Guidelines</span>
+    <span>{{pageNumber}}</span>
+  </div>
+</div>

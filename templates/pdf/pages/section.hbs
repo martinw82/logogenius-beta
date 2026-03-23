@@ -1,17 +1,46 @@
 <!-- Generic Content Section -->
-<div class="page page-content">
-  <div class="section-header">
-    <div class="accent-bar"></div>
-    <h1>{{title}}</h1>
-    <p class="subtitle">{{subtitle}}</p>
+<div class="page">
+  <!-- Layer 1: Subtle texture -->
+  {{#if brandAssets.selectedTexture}}
+  <div class="layer-texture" style="background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedTexture}}'); opacity: 0.03;"></div>
+  {{/if}}
+
+  <!-- Section number overlay -->
+  {{#if sectionNumber}}
+  <div class="section-number-overlay">{{padZero sectionNumber}}</div>
+  {{/if}}
+
+  <!-- Page header chrome -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">{{title}}</span>
   </div>
-  
-  <div class="section-body">
-    {{{content}}}
+
+  <div class="content">
+    <!-- Section heading with chrome accent -->
+    <div class="section-heading">
+      <div class="section-heading-text">
+        <h1>{{title}}</h1>
+        {{#if subtitle}}
+        <p class="subtitle">{{subtitle}}</p>
+        {{/if}}
+      </div>
+    </div>
+
+    {{#if pullQuote}}
+    <div class="callout">
+      <p>{{pullQuote}}</p>
+    </div>
+    {{/if}}
+
+    <div class="section-body">
+      {{{content}}}
+    </div>
   </div>
-  
+
+  <!-- Page footer -->
   <div class="page-footer">
-    <span>{{businessName}} Brand Guidelines</span>
+    <span>Brand Guidelines</span>
     <span>{{pageNumber}}</span>
   </div>
 </div>

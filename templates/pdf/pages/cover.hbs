@@ -1,29 +1,41 @@
-<!-- Cover Page -->
+<!-- Cover Page (GL-01) -->
 <div class="page page-cover">
+  <!-- Layer 1: Texture -->
   {{#if brandAssets.selectedTexture}}
-  <img src="{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedTexture}}" class="texture-bg" alt="">
+  <div class="layer-texture" style="background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedTexture}}'); opacity: 0.10;"></div>
   {{/if}}
-  
+
+  <!-- Layer 2: Geometric accent -->
   {{#if brandAssets.selectedAccent}}
-  <img src="{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedAccent}}" class="accent-element" alt="" 
-       style="opacity: {{brandAssets.accentOpacity}}%; transform: rotate({{brandAssets.accentRotation}}deg); {{brandAssets.accentSide}}: 15mm;">
+  <div class="layer-accent layer-accent--{{brandAssets.accentSide}}" style="background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedAccent}}'); opacity: {{divide brandAssets.accentOpacity 100}}; transform: rotate({{brandAssets.accentRotation}}deg);"></div>
   {{/if}}
-  
-  <div class="guidelines-label">Brand Guidelines</div>
-  
-  <div class="logo-container">
+
+  <!-- Chrome: footer accent bar -->
+  {{#if brandAssets.selectedChrome}}
+  <div style="position: absolute; bottom: 0; left: 0; right: 0; height: 8px; z-index: 10; opacity: 0.4;">
+    <img src="{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedChrome}}" alt="" style="width: 100%; height: 8px; object-fit: cover;" />
+  </div>
+  {{/if}}
+
+  <!-- "BRAND GUIDELINES" label, rotated 90° top-right -->
+  <div class="cover-guidelines-label">Brand Guidelines</div>
+
+  <!-- Logo, centred -->
+  <div class="cover-logo-container{{#if (gt businessName.length 20)}} very-long-name{{else}}{{#if (gt businessName.length 15)}} long-name{{/if}}{{/if}}">
     {{#if logoSvg}}
       {{{logoSvg}}}
     {{else}}
-      <div style="font-family: var(--font-heading); font-size: 36pt; font-weight: 700;">{{businessName}}</div>
+      <div style="font-family: var(--heading-font); font-size: 64px; font-weight: 700; color: white; letter-spacing: -0.03em;">{{businessName}}</div>
     {{/if}}
   </div>
-  
-  <div class="business-name">{{businessName}}</div>
-  
+
+  <!-- Business name, bottom-left -->
+  <div class="cover-business-name">{{businessName}}</div>
+
   {{#if tagline}}
-  <div class="tagline">{{tagline}}</div>
+  <div class="cover-tagline">{{tagline}}</div>
   {{/if}}
-  
-  <div class="date-footer">{{formatDate createdAt}}</div>
+
+  <!-- Date footer -->
+  <div class="cover-date">{{formatDateShort createdAt}}</div>
 </div>

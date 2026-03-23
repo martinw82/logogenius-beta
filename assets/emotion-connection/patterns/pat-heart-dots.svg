@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <pattern id="heart-dots" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+      <circle cx="15" cy="18" r="3" fill="black"/>
+      <circle cx="38" cy="35" r="2.5" fill="black"/>
+    </pattern>
+  </defs>
+  <rect width="200" height="200" fill="url(#heart-dots)"/>
+</svg>

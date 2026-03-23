@@ -1,8 +1,13 @@
 /**
  * Puppeteer PDF Generator
- * 
+ *
  * Generates professional brand guideline PDFs using Puppeteer and Handlebars templates.
- * Features archetype-based visual assets, custom fonts, and agency-quality layouts.
+ * Features the 4-layer page stack system:
+ *   Layer 1: Background texture (TX) — full-bleed, 8-15% opacity
+ *   Layer 2: Geometric accent (GEO) — corner/edge shapes, 8-15% opacity
+ *   Layer 3: Chrome strips (CHR) — header rules, footer bars, section numbers
+ *   Layer 4: Content — text, swatches, logos, specimens
+ * Plus CSS noise overlay (feTurbulence) on every page.
  */
 
 import puppeteer from 'puppeteer-core';
@@ -27,28 +32,47 @@ export interface PDFGenerationOptions {
  */
 async function loadTemplates() {
   const templatesDir = path.join(process.cwd(), 'templates', 'pdf');
-  
-  const [mainLayout, cover, toc, section, colors, typography, mockups, dosDonts, backCover] = await Promise.all([
+
+  const [
+    mainLayout,
+    cover,
+    toc,
+    sectionDivider,
+    section,
+    logoShowcase,
+    colors,
+    typography,
+    dosDonts,
+    brandVoice,
+    mockups,
+    backCover,
+  ] = await Promise.all([
     fs.readFile(path.join(templatesDir, 'layouts', 'main.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'cover.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'toc.hbs'), 'utf8'),
+    fs.readFile(path.join(templatesDir, 'pages', 'section-divider.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'section.hbs'), 'utf8'),
+    fs.readFile(path.join(templatesDir, 'pages', 'logo-showcase.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'colors.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'typography.hbs'), 'utf8'),
-    fs.readFile(path.join(templatesDir, 'pages', 'mockups.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'dos-donts.hbs'), 'utf8'),
+    fs.readFile(path.join(templatesDir, 'pages', 'brand-voice.hbs'), 'utf8'),
+    fs.readFile(path.join(templatesDir, 'pages', 'mockups.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'back-cover.hbs'), 'utf8'),
   ]);
-  
+
   return {
     mainLayout: Handlebars.compile(mainLayout),
     cover: Handlebars.compile(cover),
     toc: Handlebars.compile(toc),
+    sectionDivider: Handlebars.compile(sectionDivider),
     section: Handlebars.compile(section),
+    logoShowcase: Handlebars.compile(logoShowcase),
     colors: Handlebars.compile(colors),
     typography: Handlebars.compile(typography),
-    mockups: Handlebars.compile(mockups),
     dosDonts: Handlebars.compile(dosDonts),
+    brandVoice: Handlebars.compile(brandVoice),
+    mockups: Handlebars.compile(mockups),
     backCover: Handlebars.compile(backCover),
   };
 }
@@ -58,165 +82,231 @@ async function loadTemplates() {
  */
 async function generateHTML(data: PuppeteerPDFData, options: PDFGenerationOptions = {}): Promise<string> {
   const templates = await loadTemplates();
-  
+
   // Load fonts
   const fontConfig = await loadFontsForPDF(
     data.fontHeadings,
     data.fontBody,
     data.fontOther
   );
-  
+
   // Build assets base URL
   const assetsBaseUrl = options.assetsBaseUrl || `file://${path.join(process.cwd(), 'assets')}`;
-  
-  // Prepare template data
+
+  // Prepare template data with computed fields
   const templateData = {
     ...data,
     ...fontConfig,
     assetsBaseUrl,
     primaryColorRgb: data.primaryColor.replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ') || '37, 99, 235',
+    currentYear: new Date().getFullYear(),
+    currentDate: new Date().toLocaleDateString('en-GB', { year: 'numeric', month: 'long' }),
   };
-  
-  // Generate individual pages
+
+  // Generate pages in order
   const pages: string[] = [];
-  
+  let pageNum = 1;
+
   // 1. Cover Page
   pages.push(templates.cover(templateData));
-  
+  pageNum++;
+
   // 2. Table of Contents
-  pages.push(templates.toc({ ...templateData, pageNumber: 2 }));
-  
-  // 3. Project Overview
+  pages.push(templates.toc({ ...templateData, pageNumber: pageNum }));
+  pageNum++;
+
+  // 3. Section divider: Brand Story
+  pages.push(templates.sectionDivider({
+    ...templateData,
+    sectionNumber: 1,
+    sectionTitle: 'Brand Story',
+    sectionSubtitle: 'Company introduction, mission, and vision',
+  }));
+  pageNum++;
+
+  // 4. Brand Story / Project Overview
   if (data.projectOverview) {
     pages.push(templates.section({
       ...templateData,
-      title: 'Project Overview',
+      title: 'Brand Story',
       subtitle: 'Company introduction, mission, and vision',
       content: formatContent(data.projectOverview),
-      pageNumber: 3,
+      pullQuote: data.missionStatement || null,
+      sectionNumber: 1,
+      pageNumber: pageNum,
     }));
+    pageNum++;
   }
-  
-  // 4. Brand Identity & Voice
+
+  // 5. Brand Identity
   if (data.brandIdentityVoice) {
     pages.push(templates.section({
       ...templateData,
-      title: 'Brand Identity & Voice',
+      title: 'Brand Identity',
       subtitle: 'Personality, archetype, and brand attributes',
       content: formatContent(data.brandIdentityVoice),
-      pageNumber: 4,
+      sectionNumber: 1,
+      pageNumber: pageNum,
     }));
+    pageNum++;
   }
-  
-  // 5. Logo Philosophy
-  if (data.logoPhilosophy) {
-    pages.push(templates.section({
-      ...templateData,
-      title: 'Logo Philosophy',
-      subtitle: 'Design thinking and core message',
-      content: formatContent(data.logoPhilosophy),
-      pageNumber: 5,
-    }));
-  }
-  
-  // 6. Logo Mockups
-  const hasMockups = Object.values(data.mockups).some(m => m);
-  if (hasMockups) {
-    pages.push(templates.mockups({
-      ...templateData,
-      pageNumber: 6,
-    }));
-  }
-  
-  // 7. Color Palette
+
+  // 6. Section divider: Logo
+  pages.push(templates.sectionDivider({
+    ...templateData,
+    sectionNumber: 2,
+    sectionTitle: 'Logo',
+    sectionSubtitle: 'Primary mark and usage specifications',
+  }));
+  pageNum++;
+
+  // 7. Logo Showcase
+  pages.push(templates.logoShowcase({
+    ...templateData,
+    sectionNumber: 2,
+    pageNumber: pageNum,
+  }));
+  pageNum++;
+
+  // 8. Section divider: Usage Rules
+  pages.push(templates.sectionDivider({
+    ...templateData,
+    sectionNumber: 3,
+    sectionTitle: 'Usage Rules',
+    sectionSubtitle: 'Protecting your brand integrity',
+  }));
+  pageNum++;
+
+  // 9. Usage Rules / Do+Don't
+  pages.push(templates.dosDonts({
+    ...templateData,
+    sectionNumber: 3,
+    pageNumber: pageNum,
+  }));
+  pageNum++;
+
+  // 10. Section divider: Color Palette
+  pages.push(templates.sectionDivider({
+    ...templateData,
+    sectionNumber: 4,
+    sectionTitle: 'Color Palette',
+    sectionSubtitle: 'Brand colors with full specifications',
+  }));
+  pageNum++;
+
+  // 11. Color Palette
   if (data.primaryColors.length > 0) {
     pages.push(templates.colors({
       ...templateData,
-      pageNumber: 7,
+      sectionNumber: 4,
+      pageNumber: pageNum,
     }));
+    pageNum++;
   }
-  
-  // 8. Color Accessibility
-  if (data.colorAccessibility) {
-    pages.push(templates.section({
-      ...templateData,
-      title: 'Color Accessibility',
-      subtitle: 'WCAG compliance and contrast guidelines',
-      content: formatContent(data.colorAccessibility),
-      pageNumber: 8,
-    }));
-  }
-  
-  // 9. Typography
+
+  // 12. Section divider: Typography
+  pages.push(templates.sectionDivider({
+    ...templateData,
+    sectionNumber: 5,
+    sectionTitle: 'Typography',
+    sectionSubtitle: 'Font families, hierarchy, and usage',
+  }));
+  pageNum++;
+
+  // 13. Typography
   pages.push(templates.typography({
     ...templateData,
-    pageNumber: 9,
+    sectionNumber: 5,
+    pageNumber: pageNum,
   }));
-  
-  // 10. Imagery Style
+  pageNum++;
+
+  // 14. Section divider: Brand Voice
+  pages.push(templates.sectionDivider({
+    ...templateData,
+    sectionNumber: 6,
+    sectionTitle: 'Brand Voice',
+    sectionSubtitle: 'Communication style and messaging',
+  }));
+  pageNum++;
+
+  // 15. Brand Voice
+  if (data.brandVoiceTone) {
+    pages.push(templates.brandVoice({
+      ...templateData,
+      sectionNumber: 6,
+      pageNumber: pageNum,
+    }));
+    pageNum++;
+  }
+
+  // 16. Imagery & Photography (if content exists)
   if (data.imageryStyle) {
+    pages.push(templates.sectionDivider({
+      ...templateData,
+      sectionNumber: 7,
+      sectionTitle: 'Imagery',
+      sectionSubtitle: 'Visual direction for photography and illustration',
+    }));
+    pageNum++;
+
     pages.push(templates.section({
       ...templateData,
       title: 'Imagery & Photography',
       subtitle: 'Visual direction for photography and illustration',
       content: formatContent(data.imageryStyle),
-      pageNumber: 10,
+      sectionNumber: 7,
+      pageNumber: pageNum,
     }));
+    pageNum++;
   }
-  
-  // 11. Graphic Elements
+
+  // 17. Mockups (if any exist)
+  const hasMockups = Object.values(data.mockups).some(m => m);
+  if (hasMockups) {
+    pages.push(templates.sectionDivider({
+      ...templateData,
+      sectionNumber: 8,
+      sectionTitle: 'Applications',
+      sectionSubtitle: 'Real-world brand applications',
+    }));
+    pageNum++;
+
+    pages.push(templates.mockups({
+      ...templateData,
+      sectionNumber: 8,
+      pageNumber: pageNum,
+    }));
+    pageNum++;
+  }
+
+  // 18. Graphic Elements (optional)
   if (data.graphicElements) {
     pages.push(templates.section({
       ...templateData,
       title: 'Graphic Elements',
       subtitle: 'Icons, patterns, and decorative components',
       content: formatContent(data.graphicElements),
-      pageNumber: 11,
+      pageNumber: pageNum,
     }));
+    pageNum++;
   }
-  
-  // 12. Brand Voice & Tone
-  if (data.brandVoiceTone) {
-    pages.push(templates.section({
-      ...templateData,
-      title: 'Brand Voice & Tone',
-      subtitle: 'Communication style and messaging guidelines',
-      content: formatContent(data.brandVoiceTone),
-      pageNumber: 12,
-    }));
-  }
-  
-  // 13. Visual Style Guide
-  if (data.visualStyleGuide) {
-    pages.push(templates.section({
-      ...templateData,
-      title: 'Visual Style Guide',
-      subtitle: 'Spacing, grids, shadows, and visual standards',
-      content: formatContent(data.visualStyleGuide),
-      pageNumber: 13,
-    }));
-  }
-  
-  // 14. Usage Rules
-  pages.push(templates.dosDonts({
-    ...templateData,
-    pageNumber: 14,
-  }));
-  
-  // 15. Web3 Section (if applicable)
+
+  // 19. Web3 Section (optional)
   if (data.web3Section) {
     pages.push(templates.section({
       ...templateData,
       title: 'Web3 & Blockchain',
       subtitle: 'Token, governance, and community guidelines',
       content: formatContent(data.web3Section),
-      pageNumber: 15,
+      pageNumber: pageNum,
     }));
+    pageNum++;
   }
-  
-  // 16. Back Cover
+
+  // 20. Back Cover
   pages.push(templates.backCover(templateData));
-  
+
   // Combine all pages into main layout
   const body = pages.join('\n');
   return templates.mainLayout({ ...templateData, body });
@@ -227,8 +317,6 @@ async function generateHTML(data: PuppeteerPDFData, options: PDFGenerationOption
  */
 function formatContent(text: string): string {
   if (!text) return '';
-  
-  // Split into paragraphs and wrap in <p> tags
   return text
     .split('\n\n')
     .filter(p => p.trim())
@@ -248,27 +336,23 @@ async function launchBrowser(headless: boolean = true) {
   const localPath = process.env.CHROMIUM_PATH;
 
   if (localPath) {
-    // ── Local development ──────────────────────────────────────────────────
     const args = [
       '--no-sandbox',
       '--disable-setuid-sandbox',
       '--no-zygote',
       '--disable-dev-shm-usage',
-      // Note: --disable-gpu omitted intentionally — it prevents Page.printToPDF in headless mode
       '--font-render-hinting=none',
     ];
     if (headless) args.push('--headless=new');
 
     return puppeteer.launch({
-      headless: false, // Managed via --headless=new in args above
+      headless: false,
       executablePath: localPath,
       args,
     } as Parameters<typeof puppeteer.launch>[0]);
   }
 
-  // ── Vercel / serverless ──────────────────────────────────────────────────
-  // @sparticuz/chromium handles binary download + /tmp caching automatically.
-  // --disable-gpu is filtered out because it blocks Page.printToPDF.
+  // Vercel / serverless
   const chromium = (await import('@sparticuz/chromium')).default;
   const executablePath = await chromium.executablePath();
   const args = [
@@ -276,16 +360,13 @@ async function launchBrowser(headless: boolean = true) {
     '--font-render-hinting=none',
   ];
 
-  // Vercel/Lambda runs on Amazon Linux 2 where NSS libs (libnss3, etc.) live in
-  // /usr/lib64. Chrome's dynamic linker won't find them unless we add that path.
-  // Setting LD_LIBRARY_PATH here is inherited by the spawned Chrome child process.
   const existingLdPath = process.env.LD_LIBRARY_PATH ?? '';
   if (!existingLdPath.includes('/usr/lib64')) {
     process.env.LD_LIBRARY_PATH = `/usr/lib64:/lib64${existingLdPath ? `:${existingLdPath}` : ''}`;
   }
 
   return puppeteer.launch({
-    headless: true, // chromium.headless causes type issues; true = new headless in puppeteer-core v21
+    headless: true,
     executablePath,
     args,
   } as Parameters<typeof puppeteer.launch>[0]);
@@ -293,43 +374,31 @@ async function launchBrowser(headless: boolean = true) {
 
 /**
  * Generate brand guide PDF using Puppeteer
- * 
- * @param data - PDF data including brand info, content, and assets
- * @param options - PDF generation options
- * @returns PDF as Buffer
  */
 export async function generateBrandGuidePDFPuppeteer(
   data: PuppeteerPDFData,
   options: PDFGenerationOptions = {}
 ): Promise<Buffer> {
   const browser = await launchBrowser(options.headless !== false);
-  
+
   try {
     const page = await browser.newPage();
-    
-    // Generate HTML
     const html = await generateHTML(data, options);
-    
-    // Set content and wait for DOM to be ready.
-    // 'domcontentloaded' fires before external stylesheets/fonts resolve, avoiding
-    // timeouts in environments without internet access. Fallback fonts in CSS ensure
-    // the PDF renders correctly even without Google Fonts.
+
     await page.setContent(html, {
       waitUntil: 'domcontentloaded',
       timeout: 30000,
     });
 
-    // Brief wait for any synchronous rendering to complete
     await page.waitForTimeout(500);
-    
-    // Generate PDF
+
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
       preferCSSPageSize: true,
     });
-    
+
     return pdfBuffer;
   } finally {
     await browser.close();
@@ -344,40 +413,39 @@ export async function generateCoverPagePDF(
   options: PDFGenerationOptions = {}
 ): Promise<Buffer> {
   const browser = await launchBrowser(options.headless !== false);
-  
+
   try {
     const page = await browser.newPage();
-    
-    // Load only cover template
+
     const templatesDir = path.join(process.cwd(), 'templates', 'pdf');
     const [mainLayout, cover] = await Promise.all([
       fs.readFile(path.join(templatesDir, 'layouts', 'main.hbs'), 'utf8'),
       fs.readFile(path.join(templatesDir, 'pages', 'cover.hbs'), 'utf8'),
     ]);
-    
+
     const mainTemplate = Handlebars.compile(mainLayout);
     const coverTemplate = Handlebars.compile(cover);
-    
+
     const fontConfig = await loadFontsForPDF(
       data.fontHeadings,
       data.fontBody,
       data.fontOther
     );
-    
+
     const assetsBaseUrl = options.assetsBaseUrl || `file://${path.join(process.cwd(), 'assets')}`;
-    
+
     const templateData = {
       ...data,
       ...fontConfig,
       assetsBaseUrl,
       primaryColorRgb: data.primaryColor.replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ') || '37, 99, 235',
     };
-    
+
     const html = mainTemplate({
       ...templateData,
       body: coverTemplate(templateData),
     });
-    
+
     await page.setContent(html, {
       waitUntil: 'domcontentloaded',
       timeout: 30000,
@@ -385,8 +453,6 @@ export async function generateCoverPagePDF(
 
     await page.waitForTimeout(500);
 
-    // Must await here — returning a pending Promise inside try/finally causes
-    // browser.close() to run before PDF generation completes, killing the browser
     const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,

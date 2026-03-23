@@ -1,59 +1,81 @@
-<!-- Usage Rules - Do's and Don'ts -->
-<div class="page page-content">
-  <div class="section-header">
-    <div class="accent-bar"></div>
-    <h1>Usage Rules & Guidelines</h1>
-    <p class="subtitle">Protecting your brand integrity</p>
+<!-- Usage Rules & Do/Don't Page (GL-03) -->
+<div class="page">
+  <!-- Section number overlay -->
+  {{#if sectionNumber}}
+  <div class="section-number-overlay">{{padZero sectionNumber}}</div>
+  {{/if}}
+
+  <!-- Page header chrome -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Usage Rules</span>
   </div>
-  
-  <div class="section-body">
+
+  <div class="content">
+    <!-- Section heading -->
+    <div class="section-heading">
+      <div class="section-heading-text">
+        <h1>Usage Rules</h1>
+        <p class="subtitle">Protecting your brand integrity</p>
+      </div>
+    </div>
+
+    {{#if usageRulesText}}
     <p>{{usageRulesText}}</p>
-    
-    <div class="dos-donts-grid">
-      <div class="dd-card do">
-        <div class="dd-title">DO</div>
-        <ul class="dd-list">
-          <li>Use approved brand colors</li>
-          <li>Maintain minimum clear space around logo</li>
+    {{/if}}
+
+    <!-- Clearspace diagram -->
+    {{#if logoSvg}}
+    <h3>Clear Space</h3>
+    <div class="clearspace-diagram">
+      <div class="clearspace-inner">
+        <span class="clearspace-label top">x</span>
+        <span class="clearspace-label bottom">x</span>
+        <span class="clearspace-label left">x</span>
+        <span class="clearspace-label right">x</span>
+        {{{logoSvg}}}
+      </div>
+    </div>
+    <p style="font-size: 13px; color: #666;">Maintain a minimum clear space equal to the height of the "x" in the logotype around all sides of the mark.</p>
+    {{/if}}
+
+    <!-- Do / Don't grid -->
+    <div class="do-dont-grid" style="margin-top: 24px;">
+      <div class="do-box">
+        <div class="do-label">Do</div>
+        <ul>
+          <li>Use approved brand colors only</li>
+          <li>Maintain minimum clear space</li>
           <li>Use on solid, contrasting backgrounds</li>
-          <li>Scale proportionally</li>
+          <li>Scale proportionally at all times</li>
           <li>Use high-resolution files for print</li>
         </ul>
       </div>
-      
-      <div class="dd-card dont">
-        <div class="dd-title">DON'T</div>
-        <ul class="dd-list">
+
+      <div class="dont-box">
+        <div class="dont-label">Don't</div>
+        <ul>
           <li>Stretch or distort the logo</li>
-          <li>Change logo colors arbitrarily</li>
-          <li>Place on busy or low-contrast backgrounds</li>
-          <li>Rotate or tilt the logo</li>
-          <li>Add effects like shadows or outlines</li>
+          <li>Change the logo colors</li>
+          <li>Place on busy backgrounds</li>
+          <li>Rotate or tilt the mark</li>
+          <li>Add shadows, outlines, or effects</li>
         </ul>
       </div>
     </div>
-    
-    <h2>Clear Space Requirements</h2>
-    <p>Always maintain a minimum clear space around the logo equal to the height of the letter "x" in the logotype. This ensures the logo remains visible and uncluttered.</p>
-    
-    <h2>Minimum Size</h2>
-    <ul>
-      <li><strong>Print:</strong> Minimum 25mm wide</li>
-      <li><strong>Digital:</strong> Minimum 80px wide</li>
-      <li><strong>Favicon:</strong> 16px × 16px (simplified version)</li>
-    </ul>
-    
-    <h2>Color Variations</h2>
-    <p>Use the appropriate logo version based on background:</p>
-    <ul>
-      <li><strong>Primary:</strong> Full color on white/light backgrounds</li>
-      <li><strong>Reversed:</strong> White version on dark backgrounds</li>
-      <li><strong>Single Color:</strong> Black or white for special applications</li>
-    </ul>
+
+    <!-- Minimum size -->
+    <h3 style="margin-top: 24px;">Minimum Size</h3>
+    <p style="font-size: 14px;">
+      <strong>Print:</strong> 25mm wide minimum &nbsp;·&nbsp;
+      <strong>Digital:</strong> 80px wide minimum &nbsp;·&nbsp;
+      <strong>Favicon:</strong> 16×16px simplified
+    </p>
   </div>
-  
+
+  <!-- Page footer -->
   <div class="page-footer">
-    <span>{{businessName}} Brand Guidelines</span>
+    <span>Brand Guidelines</span>
     <span>{{pageNumber}}</span>
   </div>
 </div>

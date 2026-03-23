@@ -1,0 +1,63 @@
+<!-- Brand Voice Page (GL-07) -->
+<div class="page">
+  <!-- Section number overlay -->
+  {{#if sectionNumber}}
+  <div class="section-number-overlay">{{padZero sectionNumber}}</div>
+  {{/if}}
+
+  <!-- Page header chrome -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Brand Voice</span>
+  </div>
+
+  <div class="content">
+    <!-- Section heading -->
+    <div class="section-heading">
+      <div class="section-heading-text">
+        <h1>Brand Voice</h1>
+        <p class="subtitle">Communication style and messaging guidelines</p>
+      </div>
+    </div>
+
+    {{#if brandVoiceTone}}
+    <p>{{brandVoiceTone}}</p>
+    {{/if}}
+
+    <!-- We Are / We Are Not table -->
+    <div class="voice-table">
+      <div class="voice-column positive">
+        <div class="voice-column-title">We Are</div>
+        <ul>
+          <li>Confident and direct</li>
+          <li>Clear and purposeful</li>
+          <li>Professional yet approachable</li>
+          <li>Inspiring and motivating</li>
+          <li>Authentic and honest</li>
+        </ul>
+      </div>
+      <div class="voice-column negative">
+        <div class="voice-column-title">We Are Not</div>
+        <ul>
+          <li>Arrogant or dismissive</li>
+          <li>Vague or ambiguous</li>
+          <li>Overly casual or sloppy</li>
+          <li>Pushy or aggressive</li>
+          <li>Generic or corporate-speak</li>
+        </ul>
+      </div>
+    </div>
+
+    {{#if missionStatement}}
+    <div class="callout" style="margin-top: 24px;">
+      <p>{{missionStatement}}</p>
+    </div>
+    {{/if}}
+  </div>
+
+  <!-- Page footer -->
+  <div class="page-footer">
+    <span>Brand Guidelines</span>
+    <span>{{pageNumber}}</span>
+  </div>
+</div>

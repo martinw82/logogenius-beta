@@ -230,6 +230,8 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
         console.log(`[${input.orderId}] Archetype assets: ${brandAssets.packName}`, {
           texture: brandAssets.selectedTexture,
           accent: brandAssets.selectedAccent,
+          chrome: brandAssets.selectedChrome,
+          pattern: brandAssets.selectedPattern,
         });
         
         // Transform data for Puppeteer

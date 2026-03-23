@@ -1,79 +1,113 @@
-<!-- Color Palette Page -->
-<div class="page page-content">
-  <div class="section-header">
-    <div class="accent-bar"></div>
-    <h1>Color Palette</h1>
-    <p class="subtitle">Brand colors with specifications</p>
+<!-- Color Palette Page (GL-04) -->
+<div class="page">
+  <!-- Layer 1: Subtle texture -->
+  {{#if brandAssets.selectedTexture}}
+  <div class="layer-texture" style="background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedTexture}}'); opacity: 0.04;"></div>
+  {{/if}}
+
+  <!-- Section number overlay -->
+  <div class="section-number-overlay">{{padZero sectionNumber}}</div>
+
+  <!-- Page header chrome -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Color Palette</span>
   </div>
-  
-  <div class="section-body">
+
+  <div class="content">
+    <!-- Section heading with chrome accent bar -->
+    <div class="section-heading">
+      <div class="section-heading-text">
+        <h1>Color Palette</h1>
+        <p class="subtitle">Brand colors with full specifications</p>
+      </div>
+    </div>
+
+    {{#if colorPaletteText}}
     <p>{{colorPaletteText}}</p>
-    
-    {{#if primaryColors.length}}
-    <h2>Primary Colors</h2>
-    <p>Core brand colors that define your visual identity. Use for dominant elements and key brand touchpoints.</p>
-    <div class="color-grid">
+    {{/if}}
+
+    <!-- Primary Colors -->
+    {{#if (hasItems primaryColors)}}
+    <h3>Primary Colors</h3>
+    <div class="swatch-row">
       {{#each primaryColors}}
-      <div class="color-swatch">
-        <div class="color-block" style="background: {{this}};">
-          <span style="color: {{contrastColor this}}; font-size: 8pt;">{{this}}</span>
+      <div class="swatch-card">
+        <div class="swatch-block swatch-block--large" style="background: {{this}};">
+          <span style="color: {{contrastColor this}}; font-family: var(--chrome-font); font-size: 12px; font-weight: 500;">{{this}}</span>
         </div>
-        <div class="color-info">
-          <div class="color-hex">{{this}}</div>
-          <div class="color-values">{{hexToRgb this}}</div>
+        <div class="swatch-info">
+          <div class="swatch-hex">{{this}}</div>
+          <div class="swatch-values">RGB: {{hexToRgb this}}</div>
+          <div class="swatch-values">CMYK: {{hexToCmyk this}}</div>
         </div>
       </div>
       {{/each}}
     </div>
     {{/if}}
-    
-    {{#if secondaryColors.length}}
-    <h2>Secondary Colors</h2>
-    <p>Supporting colors that complement your primary palette.</p>
-    <div class="color-grid">
+
+    <!-- Secondary Colors -->
+    {{#if (hasItems secondaryColors)}}
+    <h3>Secondary Colors</h3>
+    <div class="swatch-row">
       {{#each secondaryColors}}
-      <div class="color-swatch">
-        <div class="color-block" style="background: {{this}};">
-          <span style="color: {{contrastColor this}}; font-size: 8pt;">{{this}}</span>
+      <div class="swatch-card">
+        <div class="swatch-block swatch-block--small" style="background: {{this}};">
+          <span style="color: {{contrastColor this}}; font-family: var(--chrome-font); font-size: 11px;">{{this}}</span>
         </div>
-        <div class="color-info">
-          <div class="color-hex">{{this}}</div>
-          <div class="color-values">{{hexToRgb this}}</div>
+        <div class="swatch-info">
+          <div class="swatch-hex">{{this}}</div>
+          <div class="swatch-values">RGB: {{hexToRgb this}} · CMYK: {{hexToCmyk this}}</div>
         </div>
       </div>
       {{/each}}
     </div>
     {{/if}}
-    
-    {{#if accentColors.length}}
-    <h2>Accent Colors</h2>
-    <p>Use sparingly for highlights, calls-to-action, and emphasis.</p>
-    <div class="color-grid">
+
+    <!-- Accent Colors -->
+    {{#if (hasItems accentColors)}}
+    <h3>Accent Colors</h3>
+    <div class="swatch-row">
       {{#each accentColors}}
-      <div class="color-swatch">
-        <div class="color-block" style="background: {{this}};">
-          <span style="color: {{contrastColor this}}; font-size: 8pt;">{{this}}</span>
+      <div class="swatch-card">
+        <div class="swatch-block swatch-block--small" style="background: {{this}};">
+          <span style="color: {{contrastColor this}}; font-family: var(--chrome-font); font-size: 11px;">{{this}}</span>
         </div>
-        <div class="color-info">
-          <div class="color-hex">{{this}}</div>
-          <div class="color-values">{{hexToRgb this}}</div>
+        <div class="swatch-info">
+          <div class="swatch-hex">{{this}}</div>
+          <div class="swatch-values">RGB: {{hexToRgb this}} · CMYK: {{hexToCmyk this}}</div>
         </div>
       </div>
       {{/each}}
     </div>
     {{/if}}
-    
-    <h2>Color Usage Proportions</h2>
-    <p>Follow the 60-30-10 rule for balanced color application:</p>
-    <ul>
-      <li><strong>60% Primary:</strong> Backgrounds, major UI elements</li>
-      <li><strong>30% Secondary:</strong> Supporting elements, sections</li>
-      <li><strong>10% Accent:</strong> CTAs, highlights, emphasis</li>
-    </ul>
+
+    <!-- 60/30/10 Usage Bar -->
+    <h3>Color Usage Proportions</h3>
+    <div class="usage-bar">
+      <div class="usage-bar-segment" style="background: {{primaryColor}}; flex: 6; border-radius: 4px 0 0 4px;"></div>
+      <div class="usage-bar-segment" style="background: {{secondaryColor}}; flex: 3;"></div>
+      <div class="usage-bar-segment" style="background: {{accentColor}}; flex: 1; border-radius: 0 4px 4px 0;"></div>
+    </div>
+    <div class="usage-labels">
+      <div class="usage-label-item">
+        <div class="usage-dot" style="background: {{primaryColor}};"></div>
+        60% Primary
+      </div>
+      <div class="usage-label-item">
+        <div class="usage-dot" style="background: {{secondaryColor}};"></div>
+        30% Secondary
+      </div>
+      <div class="usage-label-item">
+        <div class="usage-dot" style="background: {{accentColor}};"></div>
+        10% Accent
+      </div>
+    </div>
   </div>
-  
+
+  <!-- Page footer -->
   <div class="page-footer">
-    <span>{{businessName}} Brand Guidelines</span>
+    <span>Brand Guidelines</span>
     <span>{{pageNumber}}</span>
   </div>
 </div>

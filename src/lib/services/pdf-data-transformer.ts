@@ -1,6 +1,6 @@
 /**
  * PDF Data Transformer
- * 
+ *
  * Transforms raw order data into the format expected by the Puppeteer PDF generator.
  * Parses JSON fields, extracts colors, and prepares all content sections.
  */
@@ -12,13 +12,13 @@ export interface PuppeteerPDFData {
   businessName: string;
   tagline?: string;
   archetype?: string;
-  
+
   // Form Data
   missionStatement?: string;
   brandPillars?: string;
   targetAudience?: string;
   industry?: string;
-  
+
   // AI Generated Content
   projectOverview: string;
   brandIdentityVoice: string;
@@ -33,7 +33,7 @@ export interface PuppeteerPDFData {
   usageRulesText: string;
   web3Section?: string;
   appendix: string;
-  
+
   // Colors (parsed from colorPalette JSON)
   primaryColor: string;
   secondaryColor: string;
@@ -41,20 +41,20 @@ export interface PuppeteerPDFData {
   primaryColors: string[];
   secondaryColors: string[];
   accentColors: string[];
-  
+
   // Typography
   fontHeadings: string;
   fontBody: string;
   fontOther?: string;
-  
+
   // Assets
   logoSvg?: string;
   mockups: Record<string, string>;
   socialAssets?: Record<string, string>;
-  
-  // Archetype Assets
+
+  // Archetype Assets (includes design tokens, chrome, pattern data)
   brandAssets: BrandAssets;
-  
+
   // Meta
   orderId: number;
   createdAt: Date;
@@ -88,7 +88,7 @@ function parseColorPalette(
   let primary: string[] = [];
   let secondary: string[] = [];
   let accent: string[] = [];
-  
+
   // Try parsing JSON color palette first
   if (colorPaletteJson) {
     try {
@@ -100,7 +100,7 @@ function parseColorPalette(
       // Invalid JSON, continue with fallbacks
     }
   }
-  
+
   // Fall back to extracting from input strings
   if (primary.length === 0 && primaryColorsInput) {
     primary = extractColorsFromText(primaryColorsInput);
@@ -111,23 +111,17 @@ function parseColorPalette(
   if (accent.length === 0 && accentColorsInput) {
     accent = extractColorsFromText(accentColorsInput);
   }
-  
+
   // Final fallback to logo colors
   if (primary.length === 0 && logoColors.length > 0) {
     primary = logoColors.slice(0, 3);
   }
-  
+
   // Ensure we have at least one color
-  if (primary.length === 0) {
-    primary = ['#2563eb'];
-  }
-  if (secondary.length === 0) {
-    secondary = ['#1e40af'];
-  }
-  if (accent.length === 0) {
-    accent = ['#f59e0b'];
-  }
-  
+  if (primary.length === 0) primary = ['#2563eb'];
+  if (secondary.length === 0) secondary = ['#1e40af'];
+  if (accent.length === 0) accent = ['#f59e0b'];
+
   return { primary, secondary, accent };
 }
 
@@ -157,31 +151,25 @@ export function transformOrderDataToPDFData(
     toColorStr(orderData.secondaryColors),
     toColorStr(orderData.accentColors)
   );
-  
+
   // Get first color from each category as the main color
   const primaryColor = colorPalette.primary[0] || '#2563eb';
   const secondaryColor = colorPalette.secondary[0] || '#1e40af';
   const accentColor = colorPalette.accent[0] || '#f59e0b';
-  
+
   // Extract typography fonts
   const fontHeadings = orderData.fontHeadings || 'Inter';
   const fontBody = orderData.fontBody || 'Inter';
   const fontOther = orderData.fontOther;
-  
-  // Build the complete PDF data object
+
   return {
-    // Identity
     businessName: orderData.businessName || 'Brand',
     tagline: orderData.tagline,
     archetype: orderData.brandArchetype,
-    
-    // Form Data
     missionStatement: orderData.missionStatement,
     brandPillars: orderData.brandPillars,
     targetAudience: orderData.targetAudience,
     industry: orderData.industry,
-    
-    // AI Generated Content (mapped from orderData fields)
     projectOverview: orderData.guide_projectOverview || orderData.projectOverview || '',
     brandIdentityVoice: orderData.guide_brandIdentity || orderData.brandIdentity || '',
     logoPhilosophy: orderData.guide_logoPhilosophy || orderData.logoPhilosophy || '',
@@ -195,29 +183,19 @@ export function transformOrderDataToPDFData(
     usageRulesText: orderData.guide_usageRulesAndDonts || orderData.usageRulesAndDonts || '',
     web3Section: orderData.guide_web3Section || orderData.web3Section,
     appendix: orderData.guide_appendix || orderData.appendix || '',
-    
-    // Colors
     primaryColor,
     secondaryColor,
     accentColor,
     primaryColors: colorPalette.primary,
     secondaryColors: colorPalette.secondary,
     accentColors: colorPalette.accent,
-    
-    // Typography
     fontHeadings,
     fontBody,
     fontOther,
-    
-    // Assets
     logoSvg: logoSvg || undefined,
     mockups,
     socialAssets,
-    
-    // Archetype Assets
     brandAssets,
-    
-    // Meta
     orderId,
     createdAt: new Date(),
     authorEmail,
@@ -233,45 +211,48 @@ export function createMockPDFData(
 ): Partial<PuppeteerPDFData> {
   return {
     businessName,
-    tagline: 'Strength Through Innovation',
+    tagline: 'Built to last.',
     archetype,
-    industry: 'Technology',
-    
-    projectOverview: `${businessName} is a forward-thinking technology company dedicated to creating powerful solutions that empower businesses to achieve more. Founded with a vision to democratize enterprise-grade tools, we have grown into a trusted partner for organizations seeking to transform their digital presence.`,
-    
-    brandIdentityVoice: `The ${businessName} brand embodies strength, innovation, and reliability. We speak with confidence and clarity, avoiding jargon while maintaining technical credibility. Our voice is bold but never arrogant, authoritative but approachable.`,
-    
-    logoPhilosophy: `The ${businessName} logo represents our core values of power and precision. The geometric forms suggest stability and forward momentum, while the color palette evokes trust and energy. The mark is designed to be memorable at any size, from app icons to billboards.`,
-    
-    colorPaletteText: `Our primary color palette centers on deep blues and vibrant accents. The primary blue (#2563eb) conveys trust and professionalism, while the energetic orange accent (#f59e0b) adds warmth and approachability. Secondary grays provide balance and sophistication.`,
-    
-    colorAccessibility: 'All color combinations meet WCAG AA standards for contrast. Primary text uses a 4.5:1 ratio against backgrounds, while large text achieves 3:1. Avoid using color alone to convey information.',
-    
-    typographyText: 'Our typography pairs a strong serif for headings with a clean sans-serif for body text. This combination conveys both authority and accessibility. Headings use Playfair Display for editorial gravitas, while Inter provides excellent readability for body content.',
-    
-    imageryStyle: 'Photography should feel authentic and aspirational. Use natural lighting, diverse subjects, and real-world contexts. Avoid generic stock imagery. Images should convey action, collaboration, and positive outcomes.',
-    
-    graphicElements: 'Geometric shapes derived from the logo can be used as background patterns or accent elements. Maintain consistent corner radii and line weights. Use these elements sparingly to avoid visual clutter.',
-    
-    brandVoiceTone: 'We are confident but not cocky. Technical but not cryptic. Professional but not stuffy. Our tone adapts to context—more formal in white papers, conversational in social media—but always maintains clarity and respect for the reader.',
-    
-    visualStyleGuide: 'Maintain consistent spacing using an 8px grid system. Use subtle shadows (0 2px 8px rgba) for depth. Border radius should be consistent—4px for UI elements, 8px for cards. Keep designs clean and purposeful.',
-    
-    usageRulesText: 'Protecting our brand integrity ensures consistent recognition and trust. Always use approved logo files, maintain clear space, and follow color guidelines. When in doubt, contact the brand team for guidance.',
-    
-    appendix: 'This brand guide is a living document. Version 1.0 reflects our current brand expression as of 2026. For questions, asset requests, or usage approvals, contact brand@thunderforge.com.',
-    
-    primaryColor: '#2563eb',
-    secondaryColor: '#1e40af',
-    accentColor: '#f59e0b',
-    primaryColors: ['#2563eb', '#3b82f6', '#60a5fa'],
-    secondaryColors: ['#1e40af', '#1e3a8a'],
-    accentColors: ['#f59e0b', '#fbbf24'],
-    
-    fontHeadings: 'Playfair Display',
-    fontBody: 'Inter',
-    
-    orderId: Date.now(),
+    industry: 'fitness',
+    missionStatement: 'We exist to equip people with the tools and mindset to push beyond their limits.',
+
+    projectOverview: `${businessName} is a premium athletic performance brand built for those who refuse to settle. Every product is engineered to withstand the demands of elite training while projecting the confidence of a champion.`,
+
+    brandIdentityVoice: `Bold, relentless, triumphant. The ${businessName} brand speaks directly to high performers who see their gear as an extension of their mindset.`,
+
+    logoPhilosophy: `The ${businessName} mark is derived from a downward-pointing triangle — a symbol of focused power channelled into the ground. It is never tilted, never softened.`,
+
+    colorPaletteText: `Our primary palette is built around competition red (#C8102E) — a colour that demands attention and signals peak performance. Black grounds it with authority, while gold provides an aspirational accent.`,
+
+    colorAccessibility: 'All color combinations meet WCAG AA standards for contrast. Primary text uses a 4.5:1 ratio against backgrounds.',
+
+    typographyText: 'Anton provides maximum impact for headlines with its compressed, all-caps character. Roboto Condensed delivers excellent readability for body content while maintaining the brand\'s efficient, no-waste personality.',
+
+    imageryStyle: 'Photography should feel raw and powerful. Use high-contrast lighting, dynamic angles, and genuine athletic moments. No posed studio shots.',
+
+    graphicElements: 'Angular geometric shapes derived from the logo triangle. Sharp edges, no rounded corners. Use diagonal lines and chevron patterns to reinforce the brand\'s forward momentum.',
+
+    brandVoiceTone: 'Direct. Motivating. No fluff. We speak in active voice, short sentences, and never apologise for our confidence.',
+
+    visualStyleGuide: 'All layouts follow an 8px grid. No gradients. High contrast only. Text should be large and bold — if it doesn\'t command attention, make it bigger.',
+
+    usageRulesText: 'Always use the logo on approved backgrounds. Never stretch, rotate, or recolour the mark. Never place it on busy photographic backgrounds without a solid colour backing.',
+
+    appendix: 'This brand guide is a living document. Version 1.0 reflects our current brand expression. For questions or asset requests, contact brand@thunderforge.com.',
+
+    primaryColor: '#C8102E',
+    secondaryColor: '#000000',
+    accentColor: '#FFD700',
+    primaryColors: ['#C8102E'],
+    secondaryColors: ['#000000'],
+    accentColors: ['#FFD700'],
+
+    fontHeadings: 'Anton',
+    fontBody: 'Roboto Condensed',
+
+    logoSvg: `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><polygon points="50,10 90,90 10,90" fill="#C8102E"/></svg>`,
+
+    orderId: 12345,
     createdAt: new Date(),
   };
 }

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <pattern id="sparks" x="0" y="0" width="50" height="50" patternUnits="userSpaceOnUse">
+      <path d="M25 20 L25 30 M20 25 L30 25 M22 22 L28 28 M28 22 L22 28" stroke="black" stroke-width="1" fill="none"/>
+    </pattern>
+  </defs>
+  <rect width="200" height="200" fill="url(#sparks)"/>
+</svg>
