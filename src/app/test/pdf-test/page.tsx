@@ -170,7 +170,6 @@ export default function PDFTestPage() {
   const [form, setForm] = useState<FormData>({ ...PRESETS.THUNDERFORGE, logoSvg: "" });
   const [selectedLogo, setSelectedLogo] = useState<string>("none");
   const [loading, setLoading] = useState(false);
-  const [loadingPdf, setLoadingPdf] = useState(false);
   const [result, setResult] = useState<GenerateResult | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<"preview" | "source">("preview");
@@ -189,9 +188,8 @@ export default function PDFTestPage() {
     setForm((prev: FormData) => ({ ...prev, logoSvg: val !== "none" ? SAMPLE_LOGOS[val] : "" }));
   };
 
-  const call = useCallback(async (generatePdf: boolean) => {
-    const setter = generatePdf ? setLoadingPdf : setLoading;
-    setter(true);
+  const call = useCallback(async () => {
+    setLoading(true);
     setError(null);
 
     try {
@@ -200,7 +198,7 @@ export default function PDFTestPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           ...form,
-          generatePdf,
+          generatePdf: false,
           coverOnly,
           orderId: Date.now(),
         }),
@@ -213,22 +211,22 @@ export default function PDFTestPage() {
     } catch (err) {
       setError(err instanceof Error ? err.message : "Unknown error");
     } finally {
-      setter(false);
+      setLoading(false);
     }
   }, [form, coverOnly]);
 
-  const downloadPdf = () => {
-    if (!result?.pdfBase64) return;
-    const bytes = atob(result.pdfBase64);
-    const arr = new Uint8Array(bytes.length);
-    for (let i = 0; i < bytes.length; i++) arr[i] = bytes.charCodeAt(i);
-    const blob = new Blob([arr], { type: "application/pdf" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `${form.businessName.toLowerCase().replace(/\s+/g, "-")}-brand-guide.pdf`;
-    a.click();
-    URL.revokeObjectURL(url);
+  // Client-side PDF: open the rendered HTML in a new window and trigger browser print.
+  // The browser's "Save as PDF" destination produces an identical result to Puppeteer
+  // and works without any server-side Chromium binary.
+  const printAsPdf = () => {
+    if (!result?.html) return;
+    const win = window.open("", "_blank");
+    if (!win) { alert("Allow pop-ups for this page to use Save as PDF."); return; }
+    win.document.open();
+    win.document.write(result.html);
+    win.document.close();
+    // Small delay lets the browser finish rendering fonts/images before print dialog
+    setTimeout(() => { win.focus(); win.print(); }, 600);
   };
 
   return (
@@ -384,9 +382,7 @@ export default function PDFTestPage() {
             <div className="flex-1" />
             {result && (
               <div className="text-xs text-gray-500">
-                HTML: {result.htmlMs}ms
-                {result.totalMs !== result.htmlMs && ` | PDF: ${result.totalMs}ms`}
-                {result.pdfSizeKb && ` | ${result.pdfSizeKb}KB`}
+                {result.htmlMs}ms
                 {result.assetsUsed && (
                   <Badge variant="outline" className="ml-2 border-gray-600 text-gray-400 text-xs">
                     {(result.assetsUsed as any).packName}
@@ -394,22 +390,16 @@ export default function PDFTestPage() {
                 )}
               </div>
             )}
-            <Button size="sm" onClick={() => call(false)} disabled={loading || loadingPdf}
+            <Button size="sm" onClick={() => call()} disabled={loading}
               className="bg-indigo-600 hover:bg-indigo-700 text-white">
               {loading ? (
-                <><span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Rendering HTML…</>
+                <><span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Rendering…</>
               ) : "Preview HTML"}
             </Button>
-            <Button size="sm" onClick={() => call(true)} disabled={loading || loadingPdf}
-              className="bg-purple-600 hover:bg-purple-700 text-white">
-              {loadingPdf ? (
-                <><span className="inline-block w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />Generating PDF…</>
-              ) : "Generate PDF"}
-            </Button>
-            {result?.pdfBase64 && (
-              <Button size="sm" variant="outline" onClick={downloadPdf}
-                className="border-gray-600 text-gray-300 hover:bg-gray-800">
-                Download PDF
+            {result?.html && (
+              <Button size="sm" onClick={printAsPdf}
+                className="bg-purple-600 hover:bg-purple-700 text-white">
+                Save as PDF
               </Button>
             )}
           </div>
@@ -445,7 +435,7 @@ export default function PDFTestPage() {
               <div className="absolute inset-0 flex flex-col items-center justify-center text-gray-600">
                 <div className="text-5xl mb-4">📄</div>
                 <p className="text-sm">Click <span className="text-indigo-400">Preview HTML</span> to render the brand guide</p>
-                <p className="text-xs mt-1 text-gray-700">or <span className="text-purple-400">Generate PDF</span> to create a downloadable PDF</p>
+                <p className="text-xs mt-1 text-gray-700">then <span className="text-purple-400">Save as PDF</span> opens the browser print dialog</p>
               </div>
             )}
 
