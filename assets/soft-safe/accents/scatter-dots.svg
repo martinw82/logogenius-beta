@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <!-- Scattered dot constellation - varying sizes -->
+  <circle cx="30" cy="45" r="8" fill="#ffffff"/>
+  <circle cx="90" cy="20" r="4" fill="#ffffff"/>
+  <circle cx="150" cy="55" r="6" fill="#ffffff"/>
+  <circle cx="210" cy="30" r="9" fill="#ffffff"/>
+  <circle cx="270" cy="60" r="5" fill="#ffffff"/>
+  <circle cx="50" cy="110" r="5" fill="#ffffff"/>
+  <circle cx="120" cy="95" r="10" fill="#ffffff"/>
+  <circle cx="185" cy="120" r="4" fill="#ffffff"/>
+  <circle cx="245" cy="100" r="7" fill="#ffffff"/>
+  <circle cx="15" cy="170" r="7" fill="#ffffff"/>
+  <circle cx="75" cy="155" r="4" fill="#ffffff"/>
+  <circle cx="140" cy="180" r="8" fill="#ffffff"/>
+  <circle cx="210" cy="165" r="5" fill="#ffffff"/>
+  <circle cx="275" cy="185" r="9" fill="#ffffff"/>
+  <circle cx="40" cy="235" r="4" fill="#ffffff"/>
+  <circle cx="105" cy="220" r="7" fill="#ffffff"/>
+  <circle cx="170" cy="245" r="5" fill="#ffffff"/>
+  <circle cx="235" cy="225" r="10" fill="#ffffff"/>
+  <circle cx="285" cy="250" r="4" fill="#ffffff"/>
+  <circle cx="60" cy="285" r="6" fill="#ffffff"/>
+  <circle cx="130" cy="275" r="4" fill="#ffffff"/>
+  <circle cx="200" cy="290" r="8" fill="#ffffff"/>
+  <circle cx="260" cy="270" r="5" fill="#ffffff"/>
+  <!-- Connecting lines between some dots -->
+  <line x1="30" y1="45" x2="90" y2="20" stroke="#ffffff" stroke-width="0.8" opacity="0.5"/>
+  <line x1="90" y1="20" x2="150" y2="55" stroke="#ffffff" stroke-width="0.8" opacity="0.5"/>
+  <line x1="210" y1="30" x2="270" y2="60" stroke="#ffffff" stroke-width="0.8" opacity="0.5"/>
+  <line x1="120" y1="95" x2="185" y2="120" stroke="#ffffff" stroke-width="0.8" opacity="0.5"/>
+  <line x1="140" y1="180" x2="105" y2="220" stroke="#ffffff" stroke-width="0.8" opacity="0.5"/>
+  <line x1="235" y1="225" x2="200" y2="290" stroke="#ffffff" stroke-width="0.8" opacity="0.5"/>
+</svg>

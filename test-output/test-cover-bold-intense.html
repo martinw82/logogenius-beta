@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>THUNDERFORGE - Brand Guidelines</title>
+  <style>
+    /* Google Fonts import - using user's selected fonts */
+    @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Inter:wght@400;500&display=swap');
+    
+    :root {
+      --primary: #2563eb;
+      --secondary: #1e40af;
+      --accent: #f59e0b;
+      --primary-rgb: 37, 99, 235;
+      --text-dark: #1a1a1a;
+      --text-light: #666666;
+      --text-muted: #999999;
+      --bg-light: #f8f8f8;
+      --border-light: #e5e5e5;
+      --font-heading: 'Playfair Display', 'Georgia', serif;
+      --font-body: 'Inter', 'Helvetica Neue', Arial, sans-serif;
+      
+      /* A4 dimensions */
+      --page-width: 210mm;
+      --page-height: 297mm;
+      --margin: 20mm;
+      --content-width: 170mm;
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: var(--font-body);
+      font-size: 10pt;
+      line-height: 1.6;
+      color: var(--text-dark);
+      background: white;
+    }
+    
+    /* Page container - A4 size */
+    .page {
+      width: var(--page-width);
+      height: var(--page-height);
+      position: relative;
+      overflow: hidden;
+      page-break-after: always;
+      background: white;
+    }
+    
+    .page:last-child {
+      page-break-after: auto;
+    }
+    
+    /* Cover page specific */
+    .page-cover {
+      background: var(--primary);
+      color: white;
+    }
+    
+    .page-cover .texture-bg {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      opacity: 0.15;
+      mix-blend-mode: overlay;
+    }
+    
+    .page-cover .logo-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 60%;
+      text-align: center;
+    }
+    
+    .page-cover .logo-svg {
+      max-width: 100%;
+      max-height: 200px;
+      filter: drop-shadow(0 10px 30px rgba(0,0,0,0.3));
+    }
+    
+    .page-cover .business-name {
+      position: absolute;
+      bottom: 60mm;
+      left: var(--margin);
+      font-family: var(--font-heading);
+      font-size: 48pt;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+      text-shadow: 0 4px 20px rgba(0,0,0,0.4);
+      max-width: calc(100% - var(--margin) * 2);
+    }
+    
+    .page-cover .tagline {
+      position: absolute;
+      bottom: 45mm;
+      left: var(--margin);
+      font-family: var(--font-body);
+      font-size: 14pt;
+      font-weight: 400;
+      opacity: 0.9;
+    }
+    
+    .page-cover .guidelines-label {
+      position: absolute;
+      top: var(--margin);
+      right: var(--margin);
+      font-family: var(--font-body);
+      font-size: 9pt;
+      letter-spacing: 0.15em;
+      text-transform: uppercase;
+      opacity: 0.7;
+      transform: rotate(90deg);
+      transform-origin: right top;
+    }
+    
+    .page-cover .accent-element {
+      position: absolute;
+      : 15mm;
+      top: 30mm;
+      width: 80mm;
+      opacity: %;
+      transform: rotate(deg);
+      pointer-events: none;
+    }
+    
+    .page-cover .date-footer {
+      position: absolute;
+      bottom: var(--margin);
+      left: var(--margin);
+      font-size: 8pt;
+      opacity: 0.6;
+    }
+    
+    /* Content pages */
+    .page-content {
+      padding: var(--margin);
+    }
+    
+    /* Section header */
+    .section-header {
+      margin-bottom: 15mm;
+      padding-bottom: 5mm;
+      border-bottom: 1pt solid var(--border-light);
+    }
+    
+    .section-header .accent-bar {
+      width: 15mm;
+      height: 4pt;
+      background: var(--primary);
+      margin-bottom: 4mm;
+    }
+    
+    .section-header h1 {
+      font-family: var(--font-heading);
+      font-size: 24pt;
+      font-weight: 700;
+      color: var(--text-dark);
+      margin-bottom: 2mm;
+      letter-spacing: -0.01em;
+    }
+    
+    .section-header .subtitle {
+      font-family: var(--font-body);
+      font-size: 10pt;
+      color: var(--text-light);
+      font-weight: 400;
+    }
+    
+    /* Body content */
+    .section-body {
+      font-family: var(--font-body);
+      font-size: 10pt;
+      line-height: 1.7;
+      color: var(--text-dark);
+    }
+    
+    .section-body p {
+      margin-bottom: 4mm;
+      text-align: justify;
+    }
+    
+    .section-body h2 {
+      font-family: var(--font-heading);
+      font-size: 14pt;
+      font-weight: 600;
+      color: var(--primary);
+      margin: 6mm 0 3mm 0;
+    }
+    
+    .section-body h3 {
+      font-family: var(--font-heading);
+      font-size: 11pt;
+      font-weight: 600;
+      color: var(--text-dark);
+      margin: 4mm 0 2mm 0;
+    }
+    
+    /* Page footer */
+    .page-footer {
+      position: absolute;
+      bottom: 10mm;
+      left: var(--margin);
+      right: var(--margin);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 8pt;
+      color: var(--text-muted);
+      border-top: 0.5pt solid var(--border-light);
+      padding-top: 3mm;
+    }
+    
+    /* Table of contents */
+    .toc-list {
+      list-style: none;
+      padding: 0;
+    }
+    
+    .toc-item {
+      display: flex;
+      align-items: baseline;
+      padding: 3mm 0;
+      border-bottom: 0.5pt dotted var(--border-light);
+    }
+    
+    .toc-number {
+      font-family: var(--font-heading);
+      font-size: 12pt;
+      font-weight: 700;
+      color: var(--primary);
+      width: 15mm;
+      flex-shrink: 0;
+    }
+    
+    .toc-title {
+      font-size: 11pt;
+      color: var(--text-dark);
+      flex-grow: 1;
+    }
+    
+    .toc-page {
+      font-size: 10pt;
+      color: var(--text-light);
+    }
+    
+    /* Color palette */
+    .color-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 5mm;
+      margin: 5mm 0;
+    }
+    
+    .color-swatch {
+      border-radius: 2mm;
+      overflow: hidden;
+      border: 0.5pt solid var(--border-light);
+    }
+    
+    .color-swatch .color-block {
+      height: 25mm;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .color-swatch .color-info {
+      padding: 3mm;
+      background: white;
+    }
+    
+    .color-swatch .color-hex {
+      font-family: var(--font-heading);
+      font-size: 10pt;
+      font-weight: 600;
+      color: var(--text-dark);
+    }
+    
+    .color-swatch .color-values {
+      font-size: 7pt;
+      color: var(--text-light);
+      margin-top: 1mm;
+    }
+    
+    /* Typography showcase */
+    .type-showcase {
+      margin: 5mm 0;
+    }
+    
+    .type-sample {
+      padding: 4mm 0;
+      border-bottom: 0.5pt solid var(--border-light);
+    }
+    
+    .type-sample .sample-text {
+      font-size: 24pt;
+      margin-bottom: 1mm;
+    }
+    
+    .type-sample .sample-label {
+      font-size: 8pt;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    /* Mockup grid */
+    .mockup-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 5mm;
+      margin: 5mm 0;
+    }
+    
+    .mockup-item {
+      border-radius: 2mm;
+      overflow: hidden;
+      border: 0.5pt solid var(--border-light);
+    }
+    
+    .mockup-item img {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+    
+    .mockup-item .mockup-label {
+      padding: 2mm 3mm;
+      font-size: 8pt;
+      color: var(--text-light);
+      background: var(--bg-light);
+    }
+    
+    /* Do/Don't cards */
+    .dos-donts-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 5mm;
+      margin: 5mm 0;
+    }
+    
+    .dd-card {
+      padding: 4mm;
+      border-radius: 2mm;
+    }
+    
+    .dd-card.do {
+      background: #f0fdf4;
+      border: 0.5pt solid #86efac;
+    }
+    
+    .dd-card.dont {
+      background: #fef2f2;
+      border: 0.5pt solid #fca5a5;
+    }
+    
+    .dd-card .dd-title {
+      font-family: var(--font-heading);
+      font-size: 11pt;
+      font-weight: 700;
+      margin-bottom: 2mm;
+    }
+    
+    .dd-card.do .dd-title { color: #16a34a; }
+    .dd-card.dont .dd-title { color: #dc2626; }
+    
+    .dd-card .dd-list {
+      list-style: none;
+      font-size: 9pt;
+      color: var(--text-dark);
+    }
+    
+    .dd-card .dd-list li {
+      padding: 1mm 0;
+      padding-left: 4mm;
+      position: relative;
+    }
+    
+    .dd-card .dd-list li::before {
+      position: absolute;
+      left: 0;
+    }
+    
+    .dd-card.do .dd-list li::before { content: "✓"; color: #16a34a; }
+    .dd-card.dont .dd-list li::before { content: "✕"; color: #dc2626; }
+    
+    /* Back cover */
+    .page-back-cover {
+      background: var(--primary);
+      color: white;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+    }
+    
+    .page-back-cover .logo-mark {
+      width: 40mm;
+      margin-bottom: 10mm;
+      opacity: 0.9;
+    }
+    
+    .page-back-cover .business-name {
+      font-family: var(--font-heading);
+      font-size: 24pt;
+      font-weight: 700;
+      margin-bottom: 3mm;
+    }
+    
+    .page-back-cover .tagline {
+      font-size: 11pt;
+      opacity: 0.8;
+      margin-bottom: 8mm;
+    }
+    
+    .page-back-cover .meta {
+      font-size: 8pt;
+      opacity: 0.6;
+    }
+    
+    /* Utility classes */
+    .text-center { text-align: center; }
+    .mt-1 { margin-top: 2mm; }
+    .mt-2 { margin-top: 4mm; }
+    .mb-1 { margin-bottom: 2mm; }
+    .mb-2 { margin-bottom: 4mm; }
+  </style>
+</head>
+<body>
+  <!-- Cover Page -->
+<div class="page page-cover">
+  <img src="file:///home/user/logogenius-beta/assets/bold-intense/textures/diagonal-lines.svg" class="texture-bg" alt="">
+  
+  <img src="file:///home/user/logogenius-beta/assets/bold-intense/accents/bold-angles.svg" class="accent-element" alt="" 
+       style="opacity: 10%; transform: rotate(77deg); right: 15mm;">
+  
+  <div class="guidelines-label">Brand Guidelines</div>
+  
+  <div class="logo-container">
+      <div style="font-family: var(--font-heading); font-size: 36pt; font-weight: 700;">THUNDERFORGE</div>
+  </div>
+  
+  <div class="business-name">THUNDERFORGE</div>
+  
+  <div class="tagline">Strength Through Innovation</div>
+  
+  <div class="date-footer">March 22, 2026</div>
+</div>
+
+<!-- Table of Contents -->
+<div class="page page-content">
+  <div class="section-header">
+    <div class="accent-bar"></div>
+    <h1>Contents</h1>
+    <p class="subtitle">Complete brand guideline reference</p>
+  </div>
+  
+  <ul class="toc-list">
+    <li class="toc-item">
+      <span class="toc-number">01</span>
+      <span class="toc-title">Project Overview</span>
+      <span class="toc-page">3</span>
+    </li>
+    <li class="toc-item">
+      <span class="toc-number">02</span>
+      <span class="toc-title">Brand Identity & Voice</span>
+      <span class="toc-page">4</span>
+    </li>
+    <li class="toc-item">
+      <span class="toc-number">03</span>
+      <span class="toc-title">Logo Philosophy</span>
+      <span class="toc-page">5</span>
+    </li>
+    <li class="toc-item">
+      <span class="toc-number">04</span>
+      <span class="toc-title">Logo Mockups</span>
+      <span class="toc-page">6</span>
+    </li>
+    <li class="toc-item">
+      <span class="toc-number">05</span>
+      <span class="toc-title">Color Palette</span>
+      <span class="toc-page">7</span>
+    </li>
+    <li class="toc-item">
+      <span class="toc-number">06</span>
+      <span class="toc-title">Color Accessibility</span>
+      <span class="toc-page">8</span>
+    </li>
+    <li class="toc-item">
+      <span class="toc-number">07</span>
+      <span class="toc-title">Typography Guide</span>
+      <span class="toc-page">9</span>
+    </li>
+    <li class="toc-item">
+      <span class="toc-number">08</span>
+      <span class="toc-title">Imagery & Photography</span>
+      <span class="toc-page">10</span>
+    </li>
+    <li class="toc-item">
+      <span class="toc-number">09</span>
+      <span class="toc-title">Graphic Elements</span>
+      <span class="toc-page">11</span>
+    </li>
+    <li class="toc-item">
+      <span class="toc-number">10</span>
+      <span class="toc-title">Brand Voice & Tone</span>
+      <span class="toc-page">12</span>
+    </li>
+    <li class="toc-item">
+      <span class="toc-number">11</span>
+      <span class="toc-title">Visual Style Guide</span>
+      <span class="toc-page">13</span>
+    </li>
+    <li class="toc-item">
+      <span class="toc-number">12</span>
+      <span class="toc-title">Usage Rules & Guidelines</span>
+      <span class="toc-page">14</span>
+    </li>
+  </ul>
+  
+  <div class="page-footer">
+    <span>THUNDERFORGE Brand Guidelines</span>
+    <span>2</span>
+  </div>
+</div>
+
+<!-- Generic Content Section -->
+<div class="page page-content">
+  <div class="section-header">
+    <div class="accent-bar"></div>
+    <h1>Project Overview</h1>
+    <p class="subtitle">Company introduction, mission, and vision</p>
+  </div>
+  
+  <div class="section-body">
+    <p>THUNDERFORGE is a forward-thinking technology company dedicated to creating powerful solutions that empower businesses to achieve more. Founded with a vision to democratize enterprise-grade tools, we have grown into a trusted partner for organizations seeking to transform their digital presence.</p>
+  </div>
+  
+  <div class="page-footer">
+    <span>THUNDERFORGE Brand Guidelines</span>
+    <span>3</span>
+  </div>
+</div>
+
+<!-- Generic Content Section -->
+<div class="page page-content">
+  <div class="section-header">
+    <div class="accent-bar"></div>
+    <h1>Logo Philosophy</h1>
+    <p class="subtitle">Design thinking and core message</p>
+  </div>
+  
+  <div class="section-body">
+    <p>The THUNDERFORGE logo represents our core values of power and precision. The geometric forms suggest stability and forward momentum, while the color palette evokes trust and energy. The mark is designed to be memorable at any size, from app icons to billboards.</p>
+  </div>
+  
+  <div class="page-footer">
+    <span>THUNDERFORGE Brand Guidelines</span>
+    <span>5</span>
+  </div>
+</div>
+
+<!-- Color Palette Page -->
+<div class="page page-content">
+  <div class="section-header">
+    <div class="accent-bar"></div>
+    <h1>Color Palette</h1>
+    <p class="subtitle">Brand colors with specifications</p>
+  </div>
+  
+  <div class="section-body">
+    <p>Our primary color palette centers on deep blues and vibrant accents. The primary blue (#2563eb) conveys trust and professionalism, while the energetic orange accent (#f59e0b) adds warmth and approachability. Secondary grays provide balance and sophistication.</p>
+    
+    <h2>Primary Colors</h2>
+    <p>Core brand colors that define your visual identity. Use for dominant elements and key brand touchpoints.</p>
+    <div class="color-grid">
+      <div class="color-swatch">
+        <div class="color-block" style="background: #2563eb;">
+          <span style="color: #ffffff; font-size: 8pt;">#2563eb</span>
+        </div>
+        <div class="color-info">
+          <div class="color-hex">#2563eb</div>
+          <div class="color-values">37, 99, 235</div>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-block" style="background: #3b82f6;">
+          <span style="color: #ffffff; font-size: 8pt;">#3b82f6</span>
+        </div>
+        <div class="color-info">
+          <div class="color-hex">#3b82f6</div>
+          <div class="color-values">59, 130, 246</div>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-block" style="background: #60a5fa;">
+          <span style="color: #ffffff; font-size: 8pt;">#60a5fa</span>
+        </div>
+        <div class="color-info">
+          <div class="color-hex">#60a5fa</div>
+          <div class="color-values">96, 165, 250</div>
+        </div>
+      </div>
+    </div>
+    
+    <h2>Secondary Colors</h2>
+    <p>Supporting colors that complement your primary palette.</p>
+    <div class="color-grid">
+      <div class="color-swatch">
+        <div class="color-block" style="background: #1e40af;">
+          <span style="color: #ffffff; font-size: 8pt;">#1e40af</span>
+        </div>
+        <div class="color-info">
+          <div class="color-hex">#1e40af</div>
+          <div class="color-values">30, 64, 175</div>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-block" style="background: #1e3a8a;">
+          <span style="color: #ffffff; font-size: 8pt;">#1e3a8a</span>
+        </div>
+        <div class="color-info">
+          <div class="color-hex">#1e3a8a</div>
+          <div class="color-values">30, 58, 138</div>
+        </div>
+      </div>
+    </div>
+    
+    <h2>Accent Colors</h2>
+    <p>Use sparingly for highlights, calls-to-action, and emphasis.</p>
+    <div class="color-grid">
+      <div class="color-swatch">
+        <div class="color-block" style="background: #f59e0b;">
+          <span style="color: #ffffff; font-size: 8pt;">#f59e0b</span>
+        </div>
+        <div class="color-info">
+          <div class="color-hex">#f59e0b</div>
+          <div class="color-values">245, 158, 11</div>
+        </div>
+      </div>
+      <div class="color-swatch">
+        <div class="color-block" style="background: #fbbf24;">
+          <span style="color: #000000; font-size: 8pt;">#fbbf24</span>
+        </div>
+        <div class="color-info">
+          <div class="color-hex">#fbbf24</div>
+          <div class="color-values">251, 191, 36</div>
+        </div>
+      </div>
+    </div>
+    
+    <h2>Color Usage Proportions</h2>
+    <p>Follow the 60-30-10 rule for balanced color application:</p>
+    <ul>
+      <li><strong>60% Primary:</strong> Backgrounds, major UI elements</li>
+      <li><strong>30% Secondary:</strong> Supporting elements, sections</li>
+      <li><strong>10% Accent:</strong> CTAs, highlights, emphasis</li>
+    </ul>
+  </div>
+  
+  <div class="page-footer">
+    <span>THUNDERFORGE Brand Guidelines</span>
+    <span>7</span>
+  </div>
+</div>
+
+<!-- Generic Content Section -->
+<div class="page page-content">
+  <div class="section-header">
+    <div class="accent-bar"></div>
+    <h1>Color Accessibility</h1>
+    <p class="subtitle">WCAG compliance and contrast guidelines</p>
+  </div>
+  
+  <div class="section-body">
+    <p>All color combinations meet WCAG AA standards for contrast. Primary text uses a 4.5:1 ratio against backgrounds, while large text achieves 3:1. Avoid using color alone to convey information.</p>
+  </div>
+  
+  <div class="page-footer">
+    <span>THUNDERFORGE Brand Guidelines</span>
+    <span>8</span>
+  </div>
+</div>
+
+<!-- Typography Page -->
+<div class="page page-content">
+  <div class="section-header">
+    <div class="accent-bar"></div>
+    <h1>Typography Guide</h1>
+    <p class="subtitle">Font families, hierarchy, and usage</p>
+  </div>
+  
+  <div class="section-body">
+    <p></p>
+    
+    <h2>Selected Fonts</h2>
+    
+    <div class="type-showcase">
+      <div class="type-sample">
+        <div class="sample-text" style="font-family: 'Playfair Display', serif;">
+          Playfair Display
+        </div>
+        <div class="sample-label">Heading Font — Used for titles and headlines</div>
+        <div style="font-family: 'Playfair Display', serif; font-size: 14pt; margin-top: 2mm;">
+          Aa Bb Cc Dd Ee Ff 123
+        </div>
+      </div>
+    </div>
+    
+    <div class="type-showcase">
+      <div class="type-sample">
+        <div class="sample-text" style="font-family: 'Inter', sans-serif;">
+          Inter
+        </div>
+        <div class="sample-label">Body Font — Used for paragraphs and body text</div>
+        <div style="font-family: 'Inter', sans-serif; font-size: 11pt; margin-top: 2mm;">
+          The quick brown fox jumps over the lazy dog
+        </div>
+      </div>
+    </div>
+    
+    
+    <h2>Type Hierarchy</h2>
+    
+    <div class="type-showcase">
+      <div class="type-sample">
+        <div style="font-family: 'Playfair Display', serif; font-size: 28pt; font-weight: 700;">Display Heading</div>
+        <div class="sample-label">H1 — 28pt / Bold / Playfair Display</div>
+      </div>
+      
+      <div class="type-sample">
+        <div style="font-family: 'Playfair Display', serif; font-size: 20pt; font-weight: 600;">Section Title</div>
+        <div class="sample-label">H2 — 20pt / Semi-bold / Playfair Display</div>
+      </div>
+      
+      <div class="type-sample">
+        <div style="font-family: 'Playfair Display', serif; font-size: 14pt; font-weight: 600;">Subsection</div>
+        <div class="sample-label">H3 — 14pt / Semi-bold / Playfair Display</div>
+      </div>
+      
+      <div class="type-sample">
+        <div style="font-family: 'Inter', sans-serif; font-size: 11pt;">Body text for paragraphs and general content</div>
+        <div class="sample-label">Body — 11pt / Regular / Inter</div>
+      </div>
+      
+      <div class="type-sample">
+        <div style="font-family: 'Inter', sans-serif; font-size: 8pt; color: #666;">Small text for captions and metadata</div>
+        <div class="sample-label">Caption — 8pt / Regular / Inter</div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="page-footer">
+    <span>THUNDERFORGE Brand Guidelines</span>
+    <span>9</span>
+  </div>
+</div>
+
+<!-- Generic Content Section -->
+<div class="page page-content">
+  <div class="section-header">
+    <div class="accent-bar"></div>
+    <h1>Imagery &amp; Photography</h1>
+    <p class="subtitle">Visual direction for photography and illustration</p>
+  </div>
+  
+  <div class="section-body">
+    <p>Photography should feel authentic and aspirational. Use natural lighting, diverse subjects, and real-world contexts. Avoid generic stock imagery. Images should convey action, collaboration, and positive outcomes.</p>
+  </div>
+  
+  <div class="page-footer">
+    <span>THUNDERFORGE Brand Guidelines</span>
+    <span>10</span>
+  </div>
+</div>
+
+<!-- Generic Content Section -->
+<div class="page page-content">
+  <div class="section-header">
+    <div class="accent-bar"></div>
+    <h1>Graphic Elements</h1>
+    <p class="subtitle">Icons, patterns, and decorative components</p>
+  </div>
+  
+  <div class="section-body">
+    <p>Geometric shapes derived from the logo can be used as background patterns or accent elements. Maintain consistent corner radii and line weights. Use these elements sparingly to avoid visual clutter.</p>
+  </div>
+  
+  <div class="page-footer">
+    <span>THUNDERFORGE Brand Guidelines</span>
+    <span>11</span>
+  </div>
+</div>
+
+<!-- Generic Content Section -->
+<div class="page page-content">
+  <div class="section-header">
+    <div class="accent-bar"></div>
+    <h1>Visual Style Guide</h1>
+    <p class="subtitle">Spacing, grids, shadows, and visual standards</p>
+  </div>
+  
+  <div class="section-body">
+    <p>Maintain consistent spacing using an 8px grid system. Use subtle shadows (0 2px 8px rgba) for depth. Border radius should be consistent—4px for UI elements, 8px for cards. Keep designs clean and purposeful.</p>
+  </div>
+  
+  <div class="page-footer">
+    <span>THUNDERFORGE Brand Guidelines</span>
+    <span>13</span>
+  </div>
+</div>
+
+<!-- Usage Rules - Do's and Don'ts -->
+<div class="page page-content">
+  <div class="section-header">
+    <div class="accent-bar"></div>
+    <h1>Usage Rules & Guidelines</h1>
+    <p class="subtitle">Protecting your brand integrity</p>
+  </div>
+  
+  <div class="section-body">
+    <p></p>
+    
+    <div class="dos-donts-grid">
+      <div class="dd-card do">
+        <div class="dd-title">DO</div>
+        <ul class="dd-list">
+          <li>Use approved brand colors</li>
+          <li>Maintain minimum clear space around logo</li>
+          <li>Use on solid, contrasting backgrounds</li>
+          <li>Scale proportionally</li>
+          <li>Use high-resolution files for print</li>
+        </ul>
+      </div>
+      
+      <div class="dd-card dont">
+        <div class="dd-title">DON'T</div>
+        <ul class="dd-list">
+          <li>Stretch or distort the logo</li>
+          <li>Change logo colors arbitrarily</li>
+          <li>Place on busy or low-contrast backgrounds</li>
+          <li>Rotate or tilt the logo</li>
+          <li>Add effects like shadows or outlines</li>
+        </ul>
+      </div>
+    </div>
+    
+    <h2>Clear Space Requirements</h2>
+    <p>Always maintain a minimum clear space around the logo equal to the height of the letter "x" in the logotype. This ensures the logo remains visible and uncluttered.</p>
+    
+    <h2>Minimum Size</h2>
+    <ul>
+      <li><strong>Print:</strong> Minimum 25mm wide</li>
+      <li><strong>Digital:</strong> Minimum 80px wide</li>
+      <li><strong>Favicon:</strong> 16px × 16px (simplified version)</li>
+    </ul>
+    
+    <h2>Color Variations</h2>
+    <p>Use the appropriate logo version based on background:</p>
+    <ul>
+      <li><strong>Primary:</strong> Full color on white/light backgrounds</li>
+      <li><strong>Reversed:</strong> White version on dark backgrounds</li>
+      <li><strong>Single Color:</strong> Black or white for special applications</li>
+    </ul>
+  </div>
+  
+  <div class="page-footer">
+    <span>THUNDERFORGE Brand Guidelines</span>
+    <span>14</span>
+  </div>
+</div>
+
+<!-- Back Cover -->
+<div class="page page-back-cover">
+  
+  <div class="business-name">THUNDERFORGE</div>
+  
+  <div class="tagline">Strength Through Innovation</div>
+  
+  <div class="meta">
+    Brand Guidelines v1.0 | March 22, 2026
+    <br>test@example.com
+  </div>
+</div>
+
+</body>
+</html>

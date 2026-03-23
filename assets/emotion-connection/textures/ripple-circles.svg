@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1120" width="800" height="1120">
+  <defs>
+    <style>circle { fill: none; stroke: #ffffff; }</style>
+  </defs>
+  <!-- Concentric circle ripples — multiple centres across the page -->
+  <!-- Centre 1: top-left -->
+  <circle cx="150" cy="150" r="30" stroke-width="1.5"/>
+  <circle cx="150" cy="150" r="60" stroke-width="1"/>
+  <circle cx="150" cy="150" r="90" stroke-width="1.5"/>
+  <circle cx="150" cy="150" r="120" stroke-width="1"/>
+  <circle cx="150" cy="150" r="150" stroke-width="0.6"/>
+  <circle cx="150" cy="150" r="180" stroke-width="0.4"/>
+  <!-- Centre 2: top-right -->
+  <circle cx="650" cy="200" r="35" stroke-width="1.5"/>
+  <circle cx="650" cy="200" r="70" stroke-width="1"/>
+  <circle cx="650" cy="200" r="105" stroke-width="1.5"/>
+  <circle cx="650" cy="200" r="140" stroke-width="1"/>
+  <circle cx="650" cy="200" r="175" stroke-width="0.6"/>
+  <circle cx="650" cy="200" r="210" stroke-width="0.4"/>
+  <!-- Centre 3: middle-left -->
+  <circle cx="100" cy="560" r="28" stroke-width="1.5"/>
+  <circle cx="100" cy="560" r="56" stroke-width="1"/>
+  <circle cx="100" cy="560" r="84" stroke-width="1.5"/>
+  <circle cx="100" cy="560" r="112" stroke-width="1"/>
+  <circle cx="100" cy="560" r="140" stroke-width="0.6"/>
+  <circle cx="100" cy="560" r="168" stroke-width="0.4"/>
+  <!-- Centre 4: middle -->
+  <circle cx="400" cy="500" r="40" stroke-width="1.5"/>
+  <circle cx="400" cy="500" r="80" stroke-width="1"/>
+  <circle cx="400" cy="500" r="120" stroke-width="1.5"/>
+  <circle cx="400" cy="500" r="160" stroke-width="1"/>
+  <circle cx="400" cy="500" r="200" stroke-width="0.6"/>
+  <circle cx="400" cy="500" r="240" stroke-width="0.4"/>
+  <!-- Centre 5: middle-right -->
+  <circle cx="720" cy="600" r="32" stroke-width="1.5"/>
+  <circle cx="720" cy="600" r="64" stroke-width="1"/>
+  <circle cx="720" cy="600" r="96" stroke-width="1.5"/>
+  <circle cx="720" cy="600" r="128" stroke-width="1"/>
+  <circle cx="720" cy="600" r="160" stroke-width="0.6"/>
+  <!-- Centre 6: bottom-left -->
+  <circle cx="200" cy="950" r="38" stroke-width="1.5"/>
+  <circle cx="200" cy="950" r="76" stroke-width="1"/>
+  <circle cx="200" cy="950" r="114" stroke-width="1.5"/>
+  <circle cx="200" cy="950" r="152" stroke-width="1"/>
+  <circle cx="200" cy="950" r="190" stroke-width="0.6"/>
+  <!-- Centre 7: bottom-right -->
+  <circle cx="630" cy="1000" r="33" stroke-width="1.5"/>
+  <circle cx="630" cy="1000" r="66" stroke-width="1"/>
+  <circle cx="630" cy="1000" r="99" stroke-width="1.5"/>
+  <circle cx="630" cy="1000" r="132" stroke-width="1"/>
+  <circle cx="630" cy="1000" r="165" stroke-width="0.6"/>
+  <circle cx="630" cy="1000" r="198" stroke-width="0.4"/>
+</svg>

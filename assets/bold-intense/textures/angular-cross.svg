@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1120" width="800" height="1120">
+  <defs>
+    <style>line { stroke: #ffffff; }</style>
+  </defs>
+  <!-- Angular crosshatch — two sets of diagonals -->
+  <!-- Forward diagonals -->
+  <line x1="-60" y1="0" x2="200" y2="260" stroke-width="2"/>
+  <line x1="80" y1="0" x2="340" y2="260" stroke-width="1"/>
+  <line x1="220" y1="0" x2="480" y2="260" stroke-width="2"/>
+  <line x1="360" y1="0" x2="620" y2="260" stroke-width="1"/>
+  <line x1="500" y1="0" x2="760" y2="260" stroke-width="2"/>
+  <line x1="640" y1="0" x2="900" y2="260" stroke-width="1"/>
+  <line x1="-60" y1="260" x2="200" y2="520" stroke-width="2"/>
+  <line x1="80" y1="260" x2="340" y2="520" stroke-width="1"/>
+  <line x1="220" y1="260" x2="480" y2="520" stroke-width="2"/>
+  <line x1="360" y1="260" x2="620" y2="520" stroke-width="1"/>
+  <line x1="500" y1="260" x2="760" y2="520" stroke-width="2"/>
+  <line x1="-60" y1="520" x2="200" y2="780" stroke-width="2"/>
+  <line x1="80" y1="520" x2="340" y2="780" stroke-width="1"/>
+  <line x1="220" y1="520" x2="480" y2="780" stroke-width="2"/>
+  <line x1="360" y1="520" x2="620" y2="780" stroke-width="1"/>
+  <line x1="500" y1="520" x2="760" y2="780" stroke-width="2"/>
+  <line x1="-60" y1="780" x2="200" y2="1040" stroke-width="2"/>
+  <line x1="80" y1="780" x2="340" y2="1040" stroke-width="1"/>
+  <line x1="220" y1="780" x2="480" y2="1040" stroke-width="2"/>
+  <line x1="360" y1="780" x2="620" y2="1040" stroke-width="1"/>
+  <line x1="500" y1="780" x2="760" y2="1040" stroke-width="2"/>
+  <!-- Back diagonals -->
+  <line x1="860" y1="0" x2="600" y2="260" stroke-width="2"/>
+  <line x1="720" y1="0" x2="460" y2="260" stroke-width="1"/>
+  <line x1="580" y1="0" x2="320" y2="260" stroke-width="2"/>
+  <line x1="440" y1="0" x2="180" y2="260" stroke-width="1"/>
+  <line x1="300" y1="0" x2="40" y2="260" stroke-width="2"/>
+  <line x1="160" y1="0" x2="-100" y2="260" stroke-width="1"/>
+  <line x1="860" y1="260" x2="600" y2="520" stroke-width="2"/>
+  <line x1="720" y1="260" x2="460" y2="520" stroke-width="1"/>
+  <line x1="580" y1="260" x2="320" y2="520" stroke-width="2"/>
+  <line x1="440" y1="260" x2="180" y2="520" stroke-width="1"/>
+  <line x1="300" y1="260" x2="40" y2="520" stroke-width="2"/>
+  <line x1="860" y1="520" x2="600" y2="780" stroke-width="2"/>
+  <line x1="720" y1="520" x2="460" y2="780" stroke-width="1"/>
+  <line x1="580" y1="520" x2="320" y2="780" stroke-width="2"/>
+  <line x1="440" y1="520" x2="180" y2="780" stroke-width="1"/>
+  <line x1="860" y1="780" x2="600" y2="1040" stroke-width="2"/>
+  <line x1="720" y1="780" x2="460" y2="1040" stroke-width="1"/>
+  <line x1="580" y1="780" x2="320" y2="1040" stroke-width="2"/>
+  <line x1="440" y1="780" x2="180" y2="1040" stroke-width="1"/>
+</svg>

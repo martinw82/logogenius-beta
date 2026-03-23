@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <!-- Loose Archimedean spiral from center outward -->
+  <!-- Approximated using a series of arc paths -->
+  <path d="M150 150
+           A5 5 0 0 1 155 150
+           A10 10 0 0 1 150 160
+           A15 15 0 0 1 135 150
+           A20 20 0 0 1 150 130
+           A25 25 0 0 1 175 150
+           A30 30 0 0 1 150 180
+           A35 35 0 0 1 115 150
+           A40 40 0 0 1 150 110
+           A45 45 0 0 1 195 150
+           A50 50 0 0 1 150 200
+           A55 55 0 0 1 95 150
+           A60 60 0 0 1 150 90
+           A65 65 0 0 1 215 150
+           A70 70 0 0 1 150 220
+           A75 75 0 0 1 75 150
+           A80 80 0 0 1 150 70
+           A85 85 0 0 1 235 150
+           A90 90 0 0 1 150 240
+           A95 95 0 0 1 55 150
+           A100 100 0 0 1 150 50
+           A105 105 0 0 1 255 150
+           A110 110 0 0 1 150 260
+           A115 115 0 0 1 35 150
+           A120 120 0 0 1 150 30
+           A125 125 0 0 1 275 150"
+        fill="none" stroke="#ffffff" stroke-width="2" stroke-linecap="round"/>
+  <!-- Center dot -->
+  <circle cx="150" cy="150" r="4" fill="#ffffff"/>
+  <!-- Decorative dots along the outer edge -->
+  <circle cx="275" cy="150" r="4" fill="#ffffff"/>
+  <circle cx="150" cy="30" r="3" fill="#ffffff"/>
+  <circle cx="35" cy="150" r="3" fill="#ffffff"/>
+  <circle cx="150" cy="260" r="3" fill="#ffffff"/>
+</svg>

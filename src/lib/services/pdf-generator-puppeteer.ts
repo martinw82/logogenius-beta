@@ -238,28 +238,57 @@ function formatContent(text: string): string {
 
 /**
  * Launch Puppeteer browser
+ *
+ * Two paths:
+ *  - Local dev: CHROMIUM_PATH env var points to a local Chromium binary.
+ *  - Vercel / serverless: @sparticuz/chromium downloads + caches a compatible
+ *    binary in /tmp (no env var needed on the host).
  */
 async function launchBrowser(headless: boolean = true) {
-  // For local development with Chrome/Chromium
-  const executablePath = process.env.CHROMIUM_PATH || 
-    (process.platform === 'win32' 
-      ? 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe'
-      : process.platform === 'darwin'
-        ? '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
-        : '/usr/bin/chromium-browser');
-  
-  return puppeteer.launch({
-    headless,
-    executablePath,
-    args: [
+  const localPath = process.env.CHROMIUM_PATH;
+
+  if (localPath) {
+    // ── Local development ──────────────────────────────────────────────────
+    const args = [
       '--no-sandbox',
       '--disable-setuid-sandbox',
+      '--no-zygote',
       '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--disable-gpu',
+      // Note: --disable-gpu omitted intentionally — it prevents Page.printToPDF in headless mode
       '--font-render-hinting=none',
-    ],
-  });
+    ];
+    if (headless) args.push('--headless=new');
+
+    return puppeteer.launch({
+      headless: false, // Managed via --headless=new in args above
+      executablePath: localPath,
+      args,
+    } as Parameters<typeof puppeteer.launch>[0]);
+  }
+
+  // ── Vercel / serverless ──────────────────────────────────────────────────
+  // @sparticuz/chromium handles binary download + /tmp caching automatically.
+  // --disable-gpu is filtered out because it blocks Page.printToPDF.
+  const chromium = (await import('@sparticuz/chromium')).default;
+  const executablePath = await chromium.executablePath();
+  const args = [
+    ...chromium.args.filter((a: string) => a !== '--disable-gpu'),
+    '--font-render-hinting=none',
+  ];
+
+  // Vercel/Lambda runs on Amazon Linux 2 where NSS libs (libnss3, etc.) live in
+  // /usr/lib64. Chrome's dynamic linker won't find them unless we add that path.
+  // Setting LD_LIBRARY_PATH here is inherited by the spawned Chrome child process.
+  const existingLdPath = process.env.LD_LIBRARY_PATH ?? '';
+  if (!existingLdPath.includes('/usr/lib64')) {
+    process.env.LD_LIBRARY_PATH = `/usr/lib64:/lib64${existingLdPath ? `:${existingLdPath}` : ''}`;
+  }
+
+  return puppeteer.launch({
+    headless: true, // chromium.headless causes type issues; true = new headless in puppeteer-core v21
+    executablePath,
+    args,
+  } as Parameters<typeof puppeteer.launch>[0]);
 }
 
 /**
@@ -281,13 +310,17 @@ export async function generateBrandGuidePDFPuppeteer(
     // Generate HTML
     const html = await generateHTML(data, options);
     
-    // Set content and wait for fonts/images to load
+    // Set content and wait for DOM to be ready.
+    // 'domcontentloaded' fires before external stylesheets/fonts resolve, avoiding
+    // timeouts in environments without internet access. Fallback fonts in CSS ensure
+    // the PDF renders correctly even without Google Fonts.
     await page.setContent(html, {
-      waitUntil: ['networkidle0', 'load', 'domcontentloaded'],
+      waitUntil: 'domcontentloaded',
+      timeout: 30000,
     });
-    
-    // Additional wait for Google Fonts to load
-    await page.waitForTimeout(2000);
+
+    // Brief wait for any synchronous rendering to complete
+    await page.waitForTimeout(500);
     
     // Generate PDF
     const pdfBuffer = await page.pdf({
@@ -346,19 +379,33 @@ export async function generateCoverPagePDF(
     });
     
     await page.setContent(html, {
-      waitUntil: ['networkidle0', 'load'],
+      waitUntil: 'domcontentloaded',
+      timeout: 30000,
     });
-    
-    await page.waitForTimeout(2000);
-    
-    return page.pdf({
+
+    await page.waitForTimeout(500);
+
+    // Must await here — returning a pending Promise inside try/finally causes
+    // browser.close() to run before PDF generation completes, killing the browser
+    const pdfBuffer = await page.pdf({
       format: 'A4',
       printBackground: true,
       margin: { top: 0, right: 0, bottom: 0, left: 0 },
     });
+    return pdfBuffer;
   } finally {
     await browser.close();
   }
+}
+
+/**
+ * Get HTML preview string (for API use without writing to disk)
+ */
+export async function getHTMLPreview(
+  data: PuppeteerPDFData,
+  options: PDFGenerationOptions = {}
+): Promise<string> {
+  return generateHTML(data, options);
 }
 
 /**

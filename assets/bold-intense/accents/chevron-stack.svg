@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 300 300" width="300" height="300">
+  <defs>
+    <style>polyline { fill: none; stroke: #ffffff; stroke-linejoin: miter; stroke-linecap: square; }</style>
+  </defs>
+  <!-- Stacked chevron arrows pointing right -->
+  <polyline points="40,30 150,150 40,270" stroke-width="22"/>
+  <polyline points="90,30 200,150 90,270" stroke-width="18"/>
+  <polyline points="145,30 255,150 145,270" stroke-width="14"/>
+  <polyline points="195,30 305,150 195,270" stroke-width="10"/>
+  <polyline points="240,30 350,150 240,270" stroke-width="6"/>
+</svg>

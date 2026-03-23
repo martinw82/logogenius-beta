@@ -143,13 +143,19 @@ export function transformOrderDataToPDFData(
   orderId: number,
   authorEmail?: string
 ): PuppeteerPDFData {
-  // Parse color palette
+  // Parse color palette — handle both string (from DB) and array (from mock data)
+  const toColorStr = (v: unknown): string | undefined => {
+    if (!v) return undefined;
+    if (Array.isArray(v)) return (v as string[]).join(' ');
+    return v as string;
+  };
+
   const colorPalette = parseColorPalette(
     orderData.colorPalette,
     logoSvg ? extractColorsFromText(logoSvg) : [],
-    orderData.primaryColors,
-    orderData.secondaryColors,
-    orderData.accentColors
+    toColorStr(orderData.primaryColors),
+    toColorStr(orderData.secondaryColors),
+    toColorStr(orderData.accentColors)
   );
   
   // Get first color from each category as the main color
