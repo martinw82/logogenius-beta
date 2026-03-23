@@ -409,11 +409,38 @@ Key patterns from professional brand decks:
 
 ## Implementation Notes
 
-- **jsPDF limitations:** No CSS, no HTML rendering. Everything is manual drawing commands.
-- **Fonts:** Limited to Helvetica, Times, Courier unless we embed custom fonts (possible with jsPDF addFont)
-- **Images:** Must be base64 encoded PNG/JPEG
-- **Performance:** Keep PDF generation under 5 seconds
-- **File size:** Target < 5MB for the final PDF
+- **Rendering:** HTML/Handlebars template → Puppeteer (headless Chrome) → PDF. This means we can style with full CSS, use custom fonts, and have pixel-perfect layout.
+- **Fonts:** Any web font (Google Fonts, local) works — just reference in CSS as normal.
+- **Images:** Base64-encoded PNGs inline in the HTML template.
+- **Performance:** Keep PDF generation under 10 seconds (Puppeteer cold-start + render).
+- **File size:** Target < 5MB for the final PDF.
+- **Preview during development:** The HTML template is served at `/test/pdf-preview` (or similar) so all aesthetic work can be done in-browser before touching any PDF output.
+
+---
+
+## PDF Hosting — Decision & TODO
+
+**Decision (2026-03-23):** PDF generation will be handled by a **Railway microservice** — a small dedicated Node.js/Express server whose only job is: receive HTML → return PDF via Puppeteer.
+
+### Why
+Vercel serverless functions strip out the system libraries Chrome needs (libnss3 etc.). Any real Linux server — including Railway's Docker containers — has them. The existing `pdf-generator-puppeteer.ts` code works **as-is** on Railway with zero changes.
+
+### Current State
+The HTML template and all the aesthetics work is done and tested in-browser. The full order-flow pipeline (Fiverr → generate → ZIP) is complete. The Railway microservice is the **only remaining step** to get a real PDF at the end of the flow.
+
+### TODO (deferred until PDF aesthetics are finalised)
+
+- [ ] **Create Railway project** — new project, deploy from GitHub or Docker
+- [ ] **PDF microservice** — small Express app (`server.js`):
+  - `POST /generate-pdf` — accepts `{ html: string }`, returns `application/pdf`
+  - Uses existing `pdf-generator-puppeteer.ts` logic (copy/paste, no changes)
+  - `GET /health` — returns `{ ok: true }` for uptime monitoring
+- [ ] **Add `PDF_SERVICE_URL` env var** — to Vercel project settings (e.g. `https://logogenius-pdf.up.railway.app`)
+- [ ] **Update `launchBrowser()` call** — ~10 lines: if `PDF_SERVICE_URL` is set, POST to it instead of spawning local Chrome
+- [ ] **Test end-to-end** — full order flow → ZIP → PDF opens correctly
+- [ ] **Set Railway sleep policy** — keep-alive or allow cold starts (fine for low volume)
+
+**Estimated effort:** ~2–3 hours when ready to do it.
 
 ---
 
