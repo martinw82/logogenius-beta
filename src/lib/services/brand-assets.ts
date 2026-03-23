@@ -115,7 +115,7 @@ function createSeededRandom(seed: number): () => number {
 export async function getRandomBrandAssets(
   archetype: string,
   orderId: number,
-  basePath: string = './assets'
+  basePath: string = './public/assets'
 ): Promise<BrandAssets> {
   // Find pack name - normalize archetype input
   let packName = ARCHETYPE_TO_PACK[archetype];
