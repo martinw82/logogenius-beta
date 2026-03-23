@@ -1,85 +1,99 @@
 <!-- Typography Page -->
-<div class="page page-content">
-  <div class="section-header">
-    <div class="accent-bar"></div>
-    <h1>Typography Guide</h1>
-    <p class="subtitle">Font families, hierarchy, and usage</p>
+<div class="page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Typography</span>
   </div>
   
-  <div class="section-body">
+  <div class="content">
+    <!-- Section Heading -->
+    <div class="section-heading">
+      <div>
+        <h1>Typography Guide</h1>
+        <p class="subtitle">Font families, hierarchy, and usage guidelines</p>
+      </div>
+    </div>
+    
+    <!-- Typography Description -->
+    {{#if typographyText}}
     <p>{{typographyText}}</p>
+    {{/if}}
     
-    <h2>Selected Fonts</h2>
-    
+    <!-- Heading Font Showcase -->
     {{#if fontHeadings}}
-    <div class="type-showcase">
+    <h2>Primary Typeface: {{fontHeadings}}</h2>
+    
+    <div class="alphabet-specimen" style="font-family: '{{fontHeadings}}', sans-serif; font-weight: 600;">
+      Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz
+    </div>
+    <div class="alphabet-specimen" style="font-family: '{{fontHeadings}}', sans-serif; font-weight: 600;">
+      1234567890 !@#$%&*()
+    </div>
+    
+    <div class="type-hierarchy">
       <div class="type-sample">
-        <div class="sample-text" style="font-family: '{{fontHeadings}}', serif;">
-          {{fontHeadings}}
+        <div class="sample-text" style="font-family: '{{fontHeadings}}', sans-serif; font-size: 48px; font-weight: 700; letter-spacing: -0.02em;">
+          Display Heading
         </div>
-        <div class="sample-label">Heading Font — Used for titles and headlines</div>
-        <div style="font-family: '{{fontHeadings}}', serif; font-size: 14pt; margin-top: 2mm;">
-          Aa Bb Cc Dd Ee Ff 123
+        <div class="sample-label">Display — 48pt / Bold / {{fontHeadings}}</div>
+      </div>
+      
+      <div class="type-sample">
+        <div class="sample-text" style="font-family: '{{fontHeadings}}', sans-serif; font-size: 32px; font-weight: 600; letter-spacing: -0.01em;">
+          Section Title
         </div>
+        <div class="sample-label">H1 — 32pt / Semi-bold / {{fontHeadings}}</div>
+      </div>
+      
+      <div class="type-sample">
+        <div class="sample-text" style="font-family: '{{fontHeadings}}', sans-serif; font-size: 24px; font-weight: 600;">
+          Subsection Heading
+        </div>
+        <div class="sample-label">H2 — 24pt / Semi-bold / {{fontHeadings}}</div>
+      </div>
+      
+      <div class="type-sample">
+        <div class="sample-text" style="font-family: '{{fontHeadings}}', sans-serif; font-size: 18px; font-weight: 600;">
+          Subheading
+        </div>
+        <div class="sample-label">H3 — 18pt / Semi-bold / {{fontHeadings}}</div>
       </div>
     </div>
     {{/if}}
     
+    <!-- Body Font Showcase -->
     {{#if fontBody}}
-    <div class="type-showcase">
+    <h2 style="margin-top: 48px;">Body Typeface: {{fontBody}}</h2>
+    
+    <div class="alphabet-specimen" style="font-family: '{{fontBody}}', sans-serif;">
+      Aa Bb Cc Dd Ee Ff Gg Hh Ii Jj Kk Ll Mm Nn Oo Pp Qq Rr Ss Tt Uu Vv Ww Xx Yy Zz
+    </div>
+    
+    <div class="type-hierarchy">
       <div class="type-sample">
-        <div class="sample-text" style="font-family: '{{fontBody}}', sans-serif;">
-          {{fontBody}}
+        <div class="sample-text" style="font-family: '{{fontBody}}', sans-serif; font-size: 16px; line-height: 1.6;">
+          Body text for paragraphs and general content. This is how the body text appears when used in longer passages of content across brand materials.
         </div>
-        <div class="sample-label">Body Font — Used for paragraphs and body text</div>
-        <div style="font-family: '{{fontBody}}', sans-serif; font-size: 11pt; margin-top: 2mm;">
-          The quick brown fox jumps over the lazy dog
+        <div class="sample-label">Body — 16pt / Regular / {{fontBody}}</div>
+      </div>
+      
+      <div class="type-sample">
+        <div class="sample-text" style="font-family: '{{fontBody}}', sans-serif; font-size: 12px; color: #666;">
+          Small text for captions, footnotes, and metadata.
         </div>
+        <div class="sample-label">Caption — 12pt / Regular / {{fontBody}}</div>
       </div>
     </div>
     {{/if}}
     
-    {{#if fontOther}}
-    <div class="type-showcase">
-      <div class="type-sample">
-        <div class="sample-text" style="font-family: '{{fontOther}}', sans-serif;">
-          {{fontOther}}
-        </div>
-        <div class="sample-label">Accent Font — Used for special elements</div>
-      </div>
-    </div>
-    {{/if}}
-    
-    <h2>Type Hierarchy</h2>
-    
-    <div class="type-showcase">
-      <div class="type-sample">
-        <div style="font-family: '{{fontHeadings}}', serif; font-size: 28pt; font-weight: 700;">Display Heading</div>
-        <div class="sample-label">H1 — 28pt / Bold / {{fontHeadings}}</div>
-      </div>
-      
-      <div class="type-sample">
-        <div style="font-family: '{{fontHeadings}}', serif; font-size: 20pt; font-weight: 600;">Section Title</div>
-        <div class="sample-label">H2 — 20pt / Semi-bold / {{fontHeadings}}</div>
-      </div>
-      
-      <div class="type-sample">
-        <div style="font-family: '{{fontHeadings}}', serif; font-size: 14pt; font-weight: 600;">Subsection</div>
-        <div class="sample-label">H3 — 14pt / Semi-bold / {{fontHeadings}}</div>
-      </div>
-      
-      <div class="type-sample">
-        <div style="font-family: '{{fontBody}}', sans-serif; font-size: 11pt;">Body text for paragraphs and general content</div>
-        <div class="sample-label">Body — 11pt / Regular / {{fontBody}}</div>
-      </div>
-      
-      <div class="type-sample">
-        <div style="font-family: '{{fontBody}}', sans-serif; font-size: 8pt; color: #666;">Small text for captions and metadata</div>
-        <div class="sample-label">Caption — 8pt / Regular / {{fontBody}}</div>
-      </div>
+    <!-- Font Pairing Rationale -->
+    <div class="callout" style="margin-top: 32px;">
+      <p><strong>Font Pairing:</strong> {{fontHeadings}} provides strong visual hierarchy for headlines, while {{fontBody}} ensures excellent readability for body content. This combination creates a balanced typographic system that feels both authoritative and approachable.</p>
     </div>
   </div>
   
+  <!-- Page Footer -->
   <div class="page-footer">
     <span>{{businessName}} Brand Guidelines</span>
     <span>{{pageNumber}}</span>

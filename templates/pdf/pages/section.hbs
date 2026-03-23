@@ -1,15 +1,37 @@
 <!-- Generic Content Section -->
-<div class="page page-content">
-  <div class="section-header">
-    <div class="accent-bar"></div>
-    <h1>{{title}}</h1>
-    <p class="subtitle">{{subtitle}}</p>
+<div class="page">
+  <!-- Page Header with Chrome -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">{{title}}</span>
   </div>
   
-  <div class="section-body">
-    {{{content}}}
+  <!-- Content -->
+  <div class="content">
+    <!-- Section Heading with Accent Bar -->
+    <div class="section-heading">
+      <div>
+        <h1>{{title}}</h1>
+        {{#if subtitle}}
+        <p class="subtitle">{{subtitle}}</p>
+        {{/if}}
+      </div>
+    </div>
+    
+    <!-- Section Body -->
+    <div class="section-body">
+      {{{content}}}
+    </div>
+    
+    <!-- Optional Pull Quote / Callout -->
+    {{#if pullQuote}}
+    <div class="callout">
+      <p>"{{pullQuote}}"</p>
+    </div>
+    {{/if}}
   </div>
   
+  <!-- Page Footer -->
   <div class="page-footer">
     <span>{{businessName}} Brand Guidelines</span>
     <span>{{pageNumber}}</span>

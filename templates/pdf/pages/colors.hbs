@@ -1,77 +1,89 @@
 <!-- Color Palette Page -->
-<div class="page page-content">
-  <div class="section-header">
-    <div class="accent-bar"></div>
-    <h1>Color Palette</h1>
-    <p class="subtitle">Brand colors with specifications</p>
+<div class="page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Color Palette</span>
   </div>
   
-  <div class="section-body">
-    <p>{{colorPaletteText}}</p>
+  <div class="content">
+    <!-- Section Heading -->
+    <div class="section-heading">
+      <div>
+        <h1>Color Palette</h1>
+        <p class="subtitle">Brand colors with specifications and usage guidelines</p>
+      </div>
+    </div>
     
+    <!-- Color Palette Description -->
+    {{#if colorPaletteText}}
+    <p>{{colorPaletteText}}</p>
+    {{/if}}
+    
+    <!-- Primary Colors -->
     {{#if primaryColors.length}}
     <h2>Primary Colors</h2>
     <p>Core brand colors that define your visual identity. Use for dominant elements and key brand touchpoints.</p>
-    <div class="color-grid">
+    <div class="swatch-row">
       {{#each primaryColors}}
-      <div class="color-swatch">
-        <div class="color-block" style="background: {{this}};">
-          <span style="color: {{contrastColor this}}; font-size: 8pt;">{{this}}</span>
-        </div>
-        <div class="color-info">
-          <div class="color-hex">{{this}}</div>
-          <div class="color-values">{{hexToRgb this}}</div>
-        </div>
+      <div class="swatch-primary" style="background: {{this}}; color: {{contrastColor this}};">
+        <div class="swatch-hex">{{this}}</div>
+        <div class="swatch-values">RGB {{hexToRgb this}} | CMYK {{hexToCmyk this}}</div>
       </div>
       {{/each}}
     </div>
     {{/if}}
     
+    <!-- Secondary Colors -->
     {{#if secondaryColors.length}}
     <h2>Secondary Colors</h2>
     <p>Supporting colors that complement your primary palette.</p>
-    <div class="color-grid">
+    <div class="swatch-row">
       {{#each secondaryColors}}
-      <div class="color-swatch">
-        <div class="color-block" style="background: {{this}};">
-          <span style="color: {{contrastColor this}}; font-size: 8pt;">{{this}}</span>
-        </div>
-        <div class="color-info">
-          <div class="color-hex">{{this}}</div>
-          <div class="color-values">{{hexToRgb this}}</div>
-        </div>
+      <div class="swatch-secondary" style="background: {{this}}; color: {{contrastColor this}};">
+        <div class="swatch-hex">{{this}}</div>
+        <div class="swatch-values">RGB {{hexToRgb this}}</div>
       </div>
       {{/each}}
     </div>
     {{/if}}
     
+    <!-- Accent Colors -->
     {{#if accentColors.length}}
     <h2>Accent Colors</h2>
     <p>Use sparingly for highlights, calls-to-action, and emphasis.</p>
-    <div class="color-grid">
+    <div class="swatch-row">
       {{#each accentColors}}
-      <div class="color-swatch">
-        <div class="color-block" style="background: {{this}};">
-          <span style="color: {{contrastColor this}}; font-size: 8pt;">{{this}}</span>
-        </div>
-        <div class="color-info">
-          <div class="color-hex">{{this}}</div>
-          <div class="color-values">{{hexToRgb this}}</div>
-        </div>
+      <div class="swatch-secondary" style="background: {{this}}; color: {{contrastColor this}};">
+        <div class="swatch-hex">{{this}}</div>
+        <div class="swatch-values">RGB {{hexToRgb this}}</div>
       </div>
       {{/each}}
     </div>
     {{/if}}
     
+    <!-- Color Usage Proportions (60/30/10 Rule) -->
     <h2>Color Usage Proportions</h2>
-    <p>Follow the 60-30-10 rule for balanced color application:</p>
-    <ul>
-      <li><strong>60% Primary:</strong> Backgrounds, major UI elements</li>
-      <li><strong>30% Secondary:</strong> Supporting elements, sections</li>
-      <li><strong>10% Accent:</strong> CTAs, highlights, emphasis</li>
-    </ul>
+    <p>Follow the 60-30-10 rule for balanced color application across all brand touchpoints:</p>
+    
+    <div class="usage-bar">
+      <div class="usage-bar-segment" style="width: 60%; background: {{primaryColor}};"></div>
+      <div class="usage-bar-segment" style="width: 30%; background: {{secondaryColor}};"></div>
+      <div class="usage-bar-segment" style="width: 10%; background: {{accentColor}};"></div>
+    </div>
+    
+    <div class="usage-labels">
+      <span><strong>60%</strong> Primary</span>
+      <span><strong>30%</strong> Secondary</span>
+      <span><strong>10%</strong> Accent</span>
+    </div>
+    
+    <div class="callout" style="margin-top: 32px;">
+      <p>Primary colors should dominate backgrounds and major UI elements. Secondary colors support sections and sub-headers. Accent colors are reserved for calls-to-action, buttons, and emphasis only.</p>
+    </div>
   </div>
   
+  <!-- Page Footer -->
   <div class="page-footer">
     <span>{{businessName}} Brand Guidelines</span>
     <span>{{pageNumber}}</span>

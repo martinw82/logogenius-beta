@@ -1,0 +1,78 @@
+<!-- Brand Voice Page -->
+<div class="page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Brand Voice</span>
+  </div>
+  
+  <div class="content">
+    <!-- Section Heading -->
+    <div class="section-heading">
+      <div>
+        <h1>Brand Voice & Tone</h1>
+        <p class="subtitle">How {{businessName}} communicates</p>
+      </div>
+    </div>
+    
+    <!-- Brand Voice Description -->
+    {{#if brandVoiceTone}}
+    <p>{{brandVoiceTone}}</p>
+    {{/if}}
+    
+    <!-- We Are / We Are Not Grid -->
+    <div class="voice-grid">
+      <div class="voice-column">
+        <h3>We ARE:</h3>
+        <ul class="voice-list">
+          <li>✓ Clear and direct</li>
+          <li>✓ Professional yet approachable</li>
+          <li>✓ Confident in our expertise</li>
+          <li>✓ Authentic and honest</li>
+          <li>✓ Respectful of our audience</li>
+        </ul>
+      </div>
+      
+      <div class="voice-column">
+        <h3>We are NOT:</h3>
+        <ul class="voice-list">
+          <li>✗ Arrogant or dismissive</li>
+          <li>✗ Overly casual or slangy</li>
+          <li>✗ Pretentious or buzzword-heavy</li>
+          <li>✗ Boring or generic</li>
+          <li>✗ Unclear or ambiguous</li>
+        </ul>
+      </div>
+    </div>
+    
+    <!-- Writing Examples -->
+    <h3>Writing Examples</h3>
+    
+    <div class="callout">
+      <p><strong>Active voice example:</strong> "We deliver solutions that help your business grow."</p>
+    </div>
+    
+    <div style="background: #f5f5f5; border-radius: var(--radius); padding: 20px; margin: 16px 0;">
+      <p style="margin: 0; font-style: italic; color: var(--text-muted);">"Passive voice to avoid: Solutions are delivered by us that help your business grow."</p>
+    </div>
+    
+    <!-- Vocabulary Guide -->
+    <h3>Vocabulary Guide</h3>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+      <div>
+        <p class="micro-label" style="margin-bottom: 8px;">Words to Use</p>
+        <p style="font-size: 14px;">Innovate, empower, solution, partner, expertise, quality, trusted, deliver</p>
+      </div>
+      <div>
+        <p class="micro-label" style="margin-bottom: 8px;">Words to Avoid</p>
+        <p style="font-size: 14px;">Synergy, leverage, paradigm, disruptive (unless truly applicable), game-changing (overused)</p>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Page Footer -->
+  <div class="page-footer">
+    <span>{{businessName}} Brand Guidelines</span>
+    <span>{{pageNumber}}</span>
+  </div>
+</div>

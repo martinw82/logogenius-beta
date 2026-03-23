@@ -1,19 +1,38 @@
-<!-- Back Cover -->
+<!-- Back Cover Page -->
 <div class="page page-back-cover">
+  <!-- Layer 1: Background Texture (subtle) -->
+  {{#if brandAssets.selectedTexture}}
+  <div class="layer-texture" style="background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedTexture}}'); opacity: 0.05;"></div>
+  {{/if}}
+  
+  <!-- Layer 3: Pattern (very subtle) -->
+  {{#if brandAssets.selectedPattern}}
+  <div class="layer-pattern" style="background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedPattern}}'); opacity: 0.03;"></div>
+  {{/if}}
+  
+  <!-- Logo Mark -->
   {{#if logoSvg}}
-    <div class="logo-mark">
+    <div class="logo-mark" style="width: 50mm; opacity: 0.9;">
       {{{logoSvg}}}
     </div>
   {{/if}}
   
+  <!-- Business Name -->
   <div class="business-name">{{businessName}}</div>
   
+  <!-- Tagline -->
   {{#if tagline}}
   <div class="tagline">{{tagline}}</div>
   {{/if}}
   
+  <!-- Contact Info -->
+  {{#if authorEmail}}
+  <div class="contact">{{authorEmail}}</div>
+  {{/if}}
+  
+  <!-- Meta Info -->
   <div class="meta">
-    Brand Guidelines v1.0 | {{formatDate createdAt}}
-    {{#if authorEmail}}<br>{{authorEmail}}{{/if}}
+    Brand Guidelines v1.0 | {{formatDate createdAt}}<br>
+    Prepared by LogoGenius
   </div>
 </div>

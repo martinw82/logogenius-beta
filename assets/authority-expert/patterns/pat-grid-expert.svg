@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <pattern id="expertGrid" width="50" height="50" patternUnits="userSpaceOnUse">
+      <line x1="0" y1="0" x2="0" y2="50" stroke="black" stroke-width="0.8" opacity="0.2"/>
+      <line x1="0" y1="0" x2="50" y2="0" stroke="black" stroke-width="0.8" opacity="0.2"/>
+    </pattern>
+  </defs>
+  <rect width="200" height="200" fill="url(#expertGrid)"/>
+</svg>

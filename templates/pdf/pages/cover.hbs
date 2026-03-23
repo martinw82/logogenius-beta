@@ -1,16 +1,19 @@
 <!-- Cover Page -->
 <div class="page page-cover">
+  <!-- Layer 1: Background Texture -->
   {{#if brandAssets.selectedTexture}}
-  <img src="{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedTexture}}" class="texture-bg" alt="">
+  <div class="layer-texture" style="background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedTexture}}');"></div>
   {{/if}}
   
+  <!-- Layer 2: Geometric Accent -->
   {{#if brandAssets.selectedAccent}}
-  <img src="{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedAccent}}" class="accent-element" alt="" 
-       style="opacity: {{brandAssets.accentOpacity}}%; transform: rotate({{brandAssets.accentRotation}}deg); {{brandAssets.accentSide}}: 15mm;">
+  <div class="layer-accent" style="background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedAccent}}'); {{brandAssets.accentSide}}: 0;"></div>
   {{/if}}
   
+  <!-- Guidelines Label -->
   <div class="guidelines-label">Brand Guidelines</div>
   
+  <!-- Logo Container (Center) -->
   <div class="logo-container">
     {{#if logoSvg}}
       {{{logoSvg}}}
@@ -19,11 +22,14 @@
     {{/if}}
   </div>
   
+  <!-- Business Name (Bottom Left) -->
   <div class="business-name">{{businessName}}</div>
   
+  <!-- Tagline -->
   {{#if tagline}}
   <div class="tagline">{{tagline}}</div>
   {{/if}}
   
-  <div class="date-footer">{{formatDate createdAt}}</div>
+  <!-- Date Footer -->
+  <div class="date-footer">{{formatDate createdAt}} | {{businessName}}</div>
 </div>

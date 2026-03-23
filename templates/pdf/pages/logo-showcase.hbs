@@ -1,0 +1,63 @@
+<!-- Logo Showcase Page -->
+<div class="page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Our Logo</span>
+  </div>
+  
+  <div class="content">
+    <!-- Section Heading -->
+    <div class="section-heading">
+      <div>
+        <h1>Our Logo</h1>
+        <p class="subtitle">The primary visual mark of {{businessName}}</p>
+      </div>
+    </div>
+    
+    <!-- Main Logo Display -->
+    <div class="logo-showcase-container">
+      {{#if logoSvg}}
+        {{{logoSvg}}}
+      {{else}}
+        <div style="font-family: var(--font-heading); font-size: 48px; font-weight: 700;">{{businessName}}</div>
+      {{/if}}
+    </div>
+    
+    <!-- Logo Philosophy -->
+    {{#if logoPhilosophy}}
+    <p>{{logoPhilosophy}}</p>
+    {{/if}}
+    
+    <!-- Clear Space Diagram -->
+    <h3>Clear Space</h3>
+    <p>Maintain adequate clear space around the logo to ensure visibility and impact. The minimum clear space is equal to the height of the logo mark.</p>
+    
+    <div class="clearspace-diagram">
+      {{#if logoSvg}}
+        <div style="position: relative; display: inline-block; padding: 40px; border: 1px dotted var(--primary);">
+          {{{logoSvg}}}
+        </div>
+      {{else}}
+        <div style="font-family: var(--font-heading); font-size: 32px; font-weight: 700; padding: 40px; border: 1px dotted var(--primary); display: inline-block;">
+          {{businessName}}
+        </div>
+      {{/if}}
+      <p class="micro-label" style="margin-top: 16px;">Minimum clear space = 1× logo height on all sides</p>
+    </div>
+    
+    <!-- Minimum Size -->
+    <h3>Minimum Size</h3>
+    <p>To maintain legibility, do not reproduce the logo smaller than these minimum sizes:</p>
+    <ul style="margin-left: 20px; margin-bottom: 24px;">
+      <li><strong>Print:</strong> 25mm width</li>
+      <li><strong>Digital:</strong> 80px width</li>
+    </ul>
+  </div>
+  
+  <!-- Page Footer -->
+  <div class="page-footer">
+    <span>{{businessName}} Brand Guidelines</span>
+    <span>{{pageNumber}}</span>
+  </div>
+</div>
