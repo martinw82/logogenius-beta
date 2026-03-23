@@ -10,7 +10,7 @@ import Handlebars from 'handlebars';
 /**
  * Convert hex color to RGB object
  */
-export function hexToRgbObject(hex: string): { r: number; g: number; b: number } {
+function hexToRgbObject(hex: string): { r: number; g: number; b: number } {
   const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
   if (!result) return { r: 0, g: 0, b: 0 };
   
@@ -24,7 +24,7 @@ export function hexToRgbObject(hex: string): { r: number; g: number; b: number }
 /**
  * Convert RGB object to CMYK values
  */
-export function rgbToCmyk(rgb: { r: number; g: number; b: number }): { c: number; m: number; y: number; k: number } {
+function rgbToCmyk(rgb: { r: number; g: number; b: number }): { c: number; m: number; y: number; k: number } {
   const rr = rgb.r / 255;
   const gg = rgb.g / 255;
   const bb = rgb.b / 255;
