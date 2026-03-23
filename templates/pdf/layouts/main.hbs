@@ -95,7 +95,7 @@
       position: absolute;
       inset: 0;
       {{#if brandAssets.selectedTexture}}
-      background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedTexture}}');
+      background-image: url('{{brandAssets.selectedTexture.dataUri}}');
       background-size: cover;
       background-position: center;
       opacity: calc({{brandAssets.accentOpacity}} / 100);
@@ -112,7 +112,7 @@
       width: 40%;
       height: 45%;
       {{#if brandAssets.selectedAccent}}
-      background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedAccent}}');
+      background-image: url('{{brandAssets.selectedAccent.dataUri}}');
       background-size: contain;
       background-repeat: no-repeat;
       background-position: {{brandAssets.accentSide}} top;
@@ -129,7 +129,7 @@
       position: absolute;
       inset: 0;
       {{#if brandAssets.selectedPattern}}
-      background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedPattern}}');
+      background-image: url('{{brandAssets.selectedPattern.dataUri}}');
       background-size: 120px 120px;
       background-repeat: repeat;
       opacity: 0.05;

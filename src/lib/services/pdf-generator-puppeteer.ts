@@ -73,6 +73,49 @@ async function loadTemplates() {
 }
 
 /**
+ * Read SVG file and convert to data URI for inline embedding
+ */
+async function getAssetDataUri(assetPath: string | null, basePath: string): Promise<string | null> {
+  if (!assetPath) return null;
+  
+  try {
+    const fullPath = path.join(basePath, assetPath);
+    const content = await fs.readFile(fullPath, 'utf8');
+    // Convert SVG to base64 data URI
+    const base64 = Buffer.from(content).toString('base64');
+    return `data:image/svg+xml;base64,${base64}`;
+  } catch (error) {
+    console.warn(`Failed to load asset: ${assetPath}`, error);
+    return null;
+  }
+}
+
+/**
+ * Inline brand assets as data URIs for serverless compatibility
+ */
+async function inlineBrandAssets(brandAssets: any, basePath: string) {
+  const [
+    textureDataUri,
+    accentDataUri,
+    chromeDataUri,
+    patternDataUri,
+  ] = await Promise.all([
+    getAssetDataUri(brandAssets.selectedTexture, basePath),
+    getAssetDataUri(brandAssets.selectedAccent, basePath),
+    getAssetDataUri(brandAssets.selectedChrome, basePath),
+    getAssetDataUri(brandAssets.selectedPattern, basePath),
+  ]);
+
+  return {
+    ...brandAssets,
+    selectedTexture: textureDataUri ? { path: brandAssets.selectedTexture, dataUri: textureDataUri } : null,
+    selectedAccent: accentDataUri ? { path: brandAssets.selectedAccent, dataUri: accentDataUri } : null,
+    selectedChrome: chromeDataUri ? { path: brandAssets.selectedChrome, dataUri: chromeDataUri } : null,
+    selectedPattern: patternDataUri ? { path: brandAssets.selectedPattern, dataUri: patternDataUri } : null,
+  };
+}
+
+/**
  * Format plain text content to HTML
  */
 function formatContent(text: string): string {
@@ -121,14 +164,16 @@ async function generateHTML(data: PuppeteerPDFData, options: PDFGenerationOption
     data.fontOther
   );
   
-  // Build assets base URL
-  const assetsBaseUrl = options.assetsBaseUrl || `file://${path.join(process.cwd(), 'assets')}`;
+  // Build assets base path and inline assets as data URIs
+  const assetsBasePath = path.join(process.cwd(), 'assets');
+  const inlinedBrandAssets = await inlineBrandAssets(data.brandAssets, assetsBasePath);
   
   // Prepare template data
   const templateData = {
     ...data,
     ...fontConfig,
-    assetsBaseUrl,
+    brandAssets: inlinedBrandAssets,
+    assetsBaseUrl: '', // No longer needed with data URIs
     primaryColorRgb: data.primaryColor.replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ') || '37, 99, 235',
   };
   

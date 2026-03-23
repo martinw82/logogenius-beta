@@ -2,12 +2,12 @@
 <div class="page page-cover">
   <!-- Layer 1: Background Texture -->
   {{#if brandAssets.selectedTexture}}
-  <div class="layer-texture" style="background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedTexture}}');"></div>
+  <div class="layer-texture" style="background-image: url('{{brandAssets.selectedTexture.dataUri}}');"></div>
   {{/if}}
   
   <!-- Layer 2: Geometric Accent -->
   {{#if brandAssets.selectedAccent}}
-  <div class="layer-accent" style="background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedAccent}}'); {{brandAssets.accentSide}}: 0;"></div>
+  <div class="layer-accent" style="background-image: url('{{brandAssets.selectedAccent.dataUri}}'); {{brandAssets.accentSide}}: 0;"></div>
   {{/if}}
   
   <!-- Guidelines Label -->

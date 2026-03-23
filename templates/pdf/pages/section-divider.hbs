@@ -2,7 +2,7 @@
 <div class="page page-divider">
   <!-- Layer 3: Pattern Overlay -->
   {{#if brandAssets.selectedPattern}}
-  <div class="layer-pattern" style="background-image: url('{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedPattern}}');"></div>
+  <div class="layer-pattern" style="background-image: url('{{brandAssets.selectedPattern.dataUri}}');"></div>
   {{/if}}
   
   <!-- Large Section Number -->
