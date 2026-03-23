@@ -30,15 +30,63 @@ export const ARCHETYPE_TO_PACK: Record<string, string> = {
   'The Magician': 'visionary-innovation',
   'The Lover': 'emotion-connection',
   'The Jester': 'emotion-connection',
+  // Also support lowercase or no "The " prefix
+  'Innocent': 'soft-safe',
+  'Caregiver': 'soft-safe',
+  'Hero': 'bold-intense',
+  'Rebel': 'bold-intense',
+  'Explorer': 'authentic-real',
+  'Everyman': 'authentic-real',
+  'Sage': 'authority-expert',
+  'Ruler': 'authority-expert',
+  'Creator': 'visionary-innovation',
+  'Magician': 'visionary-innovation',
+  'Lover': 'emotion-connection',
+  'Jester': 'emotion-connection',
+};
+
+// Pack-specific design configuration
+export const PACK_CONFIG: Record<string, {
+  fonts: { heading: string; body: string };
+  design: { cornerRadius: string; layoutBias: string; gradients: boolean };
+}> = {
+  'soft-safe': {
+    fonts: { heading: 'Quicksand', body: 'Roboto' },
+    design: { cornerRadius: '16px', layoutBias: 'centered', gradients: true },
+  },
+  'bold-intense': {
+    fonts: { heading: 'Anton', body: 'Roboto Condensed' },
+    design: { cornerRadius: '0px', layoutBias: 'asymmetric', gradients: false },
+  },
+  'authentic-real': {
+    fonts: { heading: 'Bebas Neue', body: 'Open Sans' },
+    design: { cornerRadius: '4px', layoutBias: 'wide', gradients: false },
+  },
+  'authority-expert': {
+    fonts: { heading: 'Oswald', body: 'Lato' },
+    design: { cornerRadius: '2px', layoutBias: 'grid', gradients: false },
+  },
+  'visionary-innovation': {
+    fonts: { heading: 'Permanent Marker', body: 'Inter' },
+    design: { cornerRadius: '0px', layoutBias: 'asymmetric', gradients: true },
+  },
+  'emotion-connection': {
+    fonts: { heading: 'Playfair Display', body: 'Inter' },
+    design: { cornerRadius: '12px', layoutBias: 'centered', gradients: true },
+  },
 };
 
 export interface BrandAssets {
   packName: string;
   selectedTexture: string | null;
   selectedAccent: string | null;
+  selectedChrome: string | null;
+  selectedPattern: string | null;
   accentOpacity: number;    // 8-15%
   accentRotation: number;   // 0-89°
   accentSide: 'left' | 'right';
+  fonts: { heading: string; body: string };
+  design: { cornerRadius: string; layoutBias: string; gradients: boolean };
   hasAssets: boolean;
 }
 
@@ -69,23 +117,31 @@ export async function getRandomBrandAssets(
   orderId: number,
   basePath: string = './assets'
 ): Promise<BrandAssets> {
-  const packName = ARCHETYPE_TO_PACK[archetype] || 'bold-intense';
+  // Find pack name - normalize archetype input
+  let packName = ARCHETYPE_TO_PACK[archetype];
+  if (!packName) {
+    // Try with "The " prefix
+    packName = ARCHETYPE_TO_PACK[`The ${archetype}`] || 'bold-intense';
+  }
   const packPath = path.join(basePath, packName);
+  
+  // Get pack-specific config
+  const config = PACK_CONFIG[packName] || PACK_CONFIG['bold-intense'];
   
   // Create seeded random generator
   const seed = orderId % 100000;
   const random = createSeededRandom(seed);
   
-  // Try to load available textures & accents
+  // Try to load available textures, accents, chrome, and patterns
   let textures: string[] = [];
   let accents: string[] = [];
+  let chrome: string[] = [];
+  let patterns: string[] = [];
   
   try {
     textures = await fs.readdir(path.join(packPath, 'textures'));
-    // Filter to image files only
     textures = textures.filter(f => /\.(png|jpg|jpeg|webp|svg)$/i.test(f));
   } catch {
-    // Directory doesn't exist or is empty
     textures = [];
   }
   
@@ -94,6 +150,20 @@ export async function getRandomBrandAssets(
     accents = accents.filter(f => /\.(png|jpg|jpeg|webp|svg)$/i.test(f));
   } catch {
     accents = [];
+  }
+
+  try {
+    chrome = await fs.readdir(path.join(packPath, 'chrome'));
+    chrome = chrome.filter(f => /\.(png|jpg|jpeg|webp|svg)$/i.test(f));
+  } catch {
+    chrome = [];
+  }
+
+  try {
+    patterns = await fs.readdir(path.join(packPath, 'patterns'));
+    patterns = patterns.filter(f => /\.(png|jpg|jpeg|webp|svg)$/i.test(f));
+  } catch {
+    patterns = [];
   }
   
   // Random selection using seeded random
@@ -104,6 +174,8 @@ export async function getRandomBrandAssets(
   
   const selectedTexture = pick(textures);
   const selectedAccent = pick(accents);
+  const selectedChrome = pick(chrome);
+  const selectedPattern = pick(patterns);
   
   // Random positioning values (8-15% opacity, 0-89° rotation)
   const accentOpacity = Math.floor(8 + (random() * 7));     // 8-15
@@ -114,10 +186,14 @@ export async function getRandomBrandAssets(
     packName,
     selectedTexture: selectedTexture ? `textures/${selectedTexture}` : null,
     selectedAccent: selectedAccent ? `accents/${selectedAccent}` : null,
+    selectedChrome: selectedChrome ? `chrome/${selectedChrome}` : null,
+    selectedPattern: selectedPattern ? `patterns/${selectedPattern}` : null,
     accentOpacity,
     accentRotation,
     accentSide,
-    hasAssets: textures.length > 0 || accents.length > 0,
+    fonts: config.fonts,
+    design: config.design,
+    hasAssets: textures.length > 0 || accents.length > 0 || chrome.length > 0 || patterns.length > 0,
   };
 }
 

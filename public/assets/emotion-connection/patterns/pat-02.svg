@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <pattern id="soft" width="40" height="40" patternUnits="userSpaceOnUse">
+      <ellipse cx="20" cy="20" rx="15" ry="10" fill="none" stroke="#000" stroke-width="0.3" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="200" height="200" fill="url(#soft)"/>
+</svg>

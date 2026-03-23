@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <pattern id="hearts" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M20,10 Q10,10 10,18 Q10,26 20,32 Q30,26 30,18 Q30,10 20,10" fill="none" stroke="#000" stroke-width="0.5" opacity="0.06"/>
+    </pattern>
+  </defs>
+  <rect width="200" height="200" fill="url(#hearts)"/>
+</svg>

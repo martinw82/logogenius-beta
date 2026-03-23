@@ -1,12 +1,15 @@
 <!-- Color Palette Page -->
 <div class="page page-content">
-  <div class="section-header">
-    <div class="accent-bar"></div>
-    <h1>Color Palette</h1>
-    <p class="subtitle">Brand colors with specifications</p>
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Color Palette</span>
   </div>
   
   <div class="section-body">
+    <div class="section-heading">
+      <h1>Color Palette</h1>
+    </div>
+    
     <p>{{colorPaletteText}}</p>
     
     {{#if primaryColors.length}}
@@ -20,7 +23,8 @@
         </div>
         <div class="color-info">
           <div class="color-hex">{{this}}</div>
-          <div class="color-values">{{hexToRgb this}}</div>
+          <div class="color-values">RGB: {{hexToRgb this}}</div>
+          <div class="color-values">CMYK: {{hexToCmyk this}}</div>
         </div>
       </div>
       {{/each}}
@@ -38,7 +42,8 @@
         </div>
         <div class="color-info">
           <div class="color-hex">{{this}}</div>
-          <div class="color-values">{{hexToRgb this}}</div>
+          <div class="color-values">RGB: {{hexToRgb this}}</div>
+          <div class="color-values">CMYK: {{hexToCmyk this}}</div>
         </div>
       </div>
       {{/each}}
@@ -56,7 +61,8 @@
         </div>
         <div class="color-info">
           <div class="color-hex">{{this}}</div>
-          <div class="color-values">{{hexToRgb this}}</div>
+          <div class="color-values">RGB: {{hexToRgb this}}</div>
+          <div class="color-values">CMYK: {{hexToCmyk this}}</div>
         </div>
       </div>
       {{/each}}
@@ -65,11 +71,17 @@
     
     <h2>Color Usage Proportions</h2>
     <p>Follow the 60-30-10 rule for balanced color application:</p>
-    <ul>
-      <li><strong>60% Primary:</strong> Backgrounds, major UI elements</li>
-      <li><strong>30% Secondary:</strong> Supporting elements, sections</li>
-      <li><strong>10% Accent:</strong> CTAs, highlights, emphasis</li>
-    </ul>
+    
+    <div class="usage-bar">
+      <div class="usage-bar-segment" style="flex: 6; background: var(--primary);"></div>
+      <div class="usage-bar-segment" style="flex: 3; background: var(--secondary);"></div>
+      <div class="usage-bar-segment" style="flex: 1; background: var(--accent);"></div>
+    </div>
+    <div style="display: flex; justify-content: space-between; font-family: var(--chrome-font); font-size: 10px; opacity: 0.7; margin-top: 4px;">
+      <span>60% Primary</span>
+      <span>30% Secondary</span>
+      <span>10% Accent</span>
+    </div>
   </div>
   
   <div class="page-footer">

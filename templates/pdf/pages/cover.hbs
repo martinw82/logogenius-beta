@@ -1,12 +1,11 @@
 <!-- Cover Page -->
 <div class="page page-cover">
   {{#if brandAssets.selectedTexture}}
-  <img src="{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedTexture}}" class="texture-bg" alt="">
+  <div class="layer-texture"></div>
   {{/if}}
   
   {{#if brandAssets.selectedAccent}}
-  <img src="{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedAccent}}" class="accent-element" alt="" 
-       style="opacity: {{brandAssets.accentOpacity}}%; transform: rotate({{brandAssets.accentRotation}}deg); {{brandAssets.accentSide}}: 15mm;">
+  <div class="layer-accent"></div>
   {{/if}}
   
   <div class="guidelines-label">Brand Guidelines</div>
@@ -15,7 +14,7 @@
     {{#if logoSvg}}
       {{{logoSvg}}}
     {{else}}
-      <div style="font-family: var(--font-heading); font-size: 36pt; font-weight: 700;">{{businessName}}</div>
+      <div style="font-family: var(--heading-font); font-size: 36pt; font-weight: 700;">{{businessName}}</div>
     {{/if}}
   </div>
   

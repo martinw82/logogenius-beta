@@ -22,6 +22,49 @@ function hexToRgb(hex: string): string {
 }
 
 /**
+ * Convert hex to RGB object
+ */
+function hexToRgbObj(hex: string): { r: number; g: number; b: number } | null {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return null;
+  
+  return {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16),
+  };
+}
+
+/**
+ * Convert RGB to CMYK
+ */
+function rgbToCmyk(r: number, g: number, b: number): { c: number; m: number; y: number; k: number } {
+  const rr = r / 255;
+  const gg = g / 255;
+  const bb = b / 255;
+  
+  const k = 1 - Math.max(rr, gg, bb);
+  if (k === 1) return { c: 0, m: 0, y: 0, k: 100 };
+  
+  const c = Math.round(((1 - rr - k) / (1 - k)) * 100);
+  const m = Math.round(((1 - gg - k) / (1 - k)) * 100);
+  const y = Math.round(((1 - bb - k) / (1 - k)) * 100);
+  
+  return { c, m, y, k: Math.round(k * 100) };
+}
+
+/**
+ * Convert hex to CMYK string
+ */
+function hexToCmyk(hex: string): string {
+  const rgb = hexToRgbObj(hex);
+  if (!rgb) return 'C: 0% M: 0% Y: 0% K: 0%';
+  
+  const cmyk = rgbToCmyk(rgb.r, rgb.g, rgb.b);
+  return `C: ${cmyk.c}% M: ${cmyk.m}% Y: ${cmyk.y}% K: ${cmyk.k}%`;
+}
+
+/**
  * Calculate luminance of a color to determine contrast
  */
 function getLuminance(hex: string): number {
@@ -154,6 +197,7 @@ function join(arr: string[], separator: string): string {
 export function registerHelpers(handlebars: typeof Handlebars): void {
   // Color helpers
   handlebars.registerHelper('hexToRgb', hexToRgb);
+  handlebars.registerHelper('hexToCmyk', hexToCmyk);
   handlebars.registerHelper('contrastColor', contrastColor);
   
   // Date helpers

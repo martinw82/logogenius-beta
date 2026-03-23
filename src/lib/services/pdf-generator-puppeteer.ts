@@ -28,7 +28,7 @@ export interface PDFGenerationOptions {
 async function loadTemplates() {
   const templatesDir = path.join(process.cwd(), 'templates', 'pdf');
   
-  const [mainLayout, cover, toc, section, colors, typography, mockups, dosDonts, backCover] = await Promise.all([
+  const [mainLayout, cover, toc, section, colors, typography, mockups, dosDonts, backCover, sectionDivider] = await Promise.all([
     fs.readFile(path.join(templatesDir, 'layouts', 'main.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'cover.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'toc.hbs'), 'utf8'),
@@ -38,6 +38,7 @@ async function loadTemplates() {
     fs.readFile(path.join(templatesDir, 'pages', 'mockups.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'dos-donts.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'back-cover.hbs'), 'utf8'),
+    fs.readFile(path.join(templatesDir, 'pages', 'section-divider.hbs'), 'utf8').catch(() => ''),
   ]);
   
   return {
@@ -50,6 +51,7 @@ async function loadTemplates() {
     mockups: Handlebars.compile(mockups),
     dosDonts: Handlebars.compile(dosDonts),
     backCover: Handlebars.compile(backCover),
+    sectionDivider: sectionDivider ? Handlebars.compile(sectionDivider) : null,
   };
 }
 
