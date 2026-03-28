@@ -19,20 +19,22 @@ export interface PuppeteerPDFData {
   targetAudience?: string;
   industry?: string;
   
-  // AI Generated Content
-  projectOverview: string;
-  brandIdentityVoice: string;
-  logoPhilosophy: string;
-  colorPaletteText: string;
-  colorAccessibility: string;
-  typographyText: string;
-  imageryStyle: string;
-  graphicElements: string;
-  brandVoiceTone: string;
-  visualStyleGuide: string;
-  usageRulesText: string;
-  web3Section?: string;
-  appendix: string;
+  // AI Generated Content — 12 section data fields
+  // Maps from: sections.projectOverview, sections.brandIdentity, etc.
+  // Source priority: guide_* (AI) → raw field → fallback
+  projectOverview: string;      // sections.projectOverview — Brand Story page
+  brandIdentityVoice: string;   // sections.brandIdentity — Brand Identity page
+  logoPhilosophy: string;       // sections.logoPhilosophy — Logo Showcase page
+  colorPaletteText: string;     // sections.colorPalette — Color Palette page
+  colorAccessibility: string;   // Color accessibility guidelines
+  typographyText: string;       // sections.typography — Typography page
+  imageryStyle: string;         // sections.imageryStyle — Imagery page
+  graphicElements: string;      // sections.graphicElements — Imagery page
+  brandVoiceTone: string;       // sections.brandVoice — Brand Voice page
+  visualStyleGuide: string;     // sections.visualStyleGuide — Brand Voice page
+  usageRulesText: string;       // sections.usageRulesAndDonts — Do/Don't page
+  web3Section?: string;         // Optional Web3 section
+  appendix: string;             // Appendix content
   
   // Colors (parsed from colorPalette JSON)
   primaryColor: string;
@@ -182,6 +184,7 @@ export function transformOrderDataToPDFData(
     industry: orderData.industry,
     
     // AI Generated Content (mapped from orderData fields)
+    // Each field checks guide_* prefix first (AI-generated), then raw field, then fallback
     projectOverview: orderData.guide_projectOverview || orderData.projectOverview || '',
     brandIdentityVoice: orderData.guide_brandIdentity || orderData.brandIdentity || '',
     logoPhilosophy: orderData.guide_logoPhilosophy || orderData.logoPhilosophy || '',
