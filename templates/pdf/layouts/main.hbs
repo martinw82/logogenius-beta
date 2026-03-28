@@ -487,35 +487,48 @@
     .toc-list {
       list-style: none;
       padding: 0;
-      margin-top: calc(var(--grid) * 4);
+      margin-top: calc(var(--grid) * 5);
     }
     
     .toc-item {
       display: flex;
       align-items: baseline;
-      padding: calc(var(--grid) * 2) 0;
-      border-bottom: 0.5pt dotted var(--border-light);
+      padding: calc(var(--grid) * 2.5) 0;
+      border-bottom: 0.5px dotted var(--border-light);
     }
     
     .toc-number {
       font-family: var(--font-heading);
-      font-size: 14px;
+      font-size: 15px;
       font-weight: 700;
       color: var(--primary);
-      width: 15mm;
+      width: 18mm;
       flex-shrink: 0;
     }
     
     .toc-title {
-      font-size: 13px;
+      font-size: 14px;
       color: var(--text-dark);
+      flex-shrink: 0;
+      font-weight: 500;
+    }
+    
+    /* Dotted leader line between title and page number */
+    .toc-leader {
       flex-grow: 1;
+      border-bottom: 1px dotted var(--border-light);
+      margin: 0 8px;
+      min-width: 20px;
+      position: relative;
+      top: -3px;
     }
     
     .toc-page {
       font-family: var(--chrome-font);
-      font-size: 11px;
+      font-size: 12px;
       color: var(--text-muted);
+      font-weight: 500;
+      flex-shrink: 0;
     }
     
     /* ================================================
