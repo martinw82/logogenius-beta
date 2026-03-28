@@ -406,6 +406,16 @@ export async function POST(
       await updateOrder(orderId, { status: "awaiting_selection" });
       console.log(`[Generate] Phase 1 Complete! Order ${orderId} awaiting logo selection`);
 
+      // Send logo ready email (fire-and-forget)
+      if (order.customerEmail) {
+        const { sendLogoSelectionEmail } = await import("@/lib/services/email-service");
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+        const dashboardLink = `${baseUrl}/dashboard/${orderId}`;
+        sendLogoSelectionEmail(order.customerEmail, "Customer", orderId, dashboardLink).catch((err) => {
+          console.error("[Generate] Failed to send logo ready email:", err);
+        });
+      }
+
       return NextResponse.json({
         success: true,
         orderId,
