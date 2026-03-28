@@ -7,14 +7,14 @@
 See: `.planning/PROJECT.md` (updated 2026-03-28)
 
 **Core value:** Deliver agency-quality brand identity packages at self-service pricing using AI
-**Current focus:** Phase 2 — Email Notifications
+**Current focus:** Phase 3 — PDF Polish
 
 ## Progress
 
 | Phase | Status | Plans | Progress |
 |-------|--------|-------|----------|
 | 1. Stripe Checkout | ✓ Complete | 3/3 | 100% |
-| 2. Email Notifications | ○ Pending | 0/2 | 0% |
+| 2. Email Notifications | ✓ Complete | 2/2 | 100% |
 | 3. PDF Polish | ○ Pending | 0/3 | 0% |
 | 4. Railway PDF Service | ○ Pending | 0/2 | 0% |
 | 5. Social Quality | ○ Pending | 0/2 | 0% |
@@ -25,7 +25,7 @@ See: `.planning/PROJECT.md` (updated 2026-03-28)
 
 - v1 total: 28
 - Mapped to phases: 28 (100%)
-- Completed: 5 (PAY-01 through PAY-05)
+- Completed: 9 (PAY-01 through PAY-05, EMAIL-01 through EMAIL-04)
 - In Progress: 0
 
 ## Context
@@ -47,6 +47,14 @@ See: `.planning/PROJECT.md` (updated 2026-03-28)
 - Railway account setup (need service deployment)
 
 ## Session History
+
+### 2026-03-28 — Phase 2 Execution
+- Executed Phase 2: Email Notifications (2 plans, 2 waves)
+- Plan 02-01: Resend SDK integration into existing email service
+- Plan 02-02: Email triggers at payment, generation, finalization
+- Replaced console.log with Resend API calls
+- Added order confirmation template
+- All 8 must-haves verified ✓
 
 ### 2026-03-28 — Phase 1 Execution
 - Executed Phase 1: Stripe Checkout (3 plans, 2 waves)

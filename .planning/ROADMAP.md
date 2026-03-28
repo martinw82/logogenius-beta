@@ -12,7 +12,7 @@
 | # | Phase | Goal | Requirements | Plans | Status |
 |---|-------|------|--------------|-------|--------|
 | 1 | Stripe Checkout | Accept payments and auto-create orders | PAY-01–05 | 3 | ✓ Complete |
-| 2 | Email Notifications | Send transactional emails for key events | EMAIL-01–04 | 2 | ○ Pending |
+| 2 | Email Notifications | Send transactional emails for key events | EMAIL-01–04 | 2 | ✓ Complete |
 | 3 | PDF Polish | Professional brand guide PDF design | PDF-01–06 | 3 | ○ Pending |
 | 4 | Railway PDF Service | Server-side Puppeteer PDF rendering | SVC-01–04 | 2 | ○ Pending |
 | 5 | Social Quality | Improve Canvas social template quality | SOC-01–03 | 2 | ○ Pending |
