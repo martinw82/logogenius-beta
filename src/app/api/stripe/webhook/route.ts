@@ -86,4 +86,12 @@ async function handleCheckoutCompleted(session: {
   });
 
   console.log(`Order created: ${order.id} for session: ${session.id}`);
+
+  // Send order confirmation email (fire-and-forget)
+  if (customerEmail) {
+    const { sendOrderConfirmationEmail } = await import("@/lib/services/email-service");
+    sendOrderConfirmationEmail(customerEmail, order.id, tier).catch((err) => {
+      console.error("Failed to send order confirmation email:", err);
+    });
+  }
 }
