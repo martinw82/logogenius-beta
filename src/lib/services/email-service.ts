@@ -2,10 +2,8 @@
  * Email Notification Service
  * Manages transactional emails for the LogoGenius platform
  *
- * In production, integrate with email service provider:
- * - SendGrid, Mailgun, AWS SES, Brevo (formerly Sendinblue), etc.
- *
- * For MVP, this logs emails to console and optionally stores in database
+ * Uses Resend for email delivery: https://resend.com
+ * Configure via RESEND_API_KEY and RESEND_FROM_EMAIL env vars
  */
 
 export interface EmailPayload {
@@ -304,8 +302,8 @@ export async function sendAdminFeedbackEmail(
 
 /**
  * Main email sending function
- * Integrates with email service provider
- * Falls back to logging for MVP
+ * Integrates with Resend email service
+ * Falls back gracefully if not configured
  */
 async function sendEmail(
   email: EmailPayload,
@@ -326,27 +324,38 @@ async function sendEmail(
     // Generate HTML if not provided
     const html = email.html || (email.templateId ? generateTemplate(email.templateId, email.data || {}) : '');
 
-    // TODO: Integrate with email service provider (SendGrid, Mailgun, etc.)
-    // For MVP, just log the email
-    console.log(`📧 Email sent: ${type}`);
-    console.log(`   To: ${email.to}`);
-    console.log(`   Subject: ${email.subject}`);
+    // Fire-and-forget: don't block order processing
+    const resendApiKey = process.env.RESEND_API_KEY;
+    if (!resendApiKey) {
+      console.warn('⚠️ RESEND_API_KEY not configured, skipping email send');
+      console.log(`📧 Email would have been sent: ${type} to ${email.to}`);
+      log.success = true; // Don't fail the order
+      return log;
+    }
 
+    const { Resend } = await import('resend');
+    const resend = new Resend(resendApiKey);
+    const fromEmail = process.env.RESEND_FROM_EMAIL || 'LogoGenius <noreply@logogenius.com>';
+
+    const result = await resend.emails.send({
+      from: fromEmail,
+      to: email.to,
+      subject: email.subject,
+      html,
+    });
+
+    if (result.error) {
+      throw new Error(result.error.message);
+    }
+
+    console.log(`✅ Email sent: ${type} to ${email.to} (id: ${result.data?.id})`);
     log.success = true;
-
-    // In production, store email logs in database for analytics
-    // await storeEmailLog(log);
-
     return log;
   } catch (error) {
+    // Don't throw — email failure should not block order processing
     log.success = false;
     log.error = error instanceof Error ? error.message : 'Unknown error';
-
     console.error(`❌ Failed to send email: ${type}`, error);
-
-    // In production, still store failed logs and retry later
-    // await storeEmailLog(log);
-
     return log;
   }
 }
