@@ -1,0 +1,52 @@
+<!-- Brand Story Page — Project overview with mission callout -->
+<div class="page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Brand Story</span>
+  </div>
+  
+  <div class="content">
+    <!-- Section Heading -->
+    <div class="section-heading">
+      <div>
+        <h1>Brand Story</h1>
+        <p class="subtitle">The story behind {{businessName}}</p>
+      </div>
+    </div>
+    
+    <!-- Project Overview -->
+    {{#if projectOverview}}
+    <div class="section-body">
+      {{{projectOverview}}}
+    </div>
+    {{/if}}
+    
+    <!-- Mission Statement Callout -->
+    {{#if missionStatement}}
+    <div class="callout">
+      <p>"{{missionStatement}}"</p>
+    </div>
+    {{/if}}
+    
+    <!-- Target Audience -->
+    {{#if targetAudience}}
+    <h2>Target Audience</h2>
+    <p>{{targetAudience}}</p>
+    {{/if}}
+    
+    <!-- Industry -->
+    {{#if industry}}
+    <div style="margin-top: calc(var(--grid) * 3);">
+      <p class="micro-label">Industry</p>
+      <p style="font-size: 18px; color: var(--text-dark); margin-bottom: 0;">{{industry}}</p>
+    </div>
+    {{/if}}
+  </div>
+  
+  <!-- Page Footer -->
+  <div class="page-footer">
+    <span>{{businessName}} Brand Guidelines</span>
+    <span>{{pageNumber}}</span>
+  </div>
+</div>

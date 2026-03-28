@@ -40,7 +40,10 @@ async function loadTemplates() {
     mockups, 
     dosDonts, 
     brandVoice,
-    backCover
+    backCover,
+    brandStory,
+    brandIdentity,
+    imagery,
   ] = await Promise.all([
     fs.readFile(path.join(templatesDir, 'layouts', 'main.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'cover.hbs'), 'utf8'),
@@ -54,6 +57,9 @@ async function loadTemplates() {
     fs.readFile(path.join(templatesDir, 'pages', 'dos-donts.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'brand-voice.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'back-cover.hbs'), 'utf8'),
+    fs.readFile(path.join(templatesDir, 'pages', 'brand-story.hbs'), 'utf8'),
+    fs.readFile(path.join(templatesDir, 'pages', 'brand-identity.hbs'), 'utf8'),
+    fs.readFile(path.join(templatesDir, 'pages', 'imagery.hbs'), 'utf8'),
   ]);
   
   return {
@@ -69,6 +75,9 @@ async function loadTemplates() {
     dosDonts: Handlebars.compile(dosDonts),
     brandVoice: Handlebars.compile(brandVoice),
     backCover: Handlebars.compile(backCover),
+    brandStory: Handlebars.compile(brandStory),
+    brandIdentity: Handlebars.compile(brandIdentity),
+    imagery: Handlebars.compile(imagery),
   };
 }
 
@@ -198,13 +207,9 @@ async function generateHTML(data: PuppeteerPDFData, options: PDFGenerationOption
   
   // 4. Project Overview / Brand Story
   if (data.projectOverview) {
-    const pullQuote = extractPullQuote(data.projectOverview);
-    pages.push(templates.section({
+    pages.push(templates.brandStory({
       ...templateData,
-      title: 'Brand Story',
-      subtitle: 'Company introduction, mission, and vision',
-      content: formatContent(data.projectOverview),
-      pullQuote,
+      projectOverview: formatContent(data.projectOverview),
       pageNumber: pageNumber++,
     }));
   }
@@ -219,11 +224,9 @@ async function generateHTML(data: PuppeteerPDFData, options: PDFGenerationOption
   
   // 6. Brand Identity & Voice
   if (data.brandIdentityVoice) {
-    pages.push(templates.section({
+    pages.push(templates.brandIdentity({
       ...templateData,
-      title: 'Brand Identity & Voice',
-      subtitle: 'Personality, archetype, and brand attributes',
-      content: formatContent(data.brandIdentityVoice),
+      brandIdentityVoice: formatContent(data.brandIdentityVoice),
       pageNumber: pageNumber++,
     }));
   }
@@ -303,22 +306,10 @@ async function generateHTML(data: PuppeteerPDFData, options: PDFGenerationOption
   
   // 16. Imagery Style
   if (data.imageryStyle) {
-    pages.push(templates.section({
+    pages.push(templates.imagery({
       ...templateData,
-      title: 'Imagery & Photography',
-      subtitle: 'Visual direction for photography and illustration',
-      content: formatContent(data.imageryStyle),
-      pageNumber: pageNumber++,
-    }));
-  }
-  
-  // 17. Graphic Elements
-  if (data.graphicElements) {
-    pages.push(templates.section({
-      ...templateData,
-      title: 'Graphic Elements',
-      subtitle: 'Icons, patterns, and decorative components',
-      content: formatContent(data.graphicElements),
+      imageryStyle: formatContent(data.imageryStyle),
+      graphicElements: data.graphicElements ? formatContent(data.graphicElements) : undefined,
       pageNumber: pageNumber++,
     }));
   }

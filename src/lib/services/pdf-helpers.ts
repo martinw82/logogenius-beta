@@ -184,6 +184,14 @@ function join(arr: string[], separator: string): string {
 }
 
 /**
+ * Split string by separator (for iterating over comma-separated values)
+ */
+function split(str: string, separator: string): string[] {
+  if (!str) return [];
+  return str.split(separator).map(s => s.trim()).filter(Boolean);
+}
+
+/**
  * Register all helpers with Handlebars instance
  */
 export function registerHelpers(handlebars: typeof Handlebars): void {
@@ -213,6 +221,7 @@ export function registerHelpers(handlebars: typeof Handlebars): void {
   handlebars.registerHelper('length', length);
   handlebars.registerHelper('hasItems', hasItems);
   handlebars.registerHelper('join', join);
+  handlebars.registerHelper('split', split);
   
   // Comparison helpers
   handlebars.registerHelper('eq', (a: unknown, b: unknown) => a === b);

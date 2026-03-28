@@ -1,0 +1,60 @@
+<!-- Brand Identity Page — Archetype card + personality traits -->
+<div class="page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Brand Identity</span>
+  </div>
+  
+  <div class="content">
+    <!-- Section Heading -->
+    <div class="section-heading">
+      <div>
+        <h1>Brand Identity</h1>
+        <p class="subtitle">Who we are and how we show up</p>
+      </div>
+    </div>
+    
+    <!-- Brand Identity Description -->
+    {{#if brandIdentityVoice}}
+    <div class="section-body">
+      {{{brandIdentityVoice}}}
+    </div>
+    {{/if}}
+    
+    <!-- Archetype Card -->
+    {{#if archetype}}
+    <div style="background: var(--primary-tint); border-radius: var(--radius); padding: calc(var(--grid) * 5); margin: calc(var(--grid) * 4) 0; display: flex; align-items: center; gap: 24px; border-left: 5px solid var(--primary);">
+      <div style="font-family: var(--font-heading); font-size: 48px; font-weight: 700; color: var(--primary); opacity: 0.3; line-height: 1;">
+        {{archetype}}
+      </div>
+    </div>
+    {{/if}}
+    
+    <!-- Brand Pillars -->
+    {{#if brandPillars}}
+    <h2>Brand Pillars</h2>
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 16px; margin-top: 16px;">
+      {{#each (split brandPillars ",")}}
+      <div style="background: var(--bg-light); border-radius: var(--radius); padding: 20px; text-align: center;">
+        <p style="font-family: var(--font-heading); font-size: 16px; font-weight: 600; color: var(--text-dark); margin: 0;">{{this}}</p>
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+    
+    <!-- Visual Style Guide (if available) -->
+    {{#if visualStyleGuide}}
+    <h2>Visual Standards</h2>
+    <div class="section-body">
+      {{{visualStyleGuide}}}
+    </div>
+    {{/if}}
+  </div>
+  
+  <!-- Page Footer -->
+  <div class="page-footer">
+    <span>{{businessName}} Brand Guidelines</span>
+    <span>{{pageNumber}}</span>
+  </div>
+</div>
