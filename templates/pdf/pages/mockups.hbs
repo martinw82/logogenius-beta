@@ -1,12 +1,12 @@
-<!-- Mockup Gallery Page -->
+<!-- Mockup Gallery Page — Full-width display with detailed captions -->
 <div class="page">
   <!-- Page Header -->
   <div class="page-header">
     <span class="brand-name">{{businessName}}</span>
     <span class="section-name">Applications</span>
   </div>
-  
-  <div class="content">
+
+  <div class="content" style="padding-top: calc(var(--grid) * 8); padding-bottom: calc(var(--grid) * 14);">
     <!-- Section Heading -->
     <div class="section-heading">
       <div>
@@ -14,45 +14,64 @@
         <p class="subtitle">Real-world brand applications and mockups</p>
       </div>
     </div>
-    
-    <!-- Mockup Gallery -->
+
+    <!-- Mockup Gallery — full-width stacked -->
     <div class="mockup-gallery">
       {{#if mockups.businesscard}}
       <div class="mockup-item">
-        <img src="{{mockups.businesscard}}" alt="Business Card Mockup" class="mockup-image" />
-        <div class="mockup-caption">Business Card — Professional Networking</div>
+        <img src="{{mockups.businesscard}}" alt="Business Card Mockup" class="mockup-image" style="box-shadow: 0 8px 32px rgba(0,0,0,0.12);" />
+        <div class="mockup-caption">Business Card</div>
+        <div class="mockup-description">Professional networking — First impressions that last</div>
       </div>
       {{/if}}
-      
+
       {{#if mockups.letterhead}}
       <div class="mockup-item">
-        <img src="{{mockups.letterhead}}" alt="Letterhead Mockup" class="mockup-image" />
-        <div class="mockup-caption">Letterhead — Official Correspondence</div>
+        <img src="{{mockups.letterhead}}" alt="Letterhead Mockup" class="mockup-image" style="box-shadow: 0 8px 32px rgba(0,0,0,0.12);" />
+        <div class="mockup-caption">Letterhead</div>
+        <div class="mockup-description">Official correspondence — Branded stationery</div>
       </div>
       {{/if}}
-      
+
       {{#if mockups.tshirt}}
       <div class="mockup-item">
-        <img src="{{mockups.tshirt}}" alt="T-Shirt Mockup" class="mockup-image" />
-        <div class="mockup-caption">Apparel — Branded Merchandise</div>
+        <img src="{{mockups.tshirt}}" alt="T-Shirt Mockup" class="mockup-image" style="box-shadow: 0 8px 32px rgba(0,0,0,0.12);" />
+        <div class="mockup-caption">Apparel</div>
+        <div class="mockup-description">Branded merchandise — Wearable brand identity</div>
       </div>
       {{/if}}
-      
+
       {{#if mockups.coffeeMug}}
       <div class="mockup-item">
-        <img src="{{mockups.coffeeMug}}" alt="Coffee Mug Mockup" class="mockup-image" />
-        <div class="mockup-caption">Coffee Mug — Promotional Items</div>
+        <img src="{{mockups.coffeeMug}}" alt="Coffee Mug Mockup" class="mockup-image" style="box-shadow: 0 8px 32px rgba(0,0,0,0.12);" />
+        <div class="mockup-caption">Coffee Mug</div>
+        <div class="mockup-description">Promotional items — Everyday brand presence</div>
       </div>
       {{/if}}
-      
+
       {{#if mockups.toteBag}}
       <div class="mockup-item">
-        <img src="{{mockups.toteBag}}" alt="Tote Bag Mockup" class="mockup-image" />
-        <div class="mockup-caption">Tote Bag — Event & Conference Materials</div>
+        <img src="{{mockups.toteBag}}" alt="Tote Bag Mockup" class="mockup-image" style="box-shadow: 0 8px 32px rgba(0,0,0,0.12);" />
+        <div class="mockup-caption">Tote Bag</div>
+        <div class="mockup-description">Event & conference materials — On-the-go branding</div>
       </div>
       {{/if}}
+
+      <!-- API Mockups (photo-realistic) if available -->
+      {{#if mockups.apiMockups}}
+      {{#each mockups.apiMockups}}
+      <div class="mockup-item">
+        <img src="{{this.url}}" alt="{{this.name}} Mockup" class="mockup-image" style="box-shadow: 0 8px 32px rgba(0,0,0,0.12);" />
+        <div class="mockup-caption">{{this.name}}</div>
+        {{#if this.description}}
+        <div class="mockup-description">{{this.description}}</div>
+        {{/if}}
+      </div>
+      {{/each}}
+      {{/if}}
     </div>
-    
+
+    <!-- Empty state -->
     {{#unless mockups.businesscard}}
     {{#unless mockups.letterhead}}
     {{#unless mockups.tshirt}}
@@ -68,7 +87,7 @@
     {{/unless}}
     {{/unless}}
   </div>
-  
+
   <!-- Page Footer -->
   <div class="page-footer">
     <span>{{businessName}} Brand Guidelines</span>
