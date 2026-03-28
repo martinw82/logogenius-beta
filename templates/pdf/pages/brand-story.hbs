@@ -1,12 +1,12 @@
-<!-- Brand Story Page — Project overview with mission callout -->
+<!-- Brand Story Page — Editorial overview with mission callout -->
 <div class="page">
   <!-- Page Header -->
   <div class="page-header">
     <span class="brand-name">{{businessName}}</span>
     <span class="section-name">Brand Story</span>
   </div>
-  
-  <div class="content">
+
+  <div class="content" style="padding-top: calc(var(--grid) * 8);">
     <!-- Section Heading -->
     <div class="section-heading">
       <div>
@@ -14,36 +14,39 @@
         <p class="subtitle">The story behind {{businessName}}</p>
       </div>
     </div>
-    
-    <!-- Project Overview -->
+
+    <!-- Project Overview — editorial paragraphs -->
     {{#if projectOverview}}
-    <div class="section-body">
+    <div style="margin-bottom: calc(var(--grid) * 6);">
       {{{projectOverview}}}
     </div>
     {{/if}}
-    
-    <!-- Mission Statement Callout -->
+
+    <!-- Mission Statement Callout — branded accent -->
     {{#if missionStatement}}
-    <div class="callout">
+    <div class="callout" style="margin: calc(var(--grid) * 6) 0;">
+      <p class="micro-label" style="margin-bottom: calc(var(--grid) * 2); color: var(--primary); font-weight: 600;">Our Mission</p>
       <p>"{{missionStatement}}"</p>
     </div>
     {{/if}}
-    
-    <!-- Target Audience -->
-    {{#if targetAudience}}
-    <h2>Target Audience</h2>
-    <p>{{targetAudience}}</p>
-    {{/if}}
-    
-    <!-- Industry -->
-    {{#if industry}}
-    <div style="margin-top: calc(var(--grid) * 3);">
-      <p class="micro-label">Industry</p>
-      <p style="font-size: 18px; color: var(--text-dark); margin-bottom: 0;">{{industry}}</p>
+
+    <!-- Target Audience & Industry — two-column footer info -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: calc(var(--grid) * 5); margin-top: calc(var(--grid) * 6); padding-top: calc(var(--grid) * 4); border-top: 0.5px solid var(--border-light);">
+      {{#if targetAudience}}
+      <div>
+        <p class="micro-label" style="margin-bottom: calc(var(--grid));">Target Audience</p>
+        <p style="font-size: 15px; color: var(--text-dark); margin-bottom: 0; line-height: 1.5;">{{targetAudience}}</p>
+      </div>
+      {{/if}}
+      {{#if industry}}
+      <div>
+        <p class="micro-label" style="margin-bottom: calc(var(--grid));">Industry</p>
+        <p style="font-size: 15px; color: var(--text-dark); margin-bottom: 0; line-height: 1.5;">{{industry}}</p>
+      </div>
+      {{/if}}
     </div>
-    {{/if}}
   </div>
-  
+
   <!-- Page Footer -->
   <div class="page-footer">
     <span>{{businessName}} Brand Guidelines</span>
