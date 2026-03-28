@@ -1,11 +1,11 @@
-<!-- Do's and Don'ts Page -->
+<!-- Do's and Don'ts Page — Visual card grid -->
 <div class="page">
   <!-- Page Header -->
   <div class="page-header">
     <span class="brand-name">{{businessName}}</span>
     <span class="section-name">Usage Rules</span>
   </div>
-  
+
   <div class="content">
     <!-- Section Heading -->
     <div class="section-heading">
@@ -14,84 +14,142 @@
         <p class="subtitle">Guidelines for correct and incorrect logo usage</p>
       </div>
     </div>
-    
+
     <!-- Usage Rules Description -->
     {{#if usageRulesText}}
     <p>{{usageRulesText}}</p>
     {{/if}}
-    
-    <!-- Do / Don't Grid -->
-    <div class="do-dont-grid">
-      <!-- DO Column -->
-      <div class="do-box">
-        <div class="do-label">✓ Do</div>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin-bottom: 8px;">✓ Use on approved backgrounds only</li>
-          <li style="margin-bottom: 8px;">✓ Maintain clear space around the logo</li>
-          <li style="margin-bottom: 8px;">✓ Use approved color variations</li>
-          <li style="margin-bottom: 8px;">✓ Scale proportionally</li>
-          <li>✓ Use provided logo files</li>
-        </ul>
+
+    <!-- DO Section — Visual Card Grid -->
+    <h2 style="color: var(--do-green); margin-bottom: calc(var(--grid) * 3);">
+      <span style="display: inline-block; width: 28px; height: 28px; background: var(--do-green); color: white; border-radius: 50%; text-align: center; line-height: 28px; font-size: 16px; margin-right: 8px; vertical-align: middle;">✓</span>
+      Do
+    </h2>
+
+    <div class="usage-card-grid">
+      <!-- Do: On solid background -->
+      <div class="usage-card usage-card-do">
+        <div class="usage-card-visual" style="background: #ffffff; border: 1px solid var(--border-light);">
+          {{#if logoSvg}}
+            <div style="max-width: 80%; max-height: 50px;">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: var(--text-dark);">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">On solid background</div>
       </div>
-      
-      <!-- DON'T Column -->
-      <div class="dont-box">
-        <div class="dont-label">✗ Don't</div>
-        <ul style="list-style: none; padding: 0;">
-          <li style="margin-bottom: 8px;">✗ Stretch or distort the logo</li>
-          <li style="margin-bottom: 8px;">✗ Rotate or tilt the logo</li>
-          <li style="margin-bottom: 8px;">✗ Change the logo colors</li>
-          <li style="margin-bottom: 8px;">✗ Add effects (shadows, glows)</li>
-          <li>✗ Place on busy backgrounds</li>
-        </ul>
+
+      <!-- Do: With clear space -->
+      <div class="usage-card usage-card-do">
+        <div class="usage-card-visual" style="background: #ffffff; border: 1px solid var(--border-light); padding: 28px;">
+          {{#if logoSvg}}
+            <div style="max-width: 60%; max-height: 40px;">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 14px; color: var(--text-dark);">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">With clear space</div>
+      </div>
+
+      <!-- Do: Approved colors -->
+      <div class="usage-card usage-card-do">
+        <div class="usage-card-visual" style="background: var(--primary);">
+          {{#if logoSvg}}
+            <div style="max-width: 80%; max-height: 50px; filter: brightness(10);">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: #ffffff;">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">Approved colors</div>
+      </div>
+
+      <!-- Do: Small but legible -->
+      <div class="usage-card usage-card-do">
+        <div class="usage-card-visual" style="background: #ffffff; border: 1px solid var(--border-light);">
+          {{#if logoSvg}}
+            <div style="max-width: 50%; max-height: 30px;">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 11px; color: var(--text-dark);">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">Small but legible</div>
+      </div>
+
+      <!-- Do: Dark background inverted -->
+      <div class="usage-card usage-card-do">
+        <div class="usage-card-visual" style="background: #1a1a1a;">
+          {{#if logoSvg}}
+            <div style="max-width: 80%; max-height: 50px; filter: brightness(10);">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: #ffffff;">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">On dark background</div>
       </div>
     </div>
-    
-    <!-- Visual Misuse Examples -->
-    <h3>Common Misuse Examples</h3>
-    
-    <div class="do-dont-grid" style="margin-top: 24px;">
-      <div>
-        <div class="misuse-example">
-          <div style="font-style: normal; color: var(--text-dark);">Logo stretched horizontally</div>
-          <div style="transform: scaleX(1.3); display: inline-block; margin-top: 8px; font-weight: bold; color: var(--dont-red);">{{businessName}}</div>
+
+    <!-- DON'T Section — Visual Card Grid -->
+    <h2 style="color: var(--dont-red); margin-top: 48px; margin-bottom: calc(var(--grid) * 3);">
+      <span style="display: inline-block; width: 28px; height: 28px; background: var(--dont-red); color: white; border-radius: 50%; text-align: center; line-height: 28px; font-size: 16px; margin-right: 8px; vertical-align: middle;">✗</span>
+      Don't
+    </h2>
+
+    <div class="usage-card-grid">
+      <!-- Don't: Stretched -->
+      <div class="usage-card usage-card-dont">
+        <div class="usage-card-visual" style="background: #f5f5f5;">
+          {{#if logoSvg}}
+            <div style="max-width: 80%; max-height: 50px; transform: scaleX(1.4); filter: grayscale(0.5);">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: var(--dont-red); transform: scaleX(1.4); display: inline-block;">{{businessName}}</span>
+          {{/if}}
         </div>
-        <p class="micro-label" style="text-align: center;">Never stretch or distort</p>
+        <div class="usage-card-label">Never stretch</div>
       </div>
-      
-      <div>
-        <div class="misuse-example">
-          <div style="font-style: normal; color: var(--text-dark);">Logo rotated</div>
-          <div style="transform: rotate(-15deg); display: inline-block; margin-top: 8px; font-weight: bold; color: var(--dont-red);">{{businessName}}</div>
+
+      <!-- Don't: Rotated -->
+      <div class="usage-card usage-card-dont">
+        <div class="usage-card-visual" style="background: #f5f5f5;">
+          {{#if logoSvg}}
+            <div style="max-width: 80%; max-height: 50px; transform: rotate(-12deg); filter: grayscale(0.5);">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: var(--dont-red); transform: rotate(-12deg); display: inline-block;">{{businessName}}</span>
+          {{/if}}
         </div>
-        <p class="micro-label" style="text-align: center;">Never rotate or tilt</p>
+        <div class="usage-card-label">Never rotate</div>
+      </div>
+
+      <!-- Don't: Wrong colors -->
+      <div class="usage-card usage-card-dont">
+        <div class="usage-card-visual" style="background: #f5f5f5;">
+          {{#if logoSvg}}
+            <div style="max-width: 80%; max-height: 50px; filter: hue-rotate(180deg) saturate(2);">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: #ff00ff;">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">Never change colors</div>
+      </div>
+
+      <!-- Don't: Effects added -->
+      <div class="usage-card usage-card-dont">
+        <div class="usage-card-visual" style="background: #f5f5f5;">
+          {{#if logoSvg}}
+            <div style="max-width: 80%; max-height: 50px; filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.5));">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: var(--text-dark); text-shadow: 3px 3px 6px rgba(0,0,0,0.5);">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">Never add effects</div>
       </div>
     </div>
-    
-    <div class="do-dont-grid">
-      <div>
-        <div class="misuse-example">
-          <div style="font-style: normal; color: var(--text-dark);">Wrong colors applied</div>
-          <div style="display: inline-block; margin-top: 8px; font-weight: bold; color: #ff00ff;">{{businessName}}</div>
-        </div>
-        <p class="micro-label" style="text-align: center;">Never change colors</p>
-      </div>
-      
-      <div>
-        <div class="misuse-example">
-          <div style="font-style: normal; color: var(--text-dark);">Effects added</div>
-          <div style="display: inline-block; margin-top: 8px; font-weight: bold; text-shadow: 2px 2px 4px rgba(0,0,0,0.5);">{{businessName}}</div>
-        </div>
-        <p class="micro-label" style="text-align: center;">Never add effects</p>
-      </div>
-    </div>
-    
+
     <!-- Callout with guidance -->
-    <div class="callout" style="margin-top: 32px;">
+    <div class="callout" style="margin-top: 40px;">
       <p>When in doubt, always refer to the provided logo files and contact the brand team for approval. Maintaining consistent logo usage ensures strong brand recognition and protects brand equity.</p>
     </div>
   </div>
-  
+
   <!-- Page Footer -->
   <div class="page-footer">
     <span>{{businessName}} Brand Guidelines</span>

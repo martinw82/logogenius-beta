@@ -939,6 +939,48 @@
       font-style: italic;
       color: var(--text-muted);
     }
+
+    /* Usage card grid — visual do/don't examples */
+    .usage-card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin-bottom: calc(var(--grid) * 3);
+    }
+
+    .usage-card {
+      border-radius: var(--radius);
+      overflow: hidden;
+      border: 1.5px solid var(--border-light);
+    }
+
+    .usage-card-do {
+      border-color: var(--do-green);
+    }
+
+    .usage-card-dont {
+      border-color: var(--dont-red);
+    }
+
+    .usage-card-visual {
+      height: 80px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+    }
+
+    .usage-card-label {
+      font-family: var(--chrome-font);
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      padding: 10px 12px;
+      text-align: center;
+      color: var(--text-dark);
+      font-weight: 500;
+      border-top: 0.5px solid var(--border-light);
+    }
     
     /* ================================================
        MOCKUP GALLERY
