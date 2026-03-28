@@ -26,9 +26,9 @@ Requirements for production launch. Each maps to roadmap phases.
 
 - [ ] **PDF-01**: PDF has professional cover page with logo, business name, tagline
 - [ ] **PDF-02**: PDF has table of contents with page numbers
-- [ ] **PDF-03**: PDF has color palette section with hex/RGB values and swatches
-- [ ] **PDF-04**: PDF has typography section with font specimens
-- [ ] **PDF-05**: PDF has logo usage guidelines (minimum size, clear space, do/don't)
+- [x] **PDF-03**: PDF has color palette section with hex/RGB values and swatches
+- [x] **PDF-04**: PDF has typography section with font specimens
+- [x] **PDF-05**: PDF has logo usage guidelines (minimum size, clear space, do/don't)
 - [ ] **PDF-06**: PDF includes embedded photo-realistic mockup images
 
 ### PDF Microservice
@@ -108,9 +108,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EMAIL-04 | Phase 2 | Complete |
 | PDF-01 | Phase 3 | Pending |
 | PDF-02 | Phase 3 | Pending |
-| PDF-03 | Phase 3 | Pending |
-| PDF-04 | Phase 3 | Pending |
-| PDF-05 | Phase 3 | Pending |
+| PDF-03 | Phase 3 | Complete |
+| PDF-04 | Phase 3 | Complete |
+| PDF-05 | Phase 3 | Complete |
 | PDF-06 | Phase 3 | Pending |
 | SVC-01 | Phase 4 | Pending |
 | SVC-02 | Phase 4 | Pending |
