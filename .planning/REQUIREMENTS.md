@@ -97,11 +97,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PAY-01 | Phase 1 | Pending |
-| PAY-02 | Phase 1 | Pending |
-| PAY-03 | Phase 1 | Pending |
-| PAY-04 | Phase 1 | Pending |
-| PAY-05 | Phase 1 | Pending |
+| PAY-01 | Phase 1 | Complete |
+| PAY-02 | Phase 1 | Complete |
+| PAY-03 | Phase 1 | Complete |
+| PAY-04 | Phase 1 | Complete |
+| PAY-05 | Phase 1 | Complete |
 | EMAIL-01 | Phase 2 | Pending |
 | EMAIL-02 | Phase 2 | Pending |
 | EMAIL-03 | Phase 2 | Pending |
