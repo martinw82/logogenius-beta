@@ -158,9 +158,10 @@
       font-family: var(--chrome-font);
       font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
-      opacity: 0.5;
+      letter-spacing: 0.1em;
+      opacity: 0.45;
       color: var(--text-dark);
+      font-weight: 500;
     }
     
     /* Page Footer - appears on all content pages */
@@ -173,15 +174,18 @@
       justify-content: space-between;
       align-items: center;
       z-index: 10;
+      padding-top: calc(var(--grid) * 1.5);
+      border-top: 0.5px solid var(--border-light);
     }
     
     .page-footer span {
       font-family: var(--chrome-font);
-      font-size: 11px;
+      font-size: 10px;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
-      opacity: 0.4;
+      letter-spacing: 0.08em;
+      opacity: 0.35;
       color: var(--text-dark);
+      font-weight: 400;
     }
     
     /* ================================================
@@ -190,8 +194,8 @@
     .content {
       position: relative;
       z-index: 10;
-      padding: calc(var(--grid) * 4) var(--page-margin);
-      padding-bottom: calc(var(--grid) * 10);
+      padding: calc(var(--grid) * 5) var(--page-margin);
+      padding-bottom: calc(var(--grid) * 12);
     }
     
     /* ================================================
@@ -201,27 +205,27 @@
     /* Headlines - tight leading, negative tracking */
     h1 {
       font-family: var(--font-heading);
-      font-size: clamp(36px, 6vw, 64px);
-      line-height: 0.95;
-      letter-spacing: -0.03em;
+      font-size: clamp(40px, 7vw, 72px);
+      line-height: 0.92;
+      letter-spacing: -0.035em;
       color: var(--text-dark);
-      font-weight: 600;
+      font-weight: 700;
     }
     
     h2 {
       font-family: var(--font-heading);
-      font-size: 28px;
-      line-height: 1.0;
-      letter-spacing: -0.02em;
+      font-size: 32px;
+      line-height: 1.05;
+      letter-spacing: -0.025em;
       color: var(--text-dark);
-      font-weight: 600;
-      margin-bottom: calc(var(--grid) * 3);
+      font-weight: 700;
+      margin-bottom: calc(var(--grid) * 4);
     }
     
     h3 {
       font-family: var(--font-heading);
-      font-size: 20px;
-      line-height: 1.1;
+      font-size: 22px;
+      line-height: 1.15;
       color: var(--text-dark);
       font-weight: 600;
       margin-bottom: calc(var(--grid) * 2);
@@ -230,9 +234,9 @@
     /* Body text */
     p {
       font-family: var(--font-body);
-      font-size: 16px;
-      line-height: 1.6;
-      max-width: 65ch;
+      font-size: 15px;
+      line-height: 1.65;
+      max-width: 60ch;
       color: var(--text-light);
       margin-bottom: calc(var(--grid) * 3);
     }
@@ -252,19 +256,19 @@
     .section-heading {
       display: flex;
       align-items: flex-start;
-      gap: 16px;
-      margin-bottom: calc(var(--grid) * 5);
+      gap: 20px;
+      margin-bottom: calc(var(--grid) * 6);
     }
     
     .section-heading::before {
       content: '';
       display: block;
-      width: 4px;
-      min-height: 48px;
+      width: 5px;
+      min-height: 56px;
       background: var(--primary);
-      border-radius: 2px;
+      border-radius: 3px;
       flex-shrink: 0;
-      margin-top: 4px;
+      margin-top: 6px;
     }
     
     .section-heading h1 {
@@ -273,21 +277,22 @@
     
     .section-heading .subtitle {
       font-family: var(--font-body);
-      font-size: 14px;
+      font-size: 15px;
       color: var(--text-muted);
-      margin-top: 4px;
+      margin-top: 6px;
       font-weight: 400;
+      line-height: 1.4;
     }
     
     /* ================================================
        PULL QUOTE / CALLOUT
        ================================================ */
     .callout {
-      border-left: 4px solid var(--primary);
-      padding: calc(var(--grid) * 3) calc(var(--grid) * 4);
+      border-left: 5px solid var(--primary);
+      padding: calc(var(--grid) * 4) calc(var(--grid) * 5);
       background: var(--primary-tint);
       border-radius: 0 var(--radius) var(--radius) 0;
-      margin: calc(var(--grid) * 4) 0;
+      margin: calc(var(--grid) * 5) 0;
     }
     
     .callout p {
@@ -405,33 +410,34 @@
     
     .divider-number {
       font-family: var(--font-heading);
-      font-size: 180px;
+      font-size: 200px;
       font-weight: 100;
       color: white;
       opacity: 0.12;
       line-height: 1;
       position: absolute;
-      top: 40px;
-      left: 60px;
+      top: 30px;
+      left: 50px;
       z-index: 5;
     }
     
     .divider-title {
       font-family: var(--font-heading);
-      font-size: 48px;
+      font-size: 52px;
       color: white;
       line-height: 1.0;
-      letter-spacing: -0.02em;
+      letter-spacing: -0.025em;
       position: relative;
       z-index: 10;
-      margin-bottom: 8px;
+      margin-bottom: 10px;
+      font-weight: 700;
     }
     
     .divider-subtitle {
       font-family: var(--chrome-font);
-      font-size: 11px;
+      font-size: 12px;
       text-transform: uppercase;
-      letter-spacing: 0.12em;
+      letter-spacing: 0.14em;
       color: white;
       opacity: 0.6;
       position: relative;
@@ -480,31 +486,31 @@
        ================================================ */
     .swatch-row { 
       display: flex; 
-      gap: 16px; 
-      margin-bottom: 32px; 
+      gap: 20px; 
+      margin-bottom: 40px; 
       flex-wrap: wrap; 
     }
     
     .swatch-primary {
       flex: 1;
-      min-width: 140px;
-      height: 100px;
+      min-width: 160px;
+      height: 120px;
+      border-radius: var(--radius);
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      padding: 14px;
+    }
+    
+    .swatch-secondary {
+      flex: 1;
+      min-width: 110px;
+      height: 85px;
       border-radius: var(--radius);
       display: flex;
       flex-direction: column;
       justify-content: flex-end;
       padding: 12px;
-    }
-    
-    .swatch-secondary {
-      flex: 1;
-      min-width: 100px;
-      height: 70px;
-      border-radius: var(--radius);
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
-      padding: 10px;
     }
     
     .swatch-label {
@@ -517,18 +523,20 @@
     
     .swatch-hex { 
       font-family: var(--font-heading);
-      font-weight: 600; 
+      font-weight: 700; 
       opacity: 1; 
-      font-size: 14px;
+      font-size: 16px;
       color: inherit;
+      letter-spacing: -0.01em;
     }
     
     .swatch-values {
       font-family: var(--chrome-font);
       font-size: 9px;
-      opacity: 0.7;
-      margin-top: 2px;
+      opacity: 0.75;
+      margin-top: 4px;
       color: inherit;
+      line-height: 1.4;
     }
     
     .usage-bar {
@@ -626,42 +634,42 @@
     .do-dont-grid { 
       display: grid; 
       grid-template-columns: 1fr 1fr; 
-      gap: 24px; 
-      margin: calc(var(--grid) * 3) 0;
+      gap: 28px; 
+      margin: calc(var(--grid) * 4) 0;
     }
     
     .do-box { 
       border: 2px solid var(--do-green); 
       border-radius: var(--radius); 
-      padding: 24px; 
+      padding: 28px; 
       background: rgba(34, 197, 94, 0.05);
     }
     
     .dont-box { 
       border: 2px solid var(--dont-red); 
       border-radius: var(--radius); 
-      padding: 24px;
+      padding: 28px;
       background: rgba(239, 68, 68, 0.05);
     }
     
     .do-label { 
       font-family: var(--chrome-font); 
-      font-size: 11px; 
+      font-size: 12px; 
       text-transform: uppercase; 
-      letter-spacing: 0.1em; 
+      letter-spacing: 0.12em; 
       color: var(--do-green); 
-      margin-bottom: 12px;
-      font-weight: 600;
+      margin-bottom: 14px;
+      font-weight: 700;
     }
     
     .dont-label { 
       font-family: var(--chrome-font); 
-      font-size: 11px; 
+      font-size: 12px; 
       text-transform: uppercase; 
-      letter-spacing: 0.1em; 
+      letter-spacing: 0.12em; 
       color: var(--dont-red); 
-      margin-bottom: 12px;
-      font-weight: 600;
+      margin-bottom: 14px;
+      font-weight: 700;
     }
     
     .misuse-example {
@@ -678,29 +686,39 @@
        MOCKUP GALLERY
        ================================================ */
     .mockup-gallery {
-      margin: calc(var(--grid) * 4) 0;
+      margin: calc(var(--grid) * 5) 0;
     }
     
     .mockup-item {
-      margin-bottom: calc(var(--grid) * 5);
+      margin-bottom: calc(var(--grid) * 6);
     }
     
     .mockup-image {
       width: 100%;
-      max-height: 180mm;
+      max-height: 200mm;
       object-fit: contain;
       background: #0a0a0f;
       display: block;
+      border-radius: var(--radius);
     }
     
     .mockup-caption {
       font-family: var(--chrome-font);
-      font-size: 10px;
+      font-size: 11px;
       text-transform: uppercase;
-      letter-spacing: 0.06em;
+      letter-spacing: 0.08em;
       color: var(--text-muted);
       margin-top: calc(var(--grid) * 2);
       text-align: center;
+    }
+    
+    .mockup-description {
+      font-family: var(--font-body);
+      font-size: 13px;
+      color: var(--text-muted);
+      text-align: center;
+      margin-top: 4px;
+      line-height: 1.4;
     }
     
     /* ================================================
