@@ -1,38 +1,43 @@
-<!-- Back Cover Page -->
+<!-- Back Cover Page — Full brand color fill, mirrors cover page style -->
 <div class="page page-back-cover">
   <!-- Layer 1: Background Texture (subtle) -->
   {{#if brandAssets.selectedTexture}}
-  <div class="layer-texture" style="background-image: url('{{brandAssets.selectedTexture.dataUri}}'); opacity: 0.05;"></div>
+  <div class="layer-texture" style="background-image: url('{{brandAssets.selectedTexture.dataUri}}'); opacity: 0.08;"></div>
   {{/if}}
-  
+
   <!-- Layer 3: Pattern (very subtle) -->
   {{#if brandAssets.selectedPattern}}
-  <div class="layer-pattern" style="background-image: url('{{brandAssets.selectedPattern.dataUri}}'); opacity: 0.03;"></div>
+  <div class="layer-pattern" style="background-image: url('{{brandAssets.selectedPattern.dataUri}}'); opacity: 0.04;"></div>
   {{/if}}
-  
-  <!-- Logo Mark -->
+
+  <!-- Logo Mark — centered, prominent -->
   {{#if logoSvg}}
-    <div class="logo-mark" style="width: 50mm; opacity: 0.9;">
-      {{{logoSvg}}}
-    </div>
+  <div class="logo-mark" style="width: 55mm; opacity: 0.85; margin-bottom: calc(var(--grid) * 5);">
+    {{{logoSvg}}}
+  </div>
   {{/if}}
-  
-  <!-- Business Name -->
-  <div class="business-name">{{businessName}}</div>
-  
+
+  <!-- Business Name — large, centered -->
+  <div class="business-name" style="font-size: 36px; letter-spacing: -0.03em;">{{businessName}}</div>
+
   <!-- Tagline -->
   {{#if tagline}}
-  <div class="tagline">{{tagline}}</div>
+  <div class="tagline" style="font-size: 14px; font-style: italic; opacity: 0.75; margin-bottom: calc(var(--grid) * 5);">{{tagline}}</div>
   {{/if}}
-  
+
+  <!-- Divider line -->
+  <div style="width: 40px; height: 1.5px; background: rgba(255,255,255,0.3); margin: calc(var(--grid) * 2) auto calc(var(--grid) * 4);"></div>
+
   <!-- Contact Info -->
   {{#if authorEmail}}
-  <div class="contact">{{authorEmail}}</div>
+  <div class="contact" style="font-size: 13px; opacity: 0.7;">{{authorEmail}}</div>
   {{/if}}
-  
-  <!-- Meta Info -->
-  <div class="meta">
-    Brand Guidelines v1.0 | {{formatDate createdAt}}<br>
-    Prepared by LogoGenius
+
+  <!-- Meta Info — version, date, confidential -->
+  <div class="meta" style="margin-top: calc(var(--grid) * 5);">
+    Brand Guidelines v1.0 &nbsp;|&nbsp; {{formatDate createdAt}}
+  </div>
+  <div style="font-family: var(--chrome-font); font-size: 9px; opacity: 0.4; margin-top: calc(var(--grid) * 2); text-transform: uppercase; letter-spacing: 0.12em; font-style: italic;">
+    Confidential
   </div>
 </div>
