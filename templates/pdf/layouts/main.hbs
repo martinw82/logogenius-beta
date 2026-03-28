@@ -309,9 +309,10 @@
     .page-cover {
       background: var(--primary);
       color: white;
-      display: flex;
-      flex-direction: column;
-      justify-content: flex-end;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: 1fr auto;
+      min-height: var(--page-h);
     }
     
     .page-cover .layer-texture {
@@ -324,71 +325,107 @@
       opacity: 0.15;
     }
     
+    /* "Brand Guidelines" label with decorative line */
     .page-cover .guidelines-label {
       position: absolute;
       top: var(--page-margin);
-      right: calc(var(--page-margin) - 10mm);
-      font-family: var(--chrome-font);
-      font-size: 10px;
-      letter-spacing: 0.15em;
-      text-transform: uppercase;
-      opacity: 0.7;
-      transform: rotate(90deg);
-      transform-origin: right top;
+      left: var(--page-margin);
+      right: var(--page-margin);
+      display: flex;
+      align-items: center;
+      gap: 16px;
       z-index: 10;
     }
     
+    .page-cover .guidelines-label::before {
+      content: '';
+      display: block;
+      width: 40px;
+      height: 2px;
+      background: rgba(255,255,255,0.5);
+    }
+    
+    .page-cover .guidelines-label span {
+      font-family: var(--chrome-font);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      opacity: 0.65;
+      font-weight: 500;
+    }
+    
+    /* Logo: upper-left area, hero-sized */
     .page-cover .logo-container {
-      position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      width: 65%;
-      text-align: center;
+      grid-column: 1;
+      grid-row: 1;
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      padding: calc(var(--page-margin) * 2) var(--page-margin) var(--page-margin);
       z-index: 10;
     }
     
     .page-cover .logo-svg {
-      max-width: 100%;
-      max-height: 180px;
+      max-width: 85%;
+      max-height: 220px;
       filter: drop-shadow(0 10px 30px rgba(0,0,0,0.3));
     }
     
-    .page-cover .business-name {
-      position: absolute;
-      bottom: 50mm;
-      left: var(--page-margin);
-      font-family: var(--font-heading);
-      font-size: clamp(32px, 6vw, 56px);
-      font-weight: 700;
-      letter-spacing: -0.03em;
-      line-height: 1.0;
-      text-shadow: 0 4px 20px rgba(0,0,0,0.4);
-      max-width: calc(100% - var(--page-margin) * 2);
+    /* Business name: lower-right area, large */
+    .page-cover .cover-text {
+      grid-column: 2;
+      grid-row: 1;
+      display: flex;
+      flex-direction: column;
+      justify-content: flex-end;
+      align-items: flex-end;
+      text-align: right;
+      padding: var(--page-margin) var(--page-margin) calc(var(--page-margin) * 3);
       z-index: 10;
+    }
+    
+    .page-cover .business-name {
+      font-family: var(--font-heading);
+      font-size: clamp(36px, 7vw, 64px);
+      font-weight: 700;
+      letter-spacing: -0.04em;
+      line-height: 0.95;
+      text-shadow: 0 4px 24px rgba(0,0,0,0.4);
     }
     
     .page-cover .tagline {
-      position: absolute;
-      bottom: 38mm;
-      left: var(--page-margin);
       font-family: var(--font-body);
-      font-size: 14px;
-      font-weight: 400;
-      opacity: 0.85;
+      font-size: 15px;
+      font-weight: 300;
+      opacity: 0.8;
+      margin-top: 12px;
+      letter-spacing: 0.01em;
+    }
+    
+    /* Detailed footer row: date | email | version | Confidential */
+    .page-cover .cover-footer {
+      grid-column: 1 / -1;
+      grid-row: 2;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: calc(var(--grid) * 3) var(--page-margin);
+      border-top: 1px solid rgba(255,255,255,0.15);
       z-index: 10;
     }
     
-    .page-cover .date-footer {
-      position: absolute;
-      bottom: var(--page-margin);
-      left: var(--page-margin);
+    .page-cover .cover-footer-item {
       font-family: var(--chrome-font);
       font-size: 9px;
       text-transform: uppercase;
-      letter-spacing: 0.08em;
+      letter-spacing: 0.1em;
       opacity: 0.5;
-      z-index: 10;
+      font-weight: 400;
+    }
+    
+    .page-cover .cover-footer-item.confidential {
+      opacity: 0.4;
+      font-style: italic;
     }
     
     /* ================================================

@@ -1,4 +1,4 @@
-<!-- Cover Page -->
+<!-- Cover Page — Offset layout (logo upper-left, name lower-right) -->
 <div class="page page-cover">
   <!-- Layer 1: Background Texture -->
   {{#if brandAssets.selectedTexture}}
@@ -10,26 +10,35 @@
   <div class="layer-accent" style="background-image: url('{{brandAssets.selectedAccent.dataUri}}'); {{brandAssets.accentSide}}: 0;"></div>
   {{/if}}
   
-  <!-- Guidelines Label -->
-  <div class="guidelines-label">Brand Guidelines</div>
+  <!-- "Brand Guidelines" label with decorative line -->
+  <div class="guidelines-label">
+    <span>Brand Guidelines</span>
+  </div>
   
-  <!-- Logo Container (Center) -->
+  <!-- Logo Container (Upper-Left, Hero-Sized) -->
   <div class="logo-container">
     {{#if logoSvg}}
       {{{logoSvg}}}
     {{else}}
-      <div style="font-family: var(--font-heading); font-size: 36pt; font-weight: 700;">{{businessName}}</div>
+      <div style="font-family: var(--font-heading); font-size: 48pt; font-weight: 700; color: white;">{{businessName}}</div>
     {{/if}}
   </div>
   
-  <!-- Business Name (Bottom Left) -->
-  <div class="business-name">{{businessName}}</div>
+  <!-- Business Name + Tagline (Lower-Right) -->
+  <div class="cover-text">
+    <div class="business-name">{{businessName}}</div>
+    {{#if tagline}}
+    <div class="tagline">{{tagline}}</div>
+    {{/if}}
+  </div>
   
-  <!-- Tagline -->
-  {{#if tagline}}
-  <div class="tagline">{{tagline}}</div>
-  {{/if}}
-  
-  <!-- Date Footer -->
-  <div class="date-footer">{{formatDate createdAt}} | {{businessName}}</div>
+  <!-- Detailed Footer Row -->
+  <div class="cover-footer">
+    <span class="cover-footer-item">{{formatDate createdAt}}</span>
+    {{#if authorEmail}}
+    <span class="cover-footer-item">{{authorEmail}}</span>
+    {{/if}}
+    <span class="cover-footer-item">v1.0</span>
+    <span class="cover-footer-item confidential">Confidential</span>
+  </div>
 </div>
