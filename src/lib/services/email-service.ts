@@ -27,6 +27,7 @@ export interface EmailNotificationLog {
 }
 
 const EMAIL_TEMPLATES = {
+  ORDER_CONFIRMATION: 'order-confirmation',
   ORDER_APPROVED: 'order-approved',
   LOGO_SELECTION_READY: 'logo-selection-ready',
   DASHBOARD_ACCESS: 'dashboard-access',
@@ -44,6 +45,8 @@ const EMAIL_TEMPLATES = {
  */
 function generateTemplate(templateId: string, data: Record<string, any>): string {
   switch (templateId) {
+    case EMAIL_TEMPLATES.ORDER_CONFIRMATION:
+      return generateOrderConfirmationTemplate(data);
     case EMAIL_TEMPLATES.ORDER_APPROVED:
       return generateApprovedTemplate(data);
     case EMAIL_TEMPLATES.LOGO_SELECTION_READY:
@@ -55,6 +58,24 @@ function generateTemplate(templateId: string, data: Record<string, any>): string
     default:
       return generateGenericTemplate(data);
   }
+}
+
+function generateOrderConfirmationTemplate(data: any): string {
+  return `
+    <h1>Order Confirmed!</h1>
+    <p>Hi there,</p>
+    <p>Thank you for your <strong>${data.tier}</strong> package purchase.</p>
+    <p>Order ID: <strong>#${data.orderId}</strong></p>
+    <p>We're now generating your custom logo designs. You'll receive another email once your logos are ready for review.</p>
+    <p><strong>What happens next:</strong></p>
+    <ol>
+      <li>AI generates 4 unique logo concepts</li>
+      <li>We create professional mockups</li>
+      <li>You review and select your favorite</li>
+      <li>We deliver your complete brand kit</li>
+    </ol>
+    <p>Questions? Reply to this email or contact support@logogenius.com</p>
+  `;
 }
 
 function generateApprovedTemplate(data: any): string {
@@ -115,6 +136,30 @@ function generateGenericTemplate(data: any): string {
       LogoGenius © ${new Date().getFullYear()} | support@logogenius.com
     </footer>
   `;
+}
+
+/**
+ * Send order confirmation email after successful payment
+ */
+export async function sendOrderConfirmationEmail(
+  customerEmail: string,
+  orderId: number,
+  tier: string
+): Promise<EmailNotificationLog | null> {
+  const tierNames: Record<string, string> = {
+    basic: 'Starter',
+    pro: 'Professional',
+    premium: 'Enterprise',
+  };
+
+  const email: EmailPayload = {
+    to: customerEmail,
+    subject: `Order Confirmed - LogoGenius ${tierNames[tier] || tier} Package`,
+    templateId: EMAIL_TEMPLATES.ORDER_CONFIRMATION,
+    data: { orderId, tier: tierNames[tier] || tier },
+  };
+
+  return sendEmail(email, 'order-confirmation', orderId);
 }
 
 /**
