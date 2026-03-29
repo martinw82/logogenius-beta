@@ -736,16 +736,34 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     // Logo (left-center)
     await drawLogo(ctx, options.logoUrl, 120, (H - 200) / 2, 200, 200, options.businessName, accent);
 
-    // Business name
+    // Three-tier text hierarchy
+    const headingFont = getFont(options.fontHeadings, 'sans-serif');
+    const bodyFont = getFont(options.fontBody, 'sans-serif');
+    const headlineSize = scaleFontSize(W, H, 0.09);
+    const taglineSize = scaleFontSize(W, H, 0.044);
+    const accentSize = scaleFontSize(W, H, 0.03);
+
+    // Tier 1: Business name
     ctx.fillStyle = accent;
-    ctx.font = 'bold 46px sans-serif';
+    ctx.font = `bold ${headlineSize}px ${headingFont}`;
     ctx.fillText(options.businessName, 370, H / 2 - 5);
 
+    // Tier 2: Tagline in frosted pill
     if (options.tagline) {
-      ctx.font = '22px sans-serif';
-      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)';
-      ctx.fillText(options.tagline, 370, H / 2 + 30);
+      ctx.font = `${taglineSize}px ${bodyFont}`;
+      const tagWidth = ctx.measureText(options.tagline).width + taglineSize * 2;
+      const pillH = taglineSize * 1.8;
+      const pillR = pillH / 2;
+      drawFrostedPill(ctx, 370 - taglineSize * 0.8, H / 2 + 12, tagWidth, pillH, pillR, 0.12);
+
+      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.75)';
+      ctx.fillText(options.tagline, 370, H / 2 + 12 + taglineSize * 1.15);
     }
+
+    // Tier 3: Accent
+    ctx.font = `300 ${accentSize}px ${bodyFont}`;
+    ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.35)';
+    ctx.fillText(`@${options.businessName.toLowerCase().replace(/\s+/g, '')}`, 370, H / 2 + 12 + taglineSize * 2.8);
 
     // Hexagon accent shapes in accent color (right side, avoiding bottom-left profile zone)
     drawAccentShape(ctx, 'hexagon', W - 150, H * 0.25, 22, accent, 0.12);
