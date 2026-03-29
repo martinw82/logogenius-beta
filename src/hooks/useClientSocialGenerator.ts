@@ -660,16 +660,34 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     // Profile photo safe zone (left 170px) — logo after it
     await drawLogo(ctx, options.logoUrl, 200, (H - 150) / 2, 150, 150, options.businessName, accent);
 
-    // Business name with proper vertical centering (right of logo)
+    // Three-tier text hierarchy (right of logo)
+    const headingFont = getFont(options.fontHeadings, 'sans-serif');
+    const bodyFont = getFont(options.fontBody, 'sans-serif');
+    const headlineSize = scaleFontSize(W, H, 0.11);
+    const taglineSize = scaleFontSize(W, H, 0.055);
+    const accentSize = scaleFontSize(W, H, 0.038);
+
+    // Tier 1: Business name
     ctx.fillStyle = accent;
-    ctx.font = 'bold 36px sans-serif';
+    ctx.font = `bold ${headlineSize}px ${headingFont}`;
     ctx.fillText(options.businessName, 380, H / 2 - 8);
 
+    // Tier 2: Tagline in frosted pill
     if (options.tagline) {
-      ctx.font = '17px sans-serif';
-      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.6)';
-      ctx.fillText(options.tagline, 380, H / 2 + 22);
+      ctx.font = `${taglineSize}px ${bodyFont}`;
+      const tagWidth = ctx.measureText(options.tagline).width + taglineSize * 2;
+      const pillH = taglineSize * 1.8;
+      const pillR = pillH / 2;
+      drawFrostedPill(ctx, 380 - taglineSize * 0.8, H / 2 + 10, tagWidth, pillH, pillR, 0.12);
+
+      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.75)';
+      ctx.fillText(options.tagline, 380, H / 2 + 10 + taglineSize * 1.15);
     }
+
+    // Tier 3: Accent text
+    ctx.font = `300 ${accentSize}px ${bodyFont}`;
+    ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.4)';
+    ctx.fillText(options.businessName.toLowerCase().replace(/\s+/g, '') + '.com', 380, H / 2 + 10 + taglineSize * 2.8);
 
     // Bottom accent — gradient bar instead of flat
     const barGrad = ctx.createLinearGradient(0, H - 5, W, H - 5);
