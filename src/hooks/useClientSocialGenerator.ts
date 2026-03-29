@@ -28,6 +28,8 @@ interface SocialAssetOptions {
   primaryColor: string;
   secondaryColor: string;
   accentColor?: string;
+  fontHeadings?: string;
+  fontBody?: string;
 }
 
 interface UseClientSocialGeneratorReturn {
@@ -243,6 +245,85 @@ function drawAccentShape(
 
   ctx.closePath();
   ctx.fill();
+}
+
+// ==================== FONT LOADING ====================
+
+// Track which fonts have been loaded to avoid duplicates
+const loadedFonts = new Set<string>();
+
+// System fonts that don't need Google Fonts loading
+const SYSTEM_FONT_NAMES = [
+  'Arial', 'Helvetica', 'Helvetica Neue', 'Verdana', 'Tahoma',
+  'Trebuchet MS', 'Times New Roman', 'Georgia', 'Garamond',
+  'Courier New', 'Brush Script MT', 'sans-serif', 'serif', 'monospace',
+];
+
+/**
+ * Check if a font is a system font (no loading needed)
+ */
+function isSystemFont(name: string | undefined): boolean {
+  if (!name) return true;
+  return SYSTEM_FONT_NAMES.some(sf => name.toLowerCase().includes(sf.toLowerCase()));
+}
+
+/**
+ * Sanitize font name for Google Fonts URL (spaces -> +)
+ */
+function sanitizeFontForUrl(name: string): string {
+  return name.replace(/\s+/g, '+');
+}
+
+/**
+ * Load brand fonts for Canvas rendering.
+ * Appends Google Fonts <link> to document.head if not already present,
+ * then awaits document.fonts.ready so fonts are available to Canvas.
+ * Safe to call multiple times — deduplicates automatically.
+ */
+async function loadBrandFonts(fontHeadings?: string, fontBody?: string): Promise<void> {
+  const fontsToLoad: string[] = [];
+
+  if (fontHeadings && !isSystemFont(fontHeadings) && !loadedFonts.has(fontHeadings)) {
+    fontsToLoad.push(fontHeadings);
+  }
+  if (fontBody && !isSystemFont(fontBody) && !loadedFonts.has(fontBody)) {
+    fontsToLoad.push(fontBody);
+  }
+
+  if (fontsToLoad.length === 0) return;
+
+  // Build Google Fonts CSS URL for all needed fonts
+  const familyParams = fontsToLoad.map(font => {
+    const sanitized = sanitizeFontForUrl(font);
+    return `family=${sanitized}:wght@400;500;600;700`;
+  }).join('&');
+
+  const url = `https://fonts.googleapis.com/css2?${familyParams}&display=swap`;
+
+  // Append <link> if not already present for this URL
+  const linkId = `brand-font-${sanitizeFontForUrl(fontsToLoad.join('-'))}`;
+  if (!document.getElementById(linkId)) {
+    const link = document.createElement('link');
+    link.id = linkId;
+    link.rel = 'stylesheet';
+    link.href = url;
+    document.head.appendChild(link);
+  }
+
+  // Wait for fonts to be ready
+  await document.fonts.ready;
+
+  // Mark as loaded
+  fontsToLoad.forEach(f => loadedFonts.add(f));
+}
+
+/**
+ * Get a usable font family string. Returns the brand font if available,
+ * otherwise falls back to the provided fallback.
+ */
+function getFont(family: string | undefined, fallback: string = 'sans-serif'): string {
+  if (!family || family.trim() === '' || family === '_NONE_') return fallback;
+  return `'${family}', ${fallback}`;
 }
 
 export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
@@ -907,6 +988,9 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     const allAssets: Record<string, string> = {};
 
     try {
+      // Load brand fonts before any template rendering
+      await loadBrandFonts(options.fontHeadings, options.fontBody);
+
       const BATCH_SIZE = 3;
       const batches: SocialPlatform[][] = [];
       for (let i = 0; i < CANVAS_PLATFORMS.length; i += BATCH_SIZE) {
