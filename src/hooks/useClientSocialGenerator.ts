@@ -1128,15 +1128,29 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     ctx.fillRect(108, H * 0.25, 1, H * 0.5);
 
     // Company name
+    const headingFont = getFont(options.fontHeadings, 'sans-serif');
+    const bodyFont = getFont(options.fontBody, 'sans-serif');
+    const headlineSize = scaleFontSize(W, H, 0.11);
+    const taglineSize = scaleFontSize(W, H, 0.06);
+
     ctx.fillStyle = primary;
-    ctx.font = 'bold 22px sans-serif';
+    ctx.font = `bold ${headlineSize}px ${headingFont}`;
     ctx.fillText(options.businessName, 124, H / 2 - 4);
 
-    // Tagline
+    // Tagline with conditional frosted pill
     if (options.tagline) {
-      ctx.font = '12px sans-serif';
+      ctx.font = `${taglineSize}px ${bodyFont}`;
+      const taglineShort = options.tagline.length < 40;
+
+      if (taglineShort) {
+        const tagWidth = ctx.measureText(options.tagline).width + taglineSize * 1.5;
+        const pillH = taglineSize * 1.8;
+        const pillR = pillH / 2;
+        drawFrostedPill(ctx, 124 - taglineSize * 0.5, H / 2 + 6, tagWidth, pillH, pillR, 0.08);
+      }
+
       ctx.fillStyle = '#999999';
-      ctx.fillText(options.tagline, 124, H / 2 + 14);
+      ctx.fillText(options.tagline, 124, H / 2 + 6 + taglineSize * 1.1);
     }
 
     // Bottom border — gradient with accent color
