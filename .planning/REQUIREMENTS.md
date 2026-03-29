@@ -33,10 +33,10 @@ Requirements for production launch. Each maps to roadmap phases.
 
 ### PDF Microservice
 
-- [ ] **SVC-01**: Railway service renders PDF using full Chromium Puppeteer
-- [ ] **SVC-02**: Next.js calls Railway service via REST API to generate PDF
-- [ ] **SVC-03**: Service handles cold starts gracefully (retry or warm-up)
-- [ ] **SVC-04**: Service returns PDF within 30 seconds for standard brand guide
+- [x] **SVC-01**: Railway service renders PDF using full Chromium Puppeteer
+- [x] **SVC-02**: Next.js calls Railway service via REST API to generate PDF
+- [x] **SVC-03**: Service handles cold starts gracefully (retry or warm-up)
+- [x] **SVC-04**: Service returns PDF within 30 seconds for standard brand guide
 
 ### Social Media Quality
 
@@ -112,10 +112,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PDF-04 | Phase 3 | Complete |
 | PDF-05 | Phase 3 | Complete |
 | PDF-06 | Phase 3 | Complete |
-| SVC-01 | Phase 4 | Pending |
-| SVC-02 | Phase 4 | Pending |
-| SVC-03 | Phase 4 | Pending |
-| SVC-04 | Phase 4 | Pending |
+| SVC-01 | Phase 4 | Complete |
+| SVC-02 | Phase 4 | Complete |
+| SVC-03 | Phase 4 | Complete |
+| SVC-04 | Phase 4 | Complete |
 | SOC-01 | Phase 5 | Pending |
 | SOC-02 | Phase 5 | Pending |
 | SOC-03 | Phase 5 | Pending |
