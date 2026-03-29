@@ -558,40 +558,41 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     // Logo in upper third — slightly larger
     await drawLogo(ctx, options.logoUrl, (W - 380) / 2, 260, 380, 380, options.businessName, accent);
 
-    // Business name with slight letter spacing effect
-    ctx.fillStyle = accent;
-    ctx.font = 'bold 58px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(options.businessName, W / 2, 770);
-
-    // Tagline in a frosted glass pill
-    if (options.tagline) {
-      ctx.font = '26px sans-serif';
-      const tagWidth = ctx.measureText(options.tagline).width + 70;
-      const pillX = (W - tagWidth) / 2;
-
-      // Frosted pill background
-      ctx.fillStyle = 'rgba(255,255,255,0.12)';
-      roundedRect(ctx, pillX, 800, tagWidth, 54, 27);
-      ctx.fill();
-      // Pill border
-      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-      ctx.lineWidth = 1;
-      roundedRect(ctx, pillX, 800, tagWidth, 54, 27);
-      ctx.stroke();
-
-      ctx.fillStyle = accent;
-      ctx.fillText(options.tagline, W / 2, 835);
-    }
+    // Three-tier text hierarchy with brand fonts
+    drawTextWithHierarchy(ctx,
+      {
+        headline: options.businessName,
+        tagline: options.tagline,
+        accent: options.tagline ? 'Discover Your Brand' : undefined,
+      },
+      W / 2, 770,
+      {
+        fontHeadings: options.fontHeadings,
+        fontBody: options.fontBody,
+        headlineColor: accent,
+        taglineColor: accent,
+        accentColor: isLightColor(primary) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.5)',
+        headlineRatio: 0.055,
+        taglineRatio: 0.025,
+        accentRatio: 0.018,
+        canvasWidth: W,
+        canvasHeight: H,
+        taglineFrostedPill: true,
+        pillOpacity: 0.12,
+        textAlign: 'center',
+      }
+    );
 
     // CTA pill at bottom — frosted glass style
-    const ctaWidth = 280;
+    const ctaSize = scaleFontSize(W, H, 0.022);
+    const ctaWidth = scaleFontSize(W, H, 0.26);
     const ctaX = (W - ctaWidth) / 2;
     ctx.fillStyle = secondary;
     roundedRect(ctx, ctaX, H - 220, ctaWidth, 64, 32);
     ctx.fill();
     ctx.fillStyle = isLightColor(secondary) ? '#111' : '#fff';
-    ctx.font = 'bold 24px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.font = `bold ${ctaSize}px ${getFont(options.fontBody, 'sans-serif')}`;
     ctx.fillText('Learn More', W / 2, H - 180);
 
     // Chevron arrow
