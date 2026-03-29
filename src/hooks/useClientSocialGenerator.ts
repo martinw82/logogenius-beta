@@ -846,21 +846,38 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
 
     await drawLogo(ctx, options.logoUrl, 80, (H - 180) / 2, 180, 180, options.businessName, accent);
 
-    // Name next to logo
+    // Three-tier text hierarchy
+    const headingFont = getFont(options.fontHeadings, 'sans-serif');
+    const bodyFont = getFont(options.fontBody, 'sans-serif');
+    const headlineSize = scaleFontSize(W, H, 0.1);
+    const taglineSize = scaleFontSize(W, H, 0.05);
+    const accentSize = scaleFontSize(W, H, 0.032);
+
+    // Tier 1: Business name
     ctx.fillStyle = accent;
-    ctx.font = 'bold 40px sans-serif';
+    ctx.font = `bold ${headlineSize}px ${headingFont}`;
     ctx.fillText(options.businessName, 290, H / 2 - 5);
 
     // Thin divider line
     ctx.fillStyle = `rgba(${sr.r}, ${sr.g}, ${sr.b}, 0.4)`;
     ctx.fillRect(290, H / 2 + 10, 100, 2);
 
-    // Tagline right-aligned
+    // Tier 2: Tagline right-aligned in frosted pill
     if (options.tagline) {
-      ctx.font = '20px sans-serif';
-      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.55)';
+      ctx.font = `${taglineSize}px ${bodyFont}`;
       ctx.textAlign = 'right';
+      const tagWidth = ctx.measureText(options.tagline).width + taglineSize * 2;
+      const pillH = taglineSize * 1.8;
+      const pillR = pillH / 2;
+      drawFrostedPill(ctx, W - 90 - tagWidth - taglineSize * 0.8, H / 2 - taglineSize * 0.6, tagWidth + taglineSize, pillH, pillR, 0.1);
+
+      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.65)';
       ctx.fillText(options.tagline, W - 90, H / 2 + 5);
+
+      // Tier 3: Accent (under tagline, right-aligned)
+      ctx.font = `300 ${accentSize}px ${bodyFont}`;
+      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.35)';
+      ctx.fillText(options.businessName.toLowerCase().replace(/\s+/g, '') + '.com', W - 90, H / 2 + taglineSize * 2);
       ctx.textAlign = 'left';
     }
 
