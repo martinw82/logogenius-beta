@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-03-28T21:01:31.999Z"
+last_updated: "2026-03-29T14:46:52.000Z"
 progress:
   total_phases: 7
   completed_phases: 3
@@ -20,7 +20,7 @@ progress:
 See: `.planning/PROJECT.md` (updated 2026-03-28)
 
 **Core value:** Deliver agency-quality brand identity packages at self-service pricing using AI
-**Current focus:** Phase 03 — pdf-polish
+**Current focus:** Phase 04 — railway-pdf-microservice
 
 ## Progress
 
@@ -29,7 +29,7 @@ See: `.planning/PROJECT.md` (updated 2026-03-28)
 | 1. Stripe Checkout | ✓ Complete | 3/3 | 100% |
 | 2. Email Notifications | ✓ Complete | 2/2 | 100% |
 | 3. PDF Polish | ✓ Complete | 3/3 | 100% |
-| 4. Railway PDF Service | ○ Pending | 0/2 | 0% |
+| 4. Railway PDF Service | ◆ In Progress | 1/2 | 50% |
 | 5. Social Quality | ○ Pending | 0/2 | 0% |
 | 6. Landing Page | ○ Pending | 0/2 | 0% |
 | 7. Production Ready | ○ Pending | 0/2 | 0% |
@@ -39,7 +39,7 @@ See: `.planning/PROJECT.md` (updated 2026-03-28)
 - v1 total: 28
 - Mapped to phases: 28 (100%)
 - Completed: 13 (PAY-01–05, EMAIL-01–04, PDF-03–06)
-- In Progress: 0
+- In Progress: 1 (SVC-01)
 
 ## Context
 
@@ -63,6 +63,16 @@ See: `.planning/PROJECT.md` (updated 2026-03-28)
 - Railway account setup (need service deployment)
 
 ## Session History
+
+### 2026-03-29 — Phase 4 Execution (Plan 04-01)
+
+- Executed Plan 04-01: Local Puppeteer PDF generation validation (4 tasks)
+- Configured .env.local with CHROMIUM_PATH and USE_PUPPETEER_PDF=true
+- Verified Chrome 146 launches in ~1s, generates 98KB PDF in 2.6s
+- Verified archetype brand assets (Creator pack) render correctly — 208KB PDF, 16 images
+- Note: Next.js dev server can't start (Node.js 18.16.0 < required 18.18.0)
+- Used standalone puppeteer-core test scripts instead of HTTP endpoint
+- SVC-01 requirement in progress
 
 ### 2026-03-28 — Phase 3 Execution (Plan 03-02)
 
@@ -111,4 +121,4 @@ See: `.planning/PROJECT.md` (updated 2026-03-28)
 
 ---
 
-*State updated: 2026-03-28 after Phase 3 Plan 03-03 completion*
+*State updated: 2026-03-29 after Phase 4 Plan 04-01 completion*
