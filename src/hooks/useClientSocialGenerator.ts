@@ -372,6 +372,16 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     ctx.lineTo(W / 2 + 12, H - 130);
     ctx.stroke();
 
+    // Organic curve accent near bottom (above CTA, in safe zone)
+    drawOrganicCurve(ctx, W * 0.1, H * 0.82, W * 0.3, H * 0.78, W * 0.7, H * 0.84, W * 0.9, H * 0.80, accent, 0.12, 2.5);
+    drawOrganicCurve(ctx, W * 0.15, H * 0.85, W * 0.4, H * 0.81, W * 0.6, H * 0.87, W * 0.85, H * 0.83, accent, 0.08, 1.5);
+
+    // Diamond accent shapes in top corners (safe zone: top 14% is cropped, so place at ~15%)
+    drawAccentShape(ctx, 'diamond', 80, H * 0.16, 18, accent, 0.15);
+    drawAccentShape(ctx, 'diamond', W - 80, H * 0.16, 18, accent, 0.15);
+    drawAccentShape(ctx, 'diamond', 50, H * 0.22, 10, accent, 0.1);
+    drawAccentShape(ctx, 'diamond', W - 50, H * 0.22, 10, accent, 0.1);
+
     ctx.textAlign = 'left';
   };
 
