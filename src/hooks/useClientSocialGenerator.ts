@@ -1065,27 +1065,39 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     // Logo centered
     await drawLogo(ctx, options.logoUrl, (W - 400) / 2, 340, 400, 400, options.businessName, accent);
 
-    // Business name — bold with subtle text shadow
+    // Three-tier text hierarchy with brand fonts
+    const headingFont = getFont(options.fontHeadings, 'sans-serif');
+    const bodyFont = getFont(options.fontBody, 'sans-serif');
+    const headlineSize = scaleFontSize(W, H, 0.06);
+    const taglineSize = scaleFontSize(W, H, 0.026);
+    const accentSize = scaleFontSize(W, H, 0.02);
+
+    // Tier 1: Business name — bold with neon text shadow
     ctx.save();
     ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
     ctx.shadowBlur = 20;
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 66px sans-serif';
+    ctx.font = `bold ${headlineSize}px ${headingFont}`;
     ctx.textAlign = 'center';
     ctx.fillText(options.businessName, W / 2, 880);
     ctx.restore();
 
-    // Tagline with neon color
+    // Tier 2: Tagline in dark-tinted frosted pill
     if (options.tagline) {
+      ctx.font = `${taglineSize}px ${bodyFont}`;
+      const tagWidth = ctx.measureText(options.tagline).width + taglineSize * 2.5;
+      const pillH = taglineSize * 2;
+      const pillR = pillH / 2;
+      drawFrostedPill(ctx, (W - tagWidth) / 2, 900, tagWidth, pillH, pillR, 0.25, true);
+
       ctx.fillStyle = secondary;
-      ctx.font = '28px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(options.tagline, W / 2, 930);
+      ctx.fillText(options.tagline, W / 2, 900 + taglineSize * 1.2);
     }
 
-    // Handle text — above bottom 25% UI overlay zone
+    // Tier 3: @handle — above bottom 25% UI overlay zone
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.font = '22px sans-serif';
+    ctx.font = `300 ${accentSize}px ${bodyFont}`;
     ctx.textAlign = 'center';
     ctx.fillText(`@${options.businessName.toLowerCase().replace(/\s+/g, '')}`, W / 2, H * 0.73);
 
