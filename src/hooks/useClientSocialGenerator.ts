@@ -796,17 +796,13 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
   ) => {
     const { width: W, height: H } = spec;
 
-    // Clean white background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, W, H);
-
-    // Very subtle top tint bar using primary at low opacity
+    // Subtle gradient background (primary at 5% to white)
     const { r, g, b } = hexToRgb(primary);
-    const topGrad = ctx.createLinearGradient(0, 0, 0, 8);
-    topGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.08)`);
-    topGrad.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = topGrad;
-    ctx.fillRect(0, 0, W, 40);
+    const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+    bgGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.05)`);
+    bgGrad.addColorStop(1, '#ffffff');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
 
     // Logo left with proper spacing
     await drawLogo(ctx, options.logoUrl, 24, (H - 70) / 2, 70, 70, options.businessName, primary);
@@ -827,10 +823,11 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
       ctx.fillText(options.tagline, 124, H / 2 + 14);
     }
 
-    // Bottom border — two-tone gradient
+    // Bottom border — gradient with accent color
     const barGrad = ctx.createLinearGradient(0, 0, W, 0);
-    barGrad.addColorStop(0, secondary);
-    barGrad.addColorStop(0.3, primary);
+    barGrad.addColorStop(0, accent);
+    barGrad.addColorStop(0.25, secondary);
+    barGrad.addColorStop(0.6, primary);
     barGrad.addColorStop(1, primary);
     ctx.fillStyle = barGrad;
     ctx.fillRect(0, H - 4, W, 4);
