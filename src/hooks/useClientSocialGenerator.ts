@@ -416,10 +416,18 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     // Dot pattern — very subtle
     drawDotPattern(ctx, W, H, '#ffffff', 0.03, 35, 1.5);
 
+    // Triangle accent shapes on left side (profile photo safe zone area)
+    drawAccentShape(ctx, 'triangle', 60, H * 0.3, 25, secondary, 0.12);
+    drawAccentShape(ctx, 'triangle', 100, H * 0.7, 18, secondary, 0.1);
+    drawAccentShape(ctx, 'triangle', 40, H * 0.55, 12, secondary, 0.08);
+
+    // Organic curve accent across middle
+    drawOrganicCurve(ctx, 0, H * 0.6, W * 0.25, H * 0.4, W * 0.5, H * 0.55, W * 0.75, H * 0.35, accent, 0.08, 2);
+
     // Profile photo safe zone (left 170px) — logo after it
     await drawLogo(ctx, options.logoUrl, 200, (H - 150) / 2, 150, 150, options.businessName, accent);
 
-    // Business name with proper vertical centering
+    // Business name with proper vertical centering (right of logo)
     ctx.fillStyle = accent;
     ctx.font = 'bold 36px sans-serif';
     ctx.fillText(options.businessName, 380, H / 2 - 8);
