@@ -1,0 +1,107 @@
+<!-- Logo Showcase Page — Full-page hero treatment -->
+<div class="page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Our Logo</span>
+  </div>
+
+  <div class="content" style="display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: calc(var(--page-h) - 120px); padding-top: calc(var(--grid) * 10); padding-bottom: calc(var(--grid) * 14);">
+
+    <!-- Brand color accent line -->
+    <div style="width: 60px; height: 4px; background: var(--primary); border-radius: 2px; margin-bottom: calc(var(--grid) * 6);"></div>
+
+    <!-- Main Logo — Hero Treatment -->
+    <div class="logo-hero-container">
+      {{#if logoSvg}}
+        {{{logoSvg}}}
+      {{else}}
+        <div style="font-family: var(--font-heading); font-size: 64px; font-weight: 700; color: var(--text-dark); letter-spacing: -0.03em;">{{businessName}}</div>
+      {{/if}}
+    </div>
+
+    <!-- Logo Philosophy -->
+    {{#if logoPhilosophy}}
+    <p style="text-align: center; max-width: 480px; margin-top: calc(var(--grid) * 6); font-style: italic; color: var(--text-muted); font-size: 15px; line-height: 1.6;">
+      {{logoPhilosophy}}
+    </p>
+    {{/if}}
+
+    <!-- Subtle corner accent -->
+    <div style="position: absolute; bottom: 80px; right: var(--page-margin); width: 40px; height: 40px; border-right: 2px solid var(--primary); border-bottom: 2px solid var(--primary); opacity: 0.2;"></div>
+    <div style="position: absolute; top: 80px; left: var(--page-margin); width: 40px; height: 40px; border-left: 2px solid var(--primary); border-top: 2px solid var(--primary); opacity: 0.2;"></div>
+  </div>
+
+  <!-- Page Footer -->
+  <div class="page-footer">
+    <span>{{businessName}} Brand Guidelines</span>
+    <span>{{pageNumber}}</span>
+  </div>
+</div>
+
+<!-- Logo Guidelines Page — Clear space, minimum size -->
+<div class="page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Logo Guidelines</span>
+  </div>
+
+  <div class="content">
+    <!-- Section Heading -->
+    <div class="section-heading">
+      <div>
+        <h1>Logo Guidelines</h1>
+        <p class="subtitle">Clear space, sizing, and usage rules</p>
+      </div>
+    </div>
+
+    <!-- Clear Space Diagram -->
+    <h3>Clear Space</h3>
+    <p>Maintain adequate clear space around the logo to ensure visibility and impact. The minimum clear space is equal to the height of the logo mark.</p>
+
+    <div class="clearspace-diagram">
+      {{#if logoSvg}}
+        <div style="position: relative; display: inline-block; padding: 48px; border: 1.5px dashed var(--primary); border-radius: var(--radius);">
+          <div style="position: absolute; top: 8px; left: 50%; transform: translateX(-50%); font-family: var(--chrome-font); font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); opacity: 0.6;">1× height</div>
+          <div style="position: absolute; bottom: 8px; left: 50%; transform: translateX(-50%); font-family: var(--chrome-font); font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); opacity: 0.6;">1× height</div>
+          <div style="position: absolute; left: 8px; top: 50%; transform: translateY(-50%); font-family: var(--chrome-font); font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); opacity: 0.6; writing-mode: vertical-rl;">1× height</div>
+          <div style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); font-family: var(--chrome-font); font-size: 8px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--primary); opacity: 0.6; writing-mode: vertical-rl;">1× height</div>
+          {{{logoSvg}}}
+        </div>
+      {{else}}
+        <div style="font-family: var(--font-heading); font-size: 32px; font-weight: 700; padding: 48px; border: 1.5px dashed var(--primary); border-radius: var(--radius); display: inline-block;">
+          {{businessName}}
+        </div>
+      {{/if}}
+      <p class="micro-label" style="margin-top: 16px;">Minimum clear space = 1× logo height on all sides</p>
+    </div>
+
+    <!-- Minimum Size -->
+    <h3 style="margin-top: 40px;">Minimum Size</h3>
+    <p>To maintain legibility, do not reproduce the logo smaller than these minimum sizes:</p>
+
+    <div class="min-size-grid">
+      <div class="min-size-card">
+        <div class="min-size-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M3 9h18"/></svg>
+        </div>
+        <div class="min-size-value">25mm</div>
+        <div class="min-size-label">Print minimum width</div>
+      </div>
+      <div class="min-size-card">
+        <div class="min-size-icon">
+          <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+        </div>
+        <div class="min-size-value">80px</div>
+        <div class="min-size-label">Digital minimum width</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Page Footer -->
+  <div class="page-footer">
+    <span>{{businessName}} Brand Guidelines</span>
+    <span>{{pageNumber}}</span>
+  </div>
+</div>

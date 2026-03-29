@@ -154,6 +154,17 @@ export async function POST(
     // Update order status - use 'generation_failed' if PDF didn't generate
     if (pdfGenerated) {
       await updateOrder(orderId, { status: "ready_for_review" });
+
+      // Send brand kit ready email (fire-and-forget)
+      if (order.customerEmail) {
+        const { sendDashboardAccessEmail } = await import("@/lib/services/email-service");
+        const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:3000";
+        const dashboardLink = `${baseUrl}/dashboard/${orderId}`;
+        sendDashboardAccessEmail(order.customerEmail, "Customer", orderId, dashboardLink).catch((err) => {
+          console.error("[Finalize] Failed to send brand kit ready email:", err);
+        });
+      }
+
       return NextResponse.json({
         success: true,
         orderId,

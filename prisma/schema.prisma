@@ -21,13 +21,16 @@ model BrandArchetype {
 }
 
 model Order {
-  id             Int      @id @default(autoincrement())
-  tier           String
-  status         String   @default("pending")
-  customerEmail  String?
-  selectedLogoId Int?
-  createdAt      DateTime @default(now())
-  updatedAt      DateTime @updatedAt
+  id              Int      @id @default(autoincrement())
+  tier            String
+  status          String   @default("pending")
+  customerEmail   String?
+  selectedLogoId  Int?
+  stripeSessionId String?  @unique
+  paymentStatus   String   @default("unpaid")
+  amount          Int?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
 
   details      OrderDetail[]
   logoVariants LogoVariant[]
@@ -35,6 +38,7 @@ model Order {
   @@index([status])
   @@index([tier])
   @@index([customerEmail])
+  @@index([stripeSessionId])
 }
 
 model OrderDetail {

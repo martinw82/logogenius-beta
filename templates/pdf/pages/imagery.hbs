@@ -1,0 +1,65 @@
+<!-- Imagery Style Page — Photography and illustration guidelines -->
+<div class="page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Imagery</span>
+  </div>
+  
+  <div class="content">
+    <!-- Section Heading -->
+    <div class="section-heading">
+      <div>
+        <h1>Imagery & Photography</h1>
+        <p class="subtitle">Visual direction for photography and illustration</p>
+      </div>
+    </div>
+    
+    <!-- Imagery Style Description -->
+    {{#if imageryStyle}}
+    <div class="section-body">
+      {{{imageryStyle}}}
+    </div>
+    {{/if}}
+    
+    <!-- Photography Mood Grid -->
+    <h2>Photography Direction</h2>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin: calc(var(--grid) * 3) 0;">
+      <div style="background: var(--bg-light); border-radius: var(--radius); padding: 24px;">
+        <p class="micro-label" style="margin-bottom: 12px;">Lighting</p>
+        <p style="font-size: 14px; color: var(--text-dark); margin: 0;">Natural, warm lighting preferred. Avoid harsh flash or artificial shadows.</p>
+      </div>
+      <div style="background: var(--bg-light); border-radius: var(--radius); padding: 24px;">
+        <p class="micro-label" style="margin-bottom: 12px;">Composition</p>
+        <p style="font-size: 14px; color: var(--text-dark); margin: 0;">Clean backgrounds, intentional negative space, strong focal points.</p>
+      </div>
+      <div style="background: var(--bg-light); border-radius: var(--radius); padding: 24px;">
+        <p class="micro-label" style="margin-bottom: 12px;">Color Treatment</p>
+        <p style="font-size: 14px; color: var(--text-dark); margin: 0;">Maintain brand color consistency. Subtle color grading to match palette.</p>
+      </div>
+      <div style="background: var(--bg-light); border-radius: var(--radius); padding: 24px;">
+        <p class="micro-label" style="margin-bottom: 12px;">Mood</p>
+        <p style="font-size: 14px; color: var(--text-dark); margin: 0;">Authentic, aspirational, and professional. Real-world contexts preferred.</p>
+      </div>
+    </div>
+    
+    <!-- Graphic Elements (if available) -->
+    {{#if graphicElements}}
+    <h2>Graphic Elements</h2>
+    <div class="section-body">
+      {{{graphicElements}}}
+    </div>
+    {{/if}}
+    
+    <!-- Callout -->
+    <div class="callout" style="margin-top: 32px;">
+      <p>All imagery should reinforce the {{businessName}} brand identity. When in doubt, prefer authentic over stock, specific over generic, and human over abstract.</p>
+    </div>
+  </div>
+  
+  <!-- Page Footer -->
+  <div class="page-footer">
+    <span>{{businessName}} Brand Guidelines</span>
+    <span>{{pageNumber}}</span>
+  </div>
+</div>

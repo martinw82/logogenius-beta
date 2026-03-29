@@ -1,0 +1,76 @@
+<!-- Brand Voice Page — We Are / We Are NOT comparison matrix -->
+<div class="page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Brand Voice</span>
+  </div>
+
+  <div class="content" style="padding-top: calc(var(--grid) * 8);">
+    <!-- Section Heading -->
+    <div class="section-heading">
+      <div>
+        <h1>Brand Voice & Tone</h1>
+        <p class="subtitle">How {{businessName}} communicates</p>
+      </div>
+    </div>
+
+    <!-- Brand Voice Description -->
+    {{#if brandVoiceTone}}
+    <div style="margin-bottom: calc(var(--grid) * 6);">
+      {{{brandVoiceTone}}}
+    </div>
+    {{/if}}
+
+    <!-- We Are / We Are NOT — branded comparison matrix -->
+    <div class="voice-grid" style="margin-top: calc(var(--grid) * 4);">
+      <!-- We ARE column -->
+      <div style="border-radius: var(--radius); overflow: hidden;">
+        <div style="background: var(--primary); padding: calc(var(--grid) * 3) calc(var(--grid) * 4);">
+          <p style="font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: white; margin: 0; letter-spacing: -0.02em;">We Are</p>
+        </div>
+        <div style="border: 1px solid var(--border-light); border-top: none; border-radius: 0 0 var(--radius) var(--radius); padding: calc(var(--grid) * 3) calc(var(--grid) * 4);">
+          <ul class="voice-list">
+            <li style="padding: 10px 0; font-size: 15px; border-bottom: 1px solid var(--border-light); color: var(--text-dark);">Confident</li>
+            <li style="padding: 10px 0; font-size: 15px; border-bottom: 1px solid var(--border-light); color: var(--text-dark);">Warm</li>
+            <li style="padding: 10px 0; font-size: 15px; border-bottom: 1px solid var(--border-light); color: var(--text-dark);">Expert</li>
+            <li style="padding: 10px 0; font-size: 15px; border-bottom: 1px solid var(--border-light); color: var(--text-dark);">Clear & Direct</li>
+            <li style="padding: 10px 0; font-size: 15px; color: var(--text-dark);">Authentic</li>
+          </ul>
+        </div>
+      </div>
+
+      <!-- We are NOT column -->
+      <div style="border-radius: var(--radius); overflow: hidden;">
+        <div style="background: var(--text-dark); padding: calc(var(--grid) * 3) calc(var(--grid) * 4);">
+          <p style="font-family: var(--font-heading); font-size: 18px; font-weight: 700; color: white; margin: 0; letter-spacing: -0.02em;">We Are NOT</p>
+        </div>
+        <div style="border: 1px solid var(--border-light); border-top: none; border-radius: 0 0 var(--radius) var(--radius); padding: calc(var(--grid) * 3) calc(var(--grid) * 4);">
+          <ul class="voice-list">
+            <li style="padding: 10px 0; font-size: 15px; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Arrogant</li>
+            <li style="padding: 10px 0; font-size: 15px; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Casual</li>
+            <li style="padding: 10px 0; font-size: 15px; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Pretentious</li>
+            <li style="padding: 10px 0; font-size: 15px; border-bottom: 1px solid var(--border-light); color: var(--text-muted);">Boring or Generic</li>
+            <li style="padding: 10px 0; font-size: 15px; color: var(--text-muted);">Unclear</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Voice Guidelines Text -->
+    {{#if visualStyleGuide}}
+    <div style="margin-top: calc(var(--grid) * 6); padding-top: calc(var(--grid) * 4); border-top: 0.5px solid var(--border-light);">
+      <h2>Voice Guidelines</h2>
+      <div class="section-body">
+        {{{visualStyleGuide}}}
+      </div>
+    </div>
+    {{/if}}
+  </div>
+
+  <!-- Page Footer -->
+  <div class="page-footer">
+    <span>{{businessName}} Brand Guidelines</span>
+    <span>{{pageNumber}}</span>
+  </div>
+</div>

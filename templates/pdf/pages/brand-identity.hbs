@@ -1,0 +1,65 @@
+<!-- Brand Identity Page — Archetype card + personality traits -->
+<div class="page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Brand Identity</span>
+  </div>
+
+  <div class="content" style="padding-top: calc(var(--grid) * 8);">
+    <!-- Section Heading -->
+    <div class="section-heading">
+      <div>
+        <h1>Brand Identity</h1>
+        <p class="subtitle">Who we are and how we show up</p>
+      </div>
+    </div>
+
+    <!-- Archetype Card — branded background with archetype name -->
+    {{#if archetype}}
+    <div style="background: var(--primary); border-radius: var(--radius); padding: calc(var(--grid) * 6); margin-bottom: calc(var(--grid) * 6); position: relative; overflow: hidden;">
+      <!-- Subtle pattern overlay -->
+      <div style="position: absolute; inset: 0; opacity: 0.06; background-image: repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(255,255,255,0.1) 20px, rgba(255,255,255,0.1) 21px); pointer-events: none;"></div>
+      <div style="position: relative; z-index: 2;">
+        <p style="font-family: var(--chrome-font); font-size: 11px; text-transform: uppercase; letter-spacing: 0.15em; color: rgba(255,255,255,0.6); margin-bottom: calc(var(--grid) * 2); font-weight: 500;">Brand Archetype</p>
+        <div style="font-family: var(--font-heading); font-size: 42px; font-weight: 700; color: white; line-height: 1; letter-spacing: -0.03em;">
+          {{archetype}}
+        </div>
+      </div>
+    </div>
+    {{/if}}
+
+    <!-- Brand Identity Description -->
+    {{#if brandIdentityVoice}}
+    <div style="margin-bottom: calc(var(--grid) * 6);">
+      {{{brandIdentityVoice}}}
+    </div>
+    {{/if}}
+
+    <!-- Brand Pillars — styled as tags/chips -->
+    {{#if brandPillars}}
+    <h2>Brand Pillars</h2>
+    <div style="display: flex; flex-wrap: wrap; gap: 12px; margin-top: calc(var(--grid) * 2); margin-bottom: calc(var(--grid) * 4);">
+      {{#each (split brandPillars ",")}}
+      <div style="background: var(--primary-tint); border: 1px solid var(--primary); border-radius: 100px; padding: 10px 22px;">
+        <p style="font-family: var(--chrome-font); font-size: 13px; font-weight: 600; color: var(--primary); margin: 0; text-transform: uppercase; letter-spacing: 0.06em;">{{this}}</p>
+      </div>
+      {{/each}}
+    </div>
+    {{/if}}
+
+    <!-- Visual Style Guide (if available) -->
+    {{#if visualStyleGuide}}
+    <h2>Visual Standards</h2>
+    <div class="section-body">
+      {{{visualStyleGuide}}}
+    </div>
+    {{/if}}
+  </div>
+
+  <!-- Page Footer -->
+  <div class="page-footer">
+    <span>{{businessName}} Brand Guidelines</span>
+    <span>{{pageNumber}}</span>
+  </div>
+</div>

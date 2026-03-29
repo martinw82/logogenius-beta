@@ -8,17 +8,52 @@
 import Handlebars from 'handlebars';
 
 /**
+ * Convert hex color to RGB object
+ */
+function hexToRgbObject(hex: string): { r: number; g: number; b: number } {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return { r: 0, g: 0, b: 0 };
+  
+  return {
+    r: parseInt(result[1], 16),
+    g: parseInt(result[2], 16),
+    b: parseInt(result[3], 16),
+  };
+}
+
+/**
+ * Convert RGB object to CMYK values
+ */
+function rgbToCmyk(rgb: { r: number; g: number; b: number }): { c: number; m: number; y: number; k: number } {
+  const rr = rgb.r / 255;
+  const gg = rgb.g / 255;
+  const bb = rgb.b / 255;
+  
+  const k = 1 - Math.max(rr, gg, bb);
+  if (k === 1) return { c: 0, m: 0, y: 0, k: 100 };
+  
+  const c = Math.round(((1 - rr - k) / (1 - k)) * 100);
+  const m = Math.round(((1 - gg - k) / (1 - k)) * 100);
+  const y = Math.round(((1 - bb - k) / (1 - k)) * 100);
+  
+  return { c, m, y, k: Math.round(k * 100) };
+}
+
+/**
  * Convert hex color to RGB string for CSS
  */
 function hexToRgb(hex: string): string {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return '0, 0, 0';
-  
-  const r = parseInt(result[1], 16);
-  const g = parseInt(result[2], 16);
-  const b = parseInt(result[3], 16);
-  
-  return `${r}, ${g}, ${b}`;
+  const rgb = hexToRgbObject(hex);
+  return `${rgb.r}, ${rgb.g}, ${rgb.b}`;
+}
+
+/**
+ * Convert hex color to CMYK string representation
+ */
+function hexToCmyk(hex: string): string {
+  const rgb = hexToRgbObject(hex);
+  const cmyk = rgbToCmyk(rgb);
+  return `${cmyk.c} ${cmyk.m} ${cmyk.y} ${cmyk.k}`;
 }
 
 /**
@@ -149,11 +184,20 @@ function join(arr: string[], separator: string): string {
 }
 
 /**
+ * Split string by separator (for iterating over comma-separated values)
+ */
+function split(str: string, separator: string): string[] {
+  if (!str) return [];
+  return str.split(separator).map(s => s.trim()).filter(Boolean);
+}
+
+/**
  * Register all helpers with Handlebars instance
  */
 export function registerHelpers(handlebars: typeof Handlebars): void {
   // Color helpers
   handlebars.registerHelper('hexToRgb', hexToRgb);
+  handlebars.registerHelper('hexToCmyk', hexToCmyk);
   handlebars.registerHelper('contrastColor', contrastColor);
   
   // Date helpers
@@ -177,6 +221,7 @@ export function registerHelpers(handlebars: typeof Handlebars): void {
   handlebars.registerHelper('length', length);
   handlebars.registerHelper('hasItems', hasItems);
   handlebars.registerHelper('join', join);
+  handlebars.registerHelper('split', split);
   
   // Comparison helpers
   handlebars.registerHelper('eq', (a: unknown, b: unknown) => a === b);
@@ -208,6 +253,9 @@ export function registerHelpers(handlebars: typeof Handlebars): void {
 // Export individual helpers for direct use
 export {
   hexToRgb,
+  hexToRgbObject,
+  hexToCmyk,
+  rgbToCmyk,
   contrastColor,
   formatDate,
   paragraphs,

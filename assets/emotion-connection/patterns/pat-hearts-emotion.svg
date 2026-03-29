@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <pattern id="heartsEmotion" width="80" height="80" patternUnits="userSpaceOnUse">
+      <path d="M40,20 Q30,10 20,20 Q10,30 20,40 L40,60 L60,40 Q70,30 60,20 Q50,10 40,20" fill="black" opacity="0.08" transform="scale(0.4) translate(50,50)"/>
+    </pattern>
+  </defs>
+  <rect width="200" height="200" fill="url(#heartsEmotion)"/>
+</svg>

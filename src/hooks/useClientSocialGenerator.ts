@@ -28,6 +28,8 @@ interface SocialAssetOptions {
   primaryColor: string;
   secondaryColor: string;
   accentColor?: string;
+  fontHeadings?: string;
+  fontBody?: string;
 }
 
 interface UseClientSocialGeneratorReturn {
@@ -179,6 +181,302 @@ function roundedRect(
   ctx.closePath();
 }
 
+/**
+ * Draw an organic bezier curve accent line
+ */
+function drawOrganicCurve(
+  ctx: CanvasRenderingContext2D,
+  x1: number, y1: number,
+  cx1: number, cy1: number,
+  cx2: number, cy2: number,
+  x2: number, y2: number,
+  color: string, opacity: number,
+  lineWidth: number = 2
+) {
+  const { r, g, b } = hexToRgb(color);
+  ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  ctx.lineWidth = lineWidth;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.bezierCurveTo(cx1, cy1, cx2, cy2, x2, y2);
+  ctx.stroke();
+}
+
+/**
+ * Draw a geometric accent shape (triangle, diamond, hexagon, circle)
+ */
+function drawAccentShape(
+  ctx: CanvasRenderingContext2D,
+  type: 'triangle' | 'diamond' | 'hexagon' | 'circle',
+  x: number, y: number,
+  size: number,
+  color: string, opacity: number
+) {
+  const { r, g, b } = hexToRgb(color);
+  ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  ctx.beginPath();
+
+  switch (type) {
+    case 'triangle':
+      ctx.moveTo(x, y - size);
+      ctx.lineTo(x + size * 0.866, y + size * 0.5);
+      ctx.lineTo(x - size * 0.866, y + size * 0.5);
+      break;
+    case 'diamond':
+      ctx.moveTo(x, y - size);
+      ctx.lineTo(x + size * 0.6, y);
+      ctx.lineTo(x, y + size);
+      ctx.lineTo(x - size * 0.6, y);
+      break;
+    case 'hexagon':
+      for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 3) * i - Math.PI / 2;
+        const px = x + size * Math.cos(angle);
+        const py = y + size * Math.sin(angle);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      break;
+    case 'circle':
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      break;
+  }
+
+  ctx.closePath();
+  ctx.fill();
+}
+
+// ==================== FONT LOADING ====================
+
+// Track which fonts have been loaded to avoid duplicates
+const loadedFonts = new Set<string>();
+
+// System fonts that don't need Google Fonts loading
+const SYSTEM_FONT_NAMES = [
+  'Arial', 'Helvetica', 'Helvetica Neue', 'Verdana', 'Tahoma',
+  'Trebuchet MS', 'Times New Roman', 'Georgia', 'Garamond',
+  'Courier New', 'Brush Script MT', 'sans-serif', 'serif', 'monospace',
+];
+
+/**
+ * Check if a font is a system font (no loading needed)
+ */
+function isSystemFont(name: string | undefined): boolean {
+  if (!name) return true;
+  return SYSTEM_FONT_NAMES.some(sf => name.toLowerCase().includes(sf.toLowerCase()));
+}
+
+/**
+ * Sanitize font name for Google Fonts URL (spaces -> +)
+ */
+function sanitizeFontForUrl(name: string): string {
+  return name.replace(/\s+/g, '+');
+}
+
+/**
+ * Load brand fonts for Canvas rendering.
+ * Appends Google Fonts <link> to document.head if not already present,
+ * then awaits document.fonts.ready so fonts are available to Canvas.
+ * Safe to call multiple times — deduplicates automatically.
+ */
+async function loadBrandFonts(fontHeadings?: string, fontBody?: string): Promise<void> {
+  const fontsToLoad: string[] = [];
+
+  if (fontHeadings && !isSystemFont(fontHeadings) && !loadedFonts.has(fontHeadings)) {
+    fontsToLoad.push(fontHeadings);
+  }
+  if (fontBody && !isSystemFont(fontBody) && !loadedFonts.has(fontBody)) {
+    fontsToLoad.push(fontBody);
+  }
+
+  if (fontsToLoad.length === 0) return;
+
+  // Build Google Fonts CSS URL for all needed fonts
+  const familyParams = fontsToLoad.map(font => {
+    const sanitized = sanitizeFontForUrl(font);
+    return `family=${sanitized}:wght@400;500;600;700`;
+  }).join('&');
+
+  const url = `https://fonts.googleapis.com/css2?${familyParams}&display=swap`;
+
+  // Append <link> if not already present for this URL
+  const linkId = `brand-font-${sanitizeFontForUrl(fontsToLoad.join('-'))}`;
+  if (!document.getElementById(linkId)) {
+    const link = document.createElement('link');
+    link.id = linkId;
+    link.rel = 'stylesheet';
+    link.href = url;
+    document.head.appendChild(link);
+  }
+
+  // Wait for fonts to be ready
+  await document.fonts.ready;
+
+  // Mark as loaded
+  fontsToLoad.forEach(f => loadedFonts.add(f));
+}
+
+/**
+ * Get a usable font family string. Returns the brand font if available,
+ * otherwise falls back to the provided fallback.
+ */
+function getFont(family: string | undefined, fallback: string = 'sans-serif'): string {
+  if (!family || family.trim() === '' || family === '_NONE_') return fallback;
+  return `'${family}', ${fallback}`;
+}
+
+// ==================== TYPOGRAPHY HELPERS ====================
+
+/**
+ * Calculate proportional font size based on canvas dimensions.
+ * Uses the smaller dimension as the base so text scales appropriately
+ * across portrait, landscape, and square templates.
+ */
+function scaleFontSize(canvasWidth: number, canvasHeight: number, ratio: number): number {
+  return Math.round(Math.min(canvasWidth, canvasHeight) * ratio);
+}
+
+/**
+ * Draw a frosted glass pill (rounded rectangle with semi-transparent fill + subtle border).
+ * Used behind tagline text for readability on gradient backgrounds.
+ */
+function drawFrostedPill(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number,
+  width: number, height: number,
+  radius: number,
+  opacity: number = 0.12,
+  dark: boolean = false
+) {
+  // Fill
+  if (dark) {
+    ctx.fillStyle = `rgba(0, 0, 0, ${opacity})`;
+  } else {
+    ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+  }
+  roundedRect(ctx, x, y, width, height, radius);
+  ctx.fill();
+
+  // Border
+  if (dark) {
+    ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 1.5})`;
+  } else {
+    ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 1.7})`;
+  }
+  ctx.lineWidth = 1;
+  roundedRect(ctx, x, y, width, height, radius);
+  ctx.stroke();
+}
+
+/**
+ * Options for drawTextWithHierarchy
+ */
+interface TextHierarchyOptions {
+  /** Brand heading font name */
+  fontHeadings?: string;
+  /** Brand body font name */
+  fontBody?: string;
+  /** Text color for headline (tier 1) */
+  headlineColor: string;
+  /** Text color for tagline (tier 2) */
+  taglineColor: string;
+  /** Text color for accent (tier 3) */
+  accentColor: string;
+  /** Proportional ratio for headline size */
+  headlineRatio: number;
+  /** Proportional ratio for tagline size */
+  taglineRatio: number;
+  /** Proportional ratio for accent size */
+  accentRatio: number;
+  /** Canvas width for proportional sizing */
+  canvasWidth: number;
+  /** Canvas height for proportional sizing */
+  canvasHeight: number;
+  /** Whether to wrap tagline in frosted pill */
+  taglineFrostedPill?: boolean;
+  /** Frosted pill opacity */
+  pillOpacity?: number;
+  /** Whether to use dark frosted pill (for TikTok dark theme) */
+  darkPill?: boolean;
+  /** Text alignment */
+  textAlign?: CanvasTextAlign;
+}
+
+/**
+ * Draw a text block with three-tier typographic hierarchy:
+ *   Tier 1 (headline): bold, large, brand heading font
+ *   Tier 2 (tagline): regular, medium, brand body font — optional frosted pill
+ *   Tier 3 (accent): light, small, brand body font
+ *
+ * Returns the total height consumed so callers can position accordingly.
+ */
+function drawTextWithHierarchy(
+  ctx: CanvasRenderingContext2D,
+  lines: { headline: string; tagline?: string; accent?: string },
+  x: number, y: number,
+  options: TextHierarchyOptions
+): number {
+  const {
+    fontHeadings, fontBody,
+    headlineColor, taglineColor, accentColor,
+    headlineRatio, taglineRatio, accentRatio,
+    canvasWidth, canvasHeight,
+    taglineFrostedPill = false,
+    pillOpacity = 0.12,
+    darkPill = false,
+    textAlign = 'left',
+  } = options;
+
+  const headingFont = getFont(fontHeadings, 'sans-serif');
+  const bodyFont = getFont(fontBody, 'sans-serif');
+
+  const headlineSize = scaleFontSize(canvasWidth, canvasHeight, headlineRatio);
+  const taglineSize = scaleFontSize(canvasWidth, canvasHeight, taglineRatio);
+  const accentSize = scaleFontSize(canvasWidth, canvasHeight, accentRatio);
+
+  const lineGap = Math.round(headlineSize * 0.55);
+  let currentY = y;
+
+  ctx.textAlign = textAlign;
+
+  // Tier 1: Headline
+  ctx.fillStyle = headlineColor;
+  ctx.font = `bold ${headlineSize}px ${headingFont}`;
+  ctx.fillText(lines.headline, x, currentY);
+  currentY += lineGap;
+
+  // Tier 2: Tagline
+  if (lines.tagline) {
+    ctx.font = `${taglineSize}px ${bodyFont}`;
+
+    if (taglineFrostedPill) {
+      const tagWidth = ctx.measureText(lines.tagline).width + taglineSize * 2.5;
+      const pillH = taglineSize * 2;
+      const pillR = pillH / 2;
+      const pillX = textAlign === 'center' ? x - tagWidth / 2 : x - taglineSize * 1.25;
+      const pillY = currentY - taglineSize * 0.85;
+
+      drawFrostedPill(ctx, pillX, pillY, tagWidth, pillH, pillR, pillOpacity, darkPill);
+    }
+
+    ctx.fillStyle = taglineColor;
+    ctx.fillText(lines.tagline, x, currentY);
+    currentY += Math.round(taglineSize * 1.6);
+  }
+
+  // Tier 3: Accent
+  if (lines.accent) {
+    ctx.font = `300 ${accentSize}px ${bodyFont}`;
+    ctx.fillStyle = accentColor;
+    ctx.fillText(lines.accent, x, currentY);
+    currentY += Math.round(accentSize * 1.4);
+  }
+
+  ctx.textAlign = 'left';
+  return currentY - y;
+}
+
 export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState({
@@ -260,40 +558,41 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     // Logo in upper third — slightly larger
     await drawLogo(ctx, options.logoUrl, (W - 380) / 2, 260, 380, 380, options.businessName, accent);
 
-    // Business name with slight letter spacing effect
-    ctx.fillStyle = accent;
-    ctx.font = 'bold 58px sans-serif';
-    ctx.textAlign = 'center';
-    ctx.fillText(options.businessName, W / 2, 770);
-
-    // Tagline in a frosted glass pill
-    if (options.tagline) {
-      ctx.font = '26px sans-serif';
-      const tagWidth = ctx.measureText(options.tagline).width + 70;
-      const pillX = (W - tagWidth) / 2;
-
-      // Frosted pill background
-      ctx.fillStyle = 'rgba(255,255,255,0.12)';
-      roundedRect(ctx, pillX, 800, tagWidth, 54, 27);
-      ctx.fill();
-      // Pill border
-      ctx.strokeStyle = 'rgba(255,255,255,0.2)';
-      ctx.lineWidth = 1;
-      roundedRect(ctx, pillX, 800, tagWidth, 54, 27);
-      ctx.stroke();
-
-      ctx.fillStyle = accent;
-      ctx.fillText(options.tagline, W / 2, 835);
-    }
+    // Three-tier text hierarchy with brand fonts
+    drawTextWithHierarchy(ctx,
+      {
+        headline: options.businessName,
+        tagline: options.tagline,
+        accent: options.tagline ? 'Discover Your Brand' : undefined,
+      },
+      W / 2, 770,
+      {
+        fontHeadings: options.fontHeadings,
+        fontBody: options.fontBody,
+        headlineColor: accent,
+        taglineColor: accent,
+        accentColor: isLightColor(primary) ? 'rgba(0,0,0,0.45)' : 'rgba(255,255,255,0.5)',
+        headlineRatio: 0.055,
+        taglineRatio: 0.025,
+        accentRatio: 0.018,
+        canvasWidth: W,
+        canvasHeight: H,
+        taglineFrostedPill: true,
+        pillOpacity: 0.12,
+        textAlign: 'center',
+      }
+    );
 
     // CTA pill at bottom — frosted glass style
-    const ctaWidth = 280;
+    const ctaSize = scaleFontSize(W, H, 0.022);
+    const ctaWidth = scaleFontSize(W, H, 0.26);
     const ctaX = (W - ctaWidth) / 2;
     ctx.fillStyle = secondary;
     roundedRect(ctx, ctaX, H - 220, ctaWidth, 64, 32);
     ctx.fill();
     ctx.fillStyle = isLightColor(secondary) ? '#111' : '#fff';
-    ctx.font = 'bold 24px sans-serif';
+    ctx.textAlign = 'center';
+    ctx.font = `bold ${ctaSize}px ${getFont(options.fontBody, 'sans-serif')}`;
     ctx.fillText('Learn More', W / 2, H - 180);
 
     // Chevron arrow
@@ -305,6 +604,16 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     ctx.lineTo(W / 2, H - 142);
     ctx.lineTo(W / 2 + 12, H - 130);
     ctx.stroke();
+
+    // Organic curve accent near bottom (above CTA, in safe zone)
+    drawOrganicCurve(ctx, W * 0.1, H * 0.82, W * 0.3, H * 0.78, W * 0.7, H * 0.84, W * 0.9, H * 0.80, accent, 0.12, 2.5);
+    drawOrganicCurve(ctx, W * 0.15, H * 0.85, W * 0.4, H * 0.81, W * 0.6, H * 0.87, W * 0.85, H * 0.83, accent, 0.08, 1.5);
+
+    // Diamond accent shapes in top corners (safe zone: top 14% is cropped, so place at ~15%)
+    drawAccentShape(ctx, 'diamond', 80, H * 0.16, 18, accent, 0.15);
+    drawAccentShape(ctx, 'diamond', W - 80, H * 0.16, 18, accent, 0.15);
+    drawAccentShape(ctx, 'diamond', 50, H * 0.22, 10, accent, 0.1);
+    drawAccentShape(ctx, 'diamond', W - 50, H * 0.22, 10, accent, 0.1);
 
     ctx.textAlign = 'left';
   };
@@ -340,19 +649,45 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     // Dot pattern — very subtle
     drawDotPattern(ctx, W, H, '#ffffff', 0.03, 35, 1.5);
 
+    // Triangle accent shapes on left side (profile photo safe zone area)
+    drawAccentShape(ctx, 'triangle', 60, H * 0.3, 25, secondary, 0.12);
+    drawAccentShape(ctx, 'triangle', 100, H * 0.7, 18, secondary, 0.1);
+    drawAccentShape(ctx, 'triangle', 40, H * 0.55, 12, secondary, 0.08);
+
+    // Organic curve accent across middle
+    drawOrganicCurve(ctx, 0, H * 0.6, W * 0.25, H * 0.4, W * 0.5, H * 0.55, W * 0.75, H * 0.35, accent, 0.08, 2);
+
     // Profile photo safe zone (left 170px) — logo after it
     await drawLogo(ctx, options.logoUrl, 200, (H - 150) / 2, 150, 150, options.businessName, accent);
 
-    // Business name with proper vertical centering
+    // Three-tier text hierarchy (right of logo)
+    const headingFont = getFont(options.fontHeadings, 'sans-serif');
+    const bodyFont = getFont(options.fontBody, 'sans-serif');
+    const headlineSize = scaleFontSize(W, H, 0.11);
+    const taglineSize = scaleFontSize(W, H, 0.055);
+    const accentSize = scaleFontSize(W, H, 0.038);
+
+    // Tier 1: Business name
     ctx.fillStyle = accent;
-    ctx.font = 'bold 36px sans-serif';
+    ctx.font = `bold ${headlineSize}px ${headingFont}`;
     ctx.fillText(options.businessName, 380, H / 2 - 8);
 
+    // Tier 2: Tagline in frosted pill
     if (options.tagline) {
-      ctx.font = '17px sans-serif';
-      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.6)';
-      ctx.fillText(options.tagline, 380, H / 2 + 22);
+      ctx.font = `${taglineSize}px ${bodyFont}`;
+      const tagWidth = ctx.measureText(options.tagline).width + taglineSize * 2;
+      const pillH = taglineSize * 1.8;
+      const pillR = pillH / 2;
+      drawFrostedPill(ctx, 380 - taglineSize * 0.8, H / 2 + 10, tagWidth, pillH, pillR, 0.12);
+
+      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.75)';
+      ctx.fillText(options.tagline, 380, H / 2 + 10 + taglineSize * 1.15);
     }
+
+    // Tier 3: Accent text
+    ctx.font = `300 ${accentSize}px ${bodyFont}`;
+    ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.35)' : 'rgba(255,255,255,0.4)';
+    ctx.fillText(options.businessName.toLowerCase().replace(/\s+/g, '') + '.com', 380, H / 2 + 10 + taglineSize * 2.8);
 
     // Bottom accent — gradient bar instead of flat
     const barGrad = ctx.createLinearGradient(0, H - 5, W, H - 5);
@@ -401,16 +736,43 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     // Logo (left-center)
     await drawLogo(ctx, options.logoUrl, 120, (H - 200) / 2, 200, 200, options.businessName, accent);
 
-    // Business name
+    // Three-tier text hierarchy
+    const headingFont = getFont(options.fontHeadings, 'sans-serif');
+    const bodyFont = getFont(options.fontBody, 'sans-serif');
+    const headlineSize = scaleFontSize(W, H, 0.09);
+    const taglineSize = scaleFontSize(W, H, 0.044);
+    const accentSize = scaleFontSize(W, H, 0.03);
+
+    // Tier 1: Business name
     ctx.fillStyle = accent;
-    ctx.font = 'bold 46px sans-serif';
+    ctx.font = `bold ${headlineSize}px ${headingFont}`;
     ctx.fillText(options.businessName, 370, H / 2 - 5);
 
+    // Tier 2: Tagline in frosted pill
     if (options.tagline) {
-      ctx.font = '22px sans-serif';
-      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)';
-      ctx.fillText(options.tagline, 370, H / 2 + 30);
+      ctx.font = `${taglineSize}px ${bodyFont}`;
+      const tagWidth = ctx.measureText(options.tagline).width + taglineSize * 2;
+      const pillH = taglineSize * 1.8;
+      const pillR = pillH / 2;
+      drawFrostedPill(ctx, 370 - taglineSize * 0.8, H / 2 + 12, tagWidth, pillH, pillR, 0.12);
+
+      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.65)' : 'rgba(255,255,255,0.75)';
+      ctx.fillText(options.tagline, 370, H / 2 + 12 + taglineSize * 1.15);
     }
+
+    // Tier 3: Accent
+    ctx.font = `300 ${accentSize}px ${bodyFont}`;
+    ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.35)';
+    ctx.fillText(`@${options.businessName.toLowerCase().replace(/\s+/g, '')}`, 370, H / 2 + 12 + taglineSize * 2.8);
+
+    // Hexagon accent shapes in accent color (right side, avoiding bottom-left profile zone)
+    drawAccentShape(ctx, 'hexagon', W - 150, H * 0.25, 22, accent, 0.12);
+    drawAccentShape(ctx, 'hexagon', W - 80, H * 0.6, 16, accent, 0.1);
+    drawAccentShape(ctx, 'hexagon', W - 220, H * 0.75, 12, accent, 0.08);
+
+    // Organic curve accent along bottom edge (avoiding bottom-left profile photo zone)
+    drawOrganicCurve(ctx, W * 0.3, H * 0.92, W * 0.5, H * 0.85, W * 0.7, H * 0.95, W * 0.95, H * 0.88, accent, 0.12, 2.5);
+    drawOrganicCurve(ctx, W * 0.35, H * 0.96, W * 0.55, H * 0.9, W * 0.75, H * 0.98, W * 0.9, H * 0.92, accent, 0.08, 1.5);
   };
 
   const drawLinkedInBanner = async (
@@ -456,6 +818,25 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     ctx.closePath();
     ctx.fill();
 
+    // Prominent secondary color accent area (larger geometric block)
+    ctx.fillStyle = `rgba(${sr.r}, ${sr.g}, ${sr.b}, 0.06)`;
+    ctx.beginPath();
+    ctx.moveTo(W - 600, 0);
+    ctx.lineTo(W - 350, 0);
+    ctx.lineTo(W - 250, H);
+    ctx.lineTo(W - 500, H);
+    ctx.closePath();
+    ctx.fill();
+
+    // Organic curve accents along top edge
+    drawOrganicCurve(ctx, W * 0.1, H * 0.08, W * 0.3, H * 0.18, W * 0.5, H * 0.05, W * 0.7, H * 0.15, secondary, 0.1, 2);
+    drawOrganicCurve(ctx, W * 0.2, H * 0.12, W * 0.35, H * 0.22, W * 0.55, H * 0.08, W * 0.65, H * 0.18, secondary, 0.07, 1.5);
+
+    // Diamond accent shapes in secondary color (top 90% safe zone)
+    drawAccentShape(ctx, 'diamond', W - 120, H * 0.2, 16, secondary, 0.12);
+    drawAccentShape(ctx, 'diamond', W - 280, H * 0.35, 12, secondary, 0.1);
+    drawAccentShape(ctx, 'diamond', W - 180, H * 0.7, 10, secondary, 0.08);
+
     // Logo left with subtle glow
     const glowGrad = ctx.createRadialGradient(170, H / 2, 30, 170, H / 2, 120);
     glowGrad.addColorStop(0, `rgba(${sr.r}, ${sr.g}, ${sr.b}, 0.08)`);
@@ -465,21 +846,38 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
 
     await drawLogo(ctx, options.logoUrl, 80, (H - 180) / 2, 180, 180, options.businessName, accent);
 
-    // Name next to logo
+    // Three-tier text hierarchy
+    const headingFont = getFont(options.fontHeadings, 'sans-serif');
+    const bodyFont = getFont(options.fontBody, 'sans-serif');
+    const headlineSize = scaleFontSize(W, H, 0.1);
+    const taglineSize = scaleFontSize(W, H, 0.05);
+    const accentSize = scaleFontSize(W, H, 0.032);
+
+    // Tier 1: Business name
     ctx.fillStyle = accent;
-    ctx.font = 'bold 40px sans-serif';
+    ctx.font = `bold ${headlineSize}px ${headingFont}`;
     ctx.fillText(options.businessName, 290, H / 2 - 5);
 
     // Thin divider line
     ctx.fillStyle = `rgba(${sr.r}, ${sr.g}, ${sr.b}, 0.4)`;
     ctx.fillRect(290, H / 2 + 10, 100, 2);
 
-    // Tagline right-aligned
+    // Tier 2: Tagline right-aligned in frosted pill
     if (options.tagline) {
-      ctx.font = '20px sans-serif';
-      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.5)' : 'rgba(255,255,255,0.55)';
+      ctx.font = `${taglineSize}px ${bodyFont}`;
       ctx.textAlign = 'right';
+      const tagWidth = ctx.measureText(options.tagline).width + taglineSize * 2;
+      const pillH = taglineSize * 1.8;
+      const pillR = pillH / 2;
+      drawFrostedPill(ctx, W - 90 - tagWidth - taglineSize * 0.8, H / 2 - taglineSize * 0.6, tagWidth + taglineSize, pillH, pillR, 0.1);
+
+      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.65)';
       ctx.fillText(options.tagline, W - 90, H / 2 + 5);
+
+      // Tier 3: Accent (under tagline, right-aligned)
+      ctx.font = `300 ${accentSize}px ${bodyFont}`;
+      ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.35)';
+      ctx.fillText(options.businessName.toLowerCase().replace(/\s+/g, '') + '.com', W - 90, H / 2 + taglineSize * 2);
       ctx.textAlign = 'left';
     }
 
@@ -524,10 +922,24 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     // Large logo centered in upper half
     await drawLogo(ctx, options.logoUrl, (W - 420) / 2, 150, 420, 420, options.businessName, primary);
 
-    // Decorative divider between sections — wavy accent line
+    // Organic curve accents in upper section
+    drawOrganicCurve(ctx, W * 0.05, H * 0.15, W * 0.2, H * 0.08, W * 0.4, H * 0.18, W * 0.55, H * 0.1, primary, 0.08, 2);
+    drawOrganicCurve(ctx, W * 0.45, H * 0.12, W * 0.6, H * 0.06, W * 0.8, H * 0.16, W * 0.95, H * 0.08, primary, 0.06, 1.5);
+    drawOrganicCurve(ctx, W * 0.1, H * 0.5, W * 0.3, H * 0.42, W * 0.6, H * 0.52, W * 0.9, H * 0.44, secondary, 0.07, 1.5);
+
+    // Prominent divider between sections — wider bar with accent shapes
     const cardY = Math.round(H * 0.65);
-    ctx.fillStyle = secondary;
-    ctx.fillRect((W - 80) / 2, cardY - 15, 80, 3);
+    const divGrad = ctx.createLinearGradient((W - 200) / 2, 0, (W + 200) / 2, 0);
+    divGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    divGrad.addColorStop(0.3, secondary);
+    divGrad.addColorStop(0.7, secondary);
+    divGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = divGrad;
+    ctx.fillRect((W - 200) / 2, cardY - 2, 200, 4);
+
+    // Accent shapes flanking the divider
+    drawAccentShape(ctx, 'diamond', (W - 220) / 2, cardY, 8, secondary, 0.2);
+    drawAccentShape(ctx, 'diamond', (W + 220) / 2, cardY, 8, secondary, 0.2);
 
     // Bottom card with brand color
     const cardGrad = ctx.createLinearGradient(0, cardY, 0, H);
@@ -538,21 +950,39 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
 
     // Business name on card
     const textColor = isLightColor(primary) ? '#111' : '#fff';
+    const headingFont = getFont(options.fontHeadings, 'sans-serif');
+    const bodyFont = getFont(options.fontBody, 'sans-serif');
+    const headlineSize = scaleFontSize(W, H, 0.05);
+    const taglineSize = scaleFontSize(W, H, 0.026);
+    const accentSize = scaleFontSize(W, H, 0.018);
+
+    // Tier 1: Business name
     ctx.fillStyle = textColor;
-    ctx.font = 'bold 50px sans-serif';
+    ctx.font = `bold ${headlineSize}px ${headingFont}`;
     ctx.textAlign = 'center';
     ctx.fillText(options.businessName, W / 2, cardY + 90);
 
-    // Tagline
+    // Tier 2: Tagline in frosted pill
     if (options.tagline) {
-      ctx.font = '26px sans-serif';
+      ctx.font = `${taglineSize}px ${bodyFont}`;
+      const tagWidth = ctx.measureText(options.tagline).width + taglineSize * 2.5;
+      const pillH = taglineSize * 2;
+      const pillR = pillH / 2;
+      drawFrostedPill(ctx, (W - tagWidth) / 2, cardY + 110, tagWidth, pillH, pillR, 0.1);
+
       ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.65)';
-      ctx.fillText(options.tagline, W / 2, cardY + 140);
+      ctx.fillText(options.tagline, W / 2, cardY + 110 + taglineSize * 1.2);
     }
 
+    // Tier 3: Accent text
+    ctx.font = `300 ${accentSize}px ${bodyFont}`;
+    ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.35)';
+    ctx.fillText('Discover Your Brand', W / 2, cardY + 155);
+
     // CTA pill — rounded with border
+    const ctaSize = scaleFontSize(W, H, 0.022);
     const ctaText = 'Learn More';
-    ctx.font = 'bold 22px sans-serif';
+    ctx.font = `bold ${ctaSize}px ${bodyFont}`;
     const ctaW = ctx.measureText(ctaText).width + 64;
     const ctaH = 52;
     const ctaX = (W - ctaW) / 2;
@@ -621,32 +1051,55 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     ctx.moveTo(W - 130, H - 60); ctx.lineTo(W - 60, H - 60); ctx.lineTo(W - 60, H - 130);
     ctx.stroke();
 
+    // Hexagon neon accent shapes in secondary color (top 75% safe zone)
+    drawAccentShape(ctx, 'hexagon', W * 0.15, H * 0.15, 20, secondary, 0.15);
+    drawAccentShape(ctx, 'hexagon', W * 0.85, H * 0.2, 16, secondary, 0.12);
+    drawAccentShape(ctx, 'hexagon', W * 0.12, H * 0.55, 14, secondary, 0.1);
+    drawAccentShape(ctx, 'hexagon', W * 0.88, H * 0.5, 10, secondary, 0.08);
+
+    // Organic curve accents in neon color (top 75% area)
+    drawOrganicCurve(ctx, W * 0.05, H * 0.3, W * 0.2, H * 0.22, W * 0.4, H * 0.35, W * 0.5, H * 0.28, secondary, 0.12, 2);
+    drawOrganicCurve(ctx, W * 0.5, H * 0.28, W * 0.65, H * 0.2, W * 0.8, H * 0.33, W * 0.95, H * 0.25, secondary, 0.1, 1.5);
+    drawOrganicCurve(ctx, W * 0.1, H * 0.65, W * 0.3, H * 0.58, W * 0.6, H * 0.68, W * 0.9, H * 0.6, accent, 0.08, 1.5);
+
     // Logo centered
     await drawLogo(ctx, options.logoUrl, (W - 400) / 2, 340, 400, 400, options.businessName, accent);
 
-    // Business name — bold with subtle text shadow
+    // Three-tier text hierarchy with brand fonts
+    const headingFont = getFont(options.fontHeadings, 'sans-serif');
+    const bodyFont = getFont(options.fontBody, 'sans-serif');
+    const headlineSize = scaleFontSize(W, H, 0.06);
+    const taglineSize = scaleFontSize(W, H, 0.026);
+    const accentSize = scaleFontSize(W, H, 0.02);
+
+    // Tier 1: Business name — bold with neon text shadow
     ctx.save();
     ctx.shadowColor = `rgba(${r}, ${g}, ${b}, 0.5)`;
     ctx.shadowBlur = 20;
     ctx.fillStyle = '#ffffff';
-    ctx.font = 'bold 66px sans-serif';
+    ctx.font = `bold ${headlineSize}px ${headingFont}`;
     ctx.textAlign = 'center';
     ctx.fillText(options.businessName, W / 2, 880);
     ctx.restore();
 
-    // Tagline with neon color
+    // Tier 2: Tagline in dark-tinted frosted pill
     if (options.tagline) {
+      ctx.font = `${taglineSize}px ${bodyFont}`;
+      const tagWidth = ctx.measureText(options.tagline).width + taglineSize * 2.5;
+      const pillH = taglineSize * 2;
+      const pillR = pillH / 2;
+      drawFrostedPill(ctx, (W - tagWidth) / 2, 900, tagWidth, pillH, pillR, 0.25, true);
+
       ctx.fillStyle = secondary;
-      ctx.font = '28px sans-serif';
       ctx.textAlign = 'center';
-      ctx.fillText(options.tagline, W / 2, 930);
+      ctx.fillText(options.tagline, W / 2, 900 + taglineSize * 1.2);
     }
 
-    // Handle text at bottom
+    // Tier 3: @handle — above bottom 25% UI overlay zone
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
-    ctx.font = '22px sans-serif';
+    ctx.font = `300 ${accentSize}px ${bodyFont}`;
     ctx.textAlign = 'center';
-    ctx.fillText(`@${options.businessName.toLowerCase().replace(/\s+/g, '')}`, W / 2, H - 200);
+    ctx.fillText(`@${options.businessName.toLowerCase().replace(/\s+/g, '')}`, W / 2, H * 0.73);
 
     ctx.textAlign = 'left';
   };
@@ -659,17 +1112,13 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
   ) => {
     const { width: W, height: H } = spec;
 
-    // Clean white background
-    ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, W, H);
-
-    // Very subtle top tint bar using primary at low opacity
+    // Subtle gradient background (primary at 5% to white)
     const { r, g, b } = hexToRgb(primary);
-    const topGrad = ctx.createLinearGradient(0, 0, 0, 8);
-    topGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.08)`);
-    topGrad.addColorStop(1, 'rgba(255,255,255,0)');
-    ctx.fillStyle = topGrad;
-    ctx.fillRect(0, 0, W, 40);
+    const bgGrad = ctx.createLinearGradient(0, 0, W, H);
+    bgGrad.addColorStop(0, `rgba(${r}, ${g}, ${b}, 0.05)`);
+    bgGrad.addColorStop(1, '#ffffff');
+    ctx.fillStyle = bgGrad;
+    ctx.fillRect(0, 0, W, H);
 
     // Logo left with proper spacing
     await drawLogo(ctx, options.logoUrl, 24, (H - 70) / 2, 70, 70, options.businessName, primary);
@@ -679,21 +1128,36 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     ctx.fillRect(108, H * 0.25, 1, H * 0.5);
 
     // Company name
+    const headingFont = getFont(options.fontHeadings, 'sans-serif');
+    const bodyFont = getFont(options.fontBody, 'sans-serif');
+    const headlineSize = scaleFontSize(W, H, 0.11);
+    const taglineSize = scaleFontSize(W, H, 0.06);
+
     ctx.fillStyle = primary;
-    ctx.font = 'bold 22px sans-serif';
+    ctx.font = `bold ${headlineSize}px ${headingFont}`;
     ctx.fillText(options.businessName, 124, H / 2 - 4);
 
-    // Tagline
+    // Tagline with conditional frosted pill
     if (options.tagline) {
-      ctx.font = '12px sans-serif';
+      ctx.font = `${taglineSize}px ${bodyFont}`;
+      const taglineShort = options.tagline.length < 40;
+
+      if (taglineShort) {
+        const tagWidth = ctx.measureText(options.tagline).width + taglineSize * 1.5;
+        const pillH = taglineSize * 1.8;
+        const pillR = pillH / 2;
+        drawFrostedPill(ctx, 124 - taglineSize * 0.5, H / 2 + 6, tagWidth, pillH, pillR, 0.08);
+      }
+
       ctx.fillStyle = '#999999';
-      ctx.fillText(options.tagline, 124, H / 2 + 14);
+      ctx.fillText(options.tagline, 124, H / 2 + 6 + taglineSize * 1.1);
     }
 
-    // Bottom border — two-tone gradient
+    // Bottom border — gradient with accent color
     const barGrad = ctx.createLinearGradient(0, 0, W, 0);
-    barGrad.addColorStop(0, secondary);
-    barGrad.addColorStop(0.3, primary);
+    barGrad.addColorStop(0, accent);
+    barGrad.addColorStop(0.25, secondary);
+    barGrad.addColorStop(0.6, primary);
     barGrad.addColorStop(1, primary);
     ctx.fillStyle = barGrad;
     ctx.fillRect(0, H - 4, W, 4);
@@ -773,6 +1237,9 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     const allAssets: Record<string, string> = {};
 
     try {
+      // Load brand fonts before any template rendering
+      await loadBrandFonts(options.fontHeadings, options.fontBody);
+
       const BATCH_SIZE = 3;
       const batches: SocialPlatform[][] = [];
       for (let i = 0; i < CANVAS_PLATFORMS.length; i += BATCH_SIZE) {

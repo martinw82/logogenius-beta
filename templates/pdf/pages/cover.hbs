@@ -1,29 +1,44 @@
-<!-- Cover Page -->
+<!-- Cover Page — Offset layout (logo upper-left, name lower-right) -->
 <div class="page page-cover">
+  <!-- Layer 1: Background Texture -->
   {{#if brandAssets.selectedTexture}}
-  <img src="{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedTexture}}" class="texture-bg" alt="">
+  <div class="layer-texture" style="background-image: url('{{brandAssets.selectedTexture.dataUri}}');"></div>
   {{/if}}
   
+  <!-- Layer 2: Geometric Accent -->
   {{#if brandAssets.selectedAccent}}
-  <img src="{{assetsBaseUrl}}/{{brandAssets.packName}}/{{brandAssets.selectedAccent}}" class="accent-element" alt="" 
-       style="opacity: {{brandAssets.accentOpacity}}%; transform: rotate({{brandAssets.accentRotation}}deg); {{brandAssets.accentSide}}: 15mm;">
+  <div class="layer-accent" style="background-image: url('{{brandAssets.selectedAccent.dataUri}}'); {{brandAssets.accentSide}}: 0;"></div>
   {{/if}}
   
-  <div class="guidelines-label">Brand Guidelines</div>
+  <!-- "Brand Guidelines" label with decorative line -->
+  <div class="guidelines-label">
+    <span>Brand Guidelines</span>
+  </div>
   
+  <!-- Logo Container (Upper-Left, Hero-Sized) -->
   <div class="logo-container">
     {{#if logoSvg}}
       {{{logoSvg}}}
     {{else}}
-      <div style="font-family: var(--font-heading); font-size: 36pt; font-weight: 700;">{{businessName}}</div>
+      <div style="font-family: var(--font-heading); font-size: 48pt; font-weight: 700; color: white;">{{businessName}}</div>
     {{/if}}
   </div>
   
-  <div class="business-name">{{businessName}}</div>
+  <!-- Business Name + Tagline (Lower-Right) -->
+  <div class="cover-text">
+    <div class="business-name">{{businessName}}</div>
+    {{#if tagline}}
+    <div class="tagline">{{tagline}}</div>
+    {{/if}}
+  </div>
   
-  {{#if tagline}}
-  <div class="tagline">{{tagline}}</div>
-  {{/if}}
-  
-  <div class="date-footer">{{formatDate createdAt}}</div>
+  <!-- Detailed Footer Row -->
+  <div class="cover-footer">
+    <span class="cover-footer-item">{{formatDate createdAt}}</span>
+    {{#if authorEmail}}
+    <span class="cover-footer-item">{{authorEmail}}</span>
+    {{/if}}
+    <span class="cover-footer-item">v1.0</span>
+    <span class="cover-footer-item confidential">Confidential</span>
+  </div>
 </div>

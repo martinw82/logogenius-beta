@@ -373,6 +373,8 @@ export default function AdminOrderDetail() {
           primaryColor,
           secondaryColor,
           accentColor,
+          fontHeadings: order.data.fontHeadings || undefined,
+          fontBody: order.data.fontBody || undefined,
         }
       );
 

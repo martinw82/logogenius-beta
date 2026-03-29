@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <pattern id="starsVisionary" width="100" height="100" patternUnits="userSpaceOnUse">
+      <polygon points="50,10 58,35 85,35 63,50 71,75 50,60 29,75 37,50 15,35 42,35" fill="black" opacity="0.08" transform="scale(0.3) translate(80,80)"/>
+      <polygon points="80,60 83,70 93,70 85,76 88,86 80,80 72,86 75,76 67,70 77,70" fill="black" opacity="0.06" transform="scale(0.2) translate(300,250)"/>
+    </pattern>
+  </defs>
+  <rect width="200" height="200" fill="url(#starsVisionary)"/>
+</svg>

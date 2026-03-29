@@ -1,57 +1,156 @@
-<!-- Usage Rules - Do's and Don'ts -->
-<div class="page page-content">
-  <div class="section-header">
-    <div class="accent-bar"></div>
-    <h1>Usage Rules & Guidelines</h1>
-    <p class="subtitle">Protecting your brand integrity</p>
+<!-- Do's and Don'ts Page — Visual card grid -->
+<div class="page">
+  <!-- Page Header -->
+  <div class="page-header">
+    <span class="brand-name">{{businessName}}</span>
+    <span class="section-name">Usage Rules</span>
   </div>
-  
-  <div class="section-body">
-    <p>{{usageRulesText}}</p>
-    
-    <div class="dos-donts-grid">
-      <div class="dd-card do">
-        <div class="dd-title">DO</div>
-        <ul class="dd-list">
-          <li>Use approved brand colors</li>
-          <li>Maintain minimum clear space around logo</li>
-          <li>Use on solid, contrasting backgrounds</li>
-          <li>Scale proportionally</li>
-          <li>Use high-resolution files for print</li>
-        </ul>
-      </div>
-      
-      <div class="dd-card dont">
-        <div class="dd-title">DON'T</div>
-        <ul class="dd-list">
-          <li>Stretch or distort the logo</li>
-          <li>Change logo colors arbitrarily</li>
-          <li>Place on busy or low-contrast backgrounds</li>
-          <li>Rotate or tilt the logo</li>
-          <li>Add effects like shadows or outlines</li>
-        </ul>
+
+  <div class="content">
+    <!-- Section Heading -->
+    <div class="section-heading">
+      <div>
+        <h1>Logo Usage</h1>
+        <p class="subtitle">Guidelines for correct and incorrect logo usage</p>
       </div>
     </div>
-    
-    <h2>Clear Space Requirements</h2>
-    <p>Always maintain a minimum clear space around the logo equal to the height of the letter "x" in the logotype. This ensures the logo remains visible and uncluttered.</p>
-    
-    <h2>Minimum Size</h2>
-    <ul>
-      <li><strong>Print:</strong> Minimum 25mm wide</li>
-      <li><strong>Digital:</strong> Minimum 80px wide</li>
-      <li><strong>Favicon:</strong> 16px × 16px (simplified version)</li>
-    </ul>
-    
-    <h2>Color Variations</h2>
-    <p>Use the appropriate logo version based on background:</p>
-    <ul>
-      <li><strong>Primary:</strong> Full color on white/light backgrounds</li>
-      <li><strong>Reversed:</strong> White version on dark backgrounds</li>
-      <li><strong>Single Color:</strong> Black or white for special applications</li>
-    </ul>
+
+    <!-- Usage Rules Description -->
+    {{#if usageRulesText}}
+    <p>{{usageRulesText}}</p>
+    {{/if}}
+
+    <!-- DO Section — Visual Card Grid -->
+    <h2 style="color: var(--do-green); margin-bottom: calc(var(--grid) * 3);">
+      <span style="display: inline-block; width: 28px; height: 28px; background: var(--do-green); color: white; border-radius: 50%; text-align: center; line-height: 28px; font-size: 16px; margin-right: 8px; vertical-align: middle;">✓</span>
+      Do
+    </h2>
+
+    <div class="usage-card-grid">
+      <!-- Do: On solid background -->
+      <div class="usage-card usage-card-do">
+        <div class="usage-card-visual" style="background: #ffffff; border: 1px solid var(--border-light);">
+          {{#if logoSvg}}
+            <div style="max-width: 80%; max-height: 50px;">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: var(--text-dark);">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">On solid background</div>
+      </div>
+
+      <!-- Do: With clear space -->
+      <div class="usage-card usage-card-do">
+        <div class="usage-card-visual" style="background: #ffffff; border: 1px solid var(--border-light); padding: 28px;">
+          {{#if logoSvg}}
+            <div style="max-width: 60%; max-height: 40px;">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 14px; color: var(--text-dark);">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">With clear space</div>
+      </div>
+
+      <!-- Do: Approved colors -->
+      <div class="usage-card usage-card-do">
+        <div class="usage-card-visual" style="background: var(--primary);">
+          {{#if logoSvg}}
+            <div style="max-width: 80%; max-height: 50px; filter: brightness(10);">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: #ffffff;">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">Approved colors</div>
+      </div>
+
+      <!-- Do: Small but legible -->
+      <div class="usage-card usage-card-do">
+        <div class="usage-card-visual" style="background: #ffffff; border: 1px solid var(--border-light);">
+          {{#if logoSvg}}
+            <div style="max-width: 50%; max-height: 30px;">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 11px; color: var(--text-dark);">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">Small but legible</div>
+      </div>
+
+      <!-- Do: Dark background inverted -->
+      <div class="usage-card usage-card-do">
+        <div class="usage-card-visual" style="background: #1a1a1a;">
+          {{#if logoSvg}}
+            <div style="max-width: 80%; max-height: 50px; filter: brightness(10);">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: #ffffff;">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">On dark background</div>
+      </div>
+    </div>
+
+    <!-- DON'T Section — Visual Card Grid -->
+    <h2 style="color: var(--dont-red); margin-top: 48px; margin-bottom: calc(var(--grid) * 3);">
+      <span style="display: inline-block; width: 28px; height: 28px; background: var(--dont-red); color: white; border-radius: 50%; text-align: center; line-height: 28px; font-size: 16px; margin-right: 8px; vertical-align: middle;">✗</span>
+      Don't
+    </h2>
+
+    <div class="usage-card-grid">
+      <!-- Don't: Stretched -->
+      <div class="usage-card usage-card-dont">
+        <div class="usage-card-visual" style="background: #f5f5f5;">
+          {{#if logoSvg}}
+            <div style="max-width: 80%; max-height: 50px; transform: scaleX(1.4); filter: grayscale(0.5);">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: var(--dont-red); transform: scaleX(1.4); display: inline-block;">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">Never stretch</div>
+      </div>
+
+      <!-- Don't: Rotated -->
+      <div class="usage-card usage-card-dont">
+        <div class="usage-card-visual" style="background: #f5f5f5;">
+          {{#if logoSvg}}
+            <div style="max-width: 80%; max-height: 50px; transform: rotate(-12deg); filter: grayscale(0.5);">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: var(--dont-red); transform: rotate(-12deg); display: inline-block;">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">Never rotate</div>
+      </div>
+
+      <!-- Don't: Wrong colors -->
+      <div class="usage-card usage-card-dont">
+        <div class="usage-card-visual" style="background: #f5f5f5;">
+          {{#if logoSvg}}
+            <div style="max-width: 80%; max-height: 50px; filter: hue-rotate(180deg) saturate(2);">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: #ff00ff;">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">Never change colors</div>
+      </div>
+
+      <!-- Don't: Effects added -->
+      <div class="usage-card usage-card-dont">
+        <div class="usage-card-visual" style="background: #f5f5f5;">
+          {{#if logoSvg}}
+            <div style="max-width: 80%; max-height: 50px; filter: drop-shadow(3px 3px 6px rgba(0,0,0,0.5));">{{{logoSvg}}}</div>
+          {{else}}
+            <span style="font-family: var(--font-heading); font-weight: 700; font-size: 18px; color: var(--text-dark); text-shadow: 3px 3px 6px rgba(0,0,0,0.5);">{{businessName}}</span>
+          {{/if}}
+        </div>
+        <div class="usage-card-label">Never add effects</div>
+      </div>
+    </div>
+
+    <!-- Callout with guidance -->
+    <div class="callout" style="margin-top: 40px;">
+      <p>When in doubt, always refer to the provided logo files and contact the brand team for approval. Maintaining consistent logo usage ensures strong brand recognition and protects brand equity.</p>
+    </div>
   </div>
-  
+
+  <!-- Page Footer -->
   <div class="page-footer">
     <span>{{businessName}} Brand Guidelines</span>
     <span>{{pageNumber}}</span>

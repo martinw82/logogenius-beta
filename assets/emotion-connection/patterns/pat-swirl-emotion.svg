@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <pattern id="swirlEmotion" width="100" height="100" patternUnits="userSpaceOnUse">
+      <path d="M50,50 m-20,0 a20,20 0 1,0 40,0 a20,20 0 1,0 -40,0" fill="none" stroke="black" stroke-width="1.5" opacity="0.1"/>
+      <path d="M50,50 m-10,0 a10,10 0 1,1 20,0 a10,10 0 1,1 -20,0" fill="none" stroke="black" stroke-width="1" opacity="0.15"/>
+    </pattern>
+  </defs>
+  <rect width="200" height="200" fill="url(#swirlEmotion)"/>
+</svg>

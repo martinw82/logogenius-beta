@@ -27,10 +27,10 @@ interface TierOption {
 const TIER_OPTIONS: TierOption[] = [
   {
     id: "basic",
-    name: "Basic",
-    displayName: "Basic",
+    name: "Starter",
+    displayName: "Starter",
     description: "Perfect for getting started",
-    price: "$49",
+    price: "$29",
     icon: <Sparkles className="h-6 w-6" />,
     features: [
       "AI-Generated Logo (4 variants)",
@@ -43,40 +43,33 @@ const TIER_OPTIONS: TierOption[] = [
   },
   {
     id: "pro",
-    name: "Pro",
+    name: "Professional",
     displayName: "Professional",
     description: "Most popular for growing businesses",
-    price: "$199",
+    price: "$49",
     icon: <Zap className="h-6 w-6" />,
     features: [
-      "Everything in Basic +",
-      "Comprehensive Brand Guide (12 sections)",
-      "Mission & Brand Pillars",
-      "Target Audience Definition",
-      "Color Palette with Accessibility Info",
+      "Everything in Starter +",
+      "Comprehensive Brand Guide",
+      "Color Palette with Swatches",
       "Typography Guide",
-      "Brand Voice Guidelines",
-      "PDF Export",
+      "PDF Brand Guide Export",
+      "Social Media Templates (10 platforms)",
       "Email Support",
     ],
     highlighted: true,
   },
   {
     id: "premium",
-    name: "Premium",
-    displayName: "Premium",
+    name: "Enterprise",
+    displayName: "Enterprise",
     description: "Complete brand ecosystem",
-    price: "$499",
+    price: "$99",
     icon: <Crown className="h-6 w-6" />,
     features: [
-      "Everything in Pro +",
-      "Logo Style & Composition Preferences",
-      "Web3/Blockchain Support",
-      "File Upload (brand assets)",
-      "Figma Template (editable)",
-      "Canva Template (editable)",
-      "Social Media Templates",
-      "Email Signature Template",
+      "Everything in Professional +",
+      "Photo-Realistic Product Mockups",
+      "Premium Social Media Assets",
       "Favicon & App Icon",
       "Priority Support",
       "2 Revision Rounds",
@@ -93,8 +86,9 @@ export default function TiersPage() {
 
   async function handleStartTier(tierId: "basic" | "pro" | "premium") {
     setIsLoading(true);
+    setSelectedTier(tierId);
     try {
-      const response = await fetch("/api/orders/create", {
+      const response = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -107,15 +101,16 @@ export default function TiersPage() {
         toast({
           variant: "destructive",
           title: "Error",
-          description: error.error || "Failed to create order",
+          description: error.error || "Failed to start checkout",
         });
         return;
       }
 
       const data = await response.json();
-      router.push(data.formUrl);
+      // Redirect to Stripe Checkout
+      window.location.href = data.url;
     } catch (error) {
-      console.error("Error creating order:", error);
+      console.error("Checkout error:", error);
       toast({
         variant: "destructive",
         title: "Error",
@@ -210,10 +205,10 @@ export default function TiersPage() {
                   onMouseLeave={() => setSelectedTier(null)}
                 >
                   {isLoading && selectedTier === tier.id ? (
-                    "Creating Order..."
+                    "Redirecting to Checkout..."
                   ) : (
                     <>
-                      Start with {tier.displayName}
+                      Buy {tier.displayName}
                       <ArrowRight className="ml-2 h-4 w-4" />
                     </>
                   )}

@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <pattern id="boldStripes" width="60" height="60" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+      <rect x="0" y="0" width="30" height="60" fill="black" opacity="0.1"/>
+    </pattern>
+  </defs>
+  <rect width="200" height="200" fill="url(#boldStripes)"/>
+</svg>

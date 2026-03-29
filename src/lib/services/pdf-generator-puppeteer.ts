@@ -28,16 +28,38 @@ export interface PDFGenerationOptions {
 async function loadTemplates() {
   const templatesDir = path.join(process.cwd(), 'templates', 'pdf');
   
-  const [mainLayout, cover, toc, section, colors, typography, mockups, dosDonts, backCover] = await Promise.all([
+  const [
+    mainLayout, 
+    cover, 
+    toc, 
+    section, 
+    sectionDivider,
+    colors, 
+    typography, 
+    logoShowcase,
+    mockups, 
+    dosDonts, 
+    brandVoice,
+    backCover,
+    brandStory,
+    brandIdentity,
+    imagery,
+  ] = await Promise.all([
     fs.readFile(path.join(templatesDir, 'layouts', 'main.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'cover.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'toc.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'section.hbs'), 'utf8'),
+    fs.readFile(path.join(templatesDir, 'pages', 'section-divider.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'colors.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'typography.hbs'), 'utf8'),
+    fs.readFile(path.join(templatesDir, 'pages', 'logo-showcase.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'mockups.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'dos-donts.hbs'), 'utf8'),
+    fs.readFile(path.join(templatesDir, 'pages', 'brand-voice.hbs'), 'utf8'),
     fs.readFile(path.join(templatesDir, 'pages', 'back-cover.hbs'), 'utf8'),
+    fs.readFile(path.join(templatesDir, 'pages', 'brand-story.hbs'), 'utf8'),
+    fs.readFile(path.join(templatesDir, 'pages', 'brand-identity.hbs'), 'utf8'),
+    fs.readFile(path.join(templatesDir, 'pages', 'imagery.hbs'), 'utf8'),
   ]);
   
   return {
@@ -45,12 +67,97 @@ async function loadTemplates() {
     cover: Handlebars.compile(cover),
     toc: Handlebars.compile(toc),
     section: Handlebars.compile(section),
+    sectionDivider: Handlebars.compile(sectionDivider),
     colors: Handlebars.compile(colors),
     typography: Handlebars.compile(typography),
+    logoShowcase: Handlebars.compile(logoShowcase),
     mockups: Handlebars.compile(mockups),
     dosDonts: Handlebars.compile(dosDonts),
+    brandVoice: Handlebars.compile(brandVoice),
     backCover: Handlebars.compile(backCover),
+    brandStory: Handlebars.compile(brandStory),
+    brandIdentity: Handlebars.compile(brandIdentity),
+    imagery: Handlebars.compile(imagery),
   };
+}
+
+/**
+ * Read SVG file and convert to data URI for inline embedding
+ */
+async function getAssetDataUri(assetPath: string | null, basePath: string): Promise<string | null> {
+  if (!assetPath) return null;
+  
+  try {
+    const fullPath = path.join(basePath, assetPath);
+    const content = await fs.readFile(fullPath, 'utf8');
+    // Convert SVG to base64 data URI
+    const base64 = Buffer.from(content).toString('base64');
+    return `data:image/svg+xml;base64,${base64}`;
+  } catch (error) {
+    console.warn(`Failed to load asset: ${assetPath}`, error);
+    return null;
+  }
+}
+
+/**
+ * Inline brand assets as data URIs for serverless compatibility
+ */
+async function inlineBrandAssets(brandAssets: any, basePath: string) {
+  const [
+    textureDataUri,
+    accentDataUri,
+    chromeDataUri,
+    patternDataUri,
+  ] = await Promise.all([
+    getAssetDataUri(brandAssets.selectedTexture, basePath),
+    getAssetDataUri(brandAssets.selectedAccent, basePath),
+    getAssetDataUri(brandAssets.selectedChrome, basePath),
+    getAssetDataUri(brandAssets.selectedPattern, basePath),
+  ]);
+
+  return {
+    ...brandAssets,
+    selectedTexture: textureDataUri ? { path: brandAssets.selectedTexture, dataUri: textureDataUri } : null,
+    selectedAccent: accentDataUri ? { path: brandAssets.selectedAccent, dataUri: accentDataUri } : null,
+    selectedChrome: chromeDataUri ? { path: brandAssets.selectedChrome, dataUri: chromeDataUri } : null,
+    selectedPattern: patternDataUri ? { path: brandAssets.selectedPattern, dataUri: patternDataUri } : null,
+  };
+}
+
+/**
+ * Format plain text content to HTML
+ */
+function formatContent(text: string): string {
+  if (!text) return '';
+  
+  // Split into paragraphs and wrap in <p> tags
+  return text
+    .split('\n\n')
+    .filter(p => p.trim())
+    .map(p => `<p>${p.trim()}</p>`)
+    .join('\n');
+}
+
+/**
+ * Extract a pull quote from content (first sentence or key statement)
+ */
+function extractPullQuote(text: string): string | null {
+  if (!text) return null;
+  
+  // Try to find a sentence with keywords like "mission", "purpose", "exist"
+  const sentences = text.match(/[^.!?]+[.!?]+/g);
+  if (!sentences) return null;
+  
+  for (const sentence of sentences) {
+    const lower = sentence.toLowerCase();
+    if (lower.includes('mission') || lower.includes('purpose') || lower.includes('exist') || 
+        lower.includes('believe') || lower.includes('committed')) {
+      return sentence.trim();
+    }
+  }
+  
+  // Fallback to first sentence if no keywords found
+  return sentences[0]?.trim() || null;
 }
 
 /**
@@ -66,174 +173,219 @@ async function generateHTML(data: PuppeteerPDFData, options: PDFGenerationOption
     data.fontOther
   );
   
-  // Build assets base URL
-  const assetsBaseUrl = options.assetsBaseUrl || `file://${path.join(process.cwd(), 'assets')}`;
+  // Build assets base path and inline assets as data URIs
+  const assetsBasePath = path.join(process.cwd(), 'assets');
+  const inlinedBrandAssets = await inlineBrandAssets(data.brandAssets, assetsBasePath);
   
   // Prepare template data
   const templateData = {
     ...data,
     ...fontConfig,
-    assetsBaseUrl,
+    brandAssets: inlinedBrandAssets,
+    assetsBaseUrl: '', // No longer needed with data URIs
     primaryColorRgb: data.primaryColor.replace('#', '').match(/.{2}/g)?.map(x => parseInt(x, 16)).join(', ') || '37, 99, 235',
   };
   
   // Generate individual pages
   const pages: string[] = [];
+  let pageNumber = 1;
   
   // 1. Cover Page
   pages.push(templates.cover(templateData));
+  pageNumber++;
   
   // 2. Table of Contents
-  pages.push(templates.toc({ ...templateData, pageNumber: 2 }));
+  pages.push(templates.toc({ ...templateData, pageNumber: pageNumber++ }));
   
-  // 3. Project Overview
+  // 3. Section Divider: Brand Story
+  pages.push(templates.sectionDivider({
+    ...templateData,
+    sectionNumber: '01',
+    sectionTitle: 'Brand Story',
+    sectionSubtitle: 'Our mission and purpose'
+  }));
+  
+  // 4. Project Overview / Brand Story
   if (data.projectOverview) {
-    pages.push(templates.section({
+    pages.push(templates.brandStory({
       ...templateData,
-      title: 'Project Overview',
-      subtitle: 'Company introduction, mission, and vision',
-      content: formatContent(data.projectOverview),
-      pageNumber: 3,
+      projectOverview: formatContent(data.projectOverview),
+      pageNumber: pageNumber++,
     }));
   }
   
-  // 4. Brand Identity & Voice
+  // 5. Section Divider: Brand Identity
+  pages.push(templates.sectionDivider({
+    ...templateData,
+    sectionNumber: '02',
+    sectionTitle: 'Brand Identity',
+    sectionSubtitle: 'Who we are'
+  }));
+  
+  // 6. Brand Identity & Voice
   if (data.brandIdentityVoice) {
-    pages.push(templates.section({
+    pages.push(templates.brandIdentity({
       ...templateData,
-      title: 'Brand Identity & Voice',
-      subtitle: 'Personality, archetype, and brand attributes',
-      content: formatContent(data.brandIdentityVoice),
-      pageNumber: 4,
+      brandIdentityVoice: formatContent(data.brandIdentityVoice),
+      pageNumber: pageNumber++,
     }));
   }
   
-  // 5. Logo Philosophy
+  // 7. Section Divider: Logo
+  pages.push(templates.sectionDivider({
+    ...templateData,
+    sectionNumber: '03',
+    sectionTitle: 'Our Logo',
+    sectionSubtitle: 'The mark of our brand'
+  }));
+  
+  // 8. Logo Philosophy
   if (data.logoPhilosophy) {
     pages.push(templates.section({
       ...templateData,
       title: 'Logo Philosophy',
       subtitle: 'Design thinking and core message',
       content: formatContent(data.logoPhilosophy),
-      pageNumber: 5,
+      pageNumber: pageNumber++,
     }));
   }
   
-  // 6. Logo Mockups
-  const hasMockups = Object.values(data.mockups).some(m => m);
-  if (hasMockups) {
-    pages.push(templates.mockups({
-      ...templateData,
-      pageNumber: 6,
-    }));
-  }
+  // 9. Logo Showcase Page
+  pages.push(templates.logoShowcase({
+    ...templateData,
+    logoPhilosophy: data.logoPhilosophy,
+    pageNumber: pageNumber++,
+  }));
   
-  // 7. Color Palette
+  // 10. Logo Usage / Do's and Don'ts
+  pages.push(templates.dosDonts({
+    ...templateData,
+    usageRulesText: data.usageRulesText,
+    pageNumber: pageNumber++,
+  }));
+  
+  // 11. Section Divider: Colors
+  pages.push(templates.sectionDivider({
+    ...templateData,
+    sectionNumber: '04',
+    sectionTitle: 'Color Palette',
+    sectionSubtitle: 'Our brand colors'
+  }));
+  
+  // 12. Color Palette
   if (data.primaryColors.length > 0) {
     pages.push(templates.colors({
       ...templateData,
-      pageNumber: 7,
+      colorPaletteText: data.colorPaletteText,
+      pageNumber: pageNumber++,
     }));
   }
   
-  // 8. Color Accessibility
-  if (data.colorAccessibility) {
-    pages.push(templates.section({
-      ...templateData,
-      title: 'Color Accessibility',
-      subtitle: 'WCAG compliance and contrast guidelines',
-      content: formatContent(data.colorAccessibility),
-      pageNumber: 8,
-    }));
-  }
-  
-  // 9. Typography
-  pages.push(templates.typography({
+  // 13. Section Divider: Typography
+  pages.push(templates.sectionDivider({
     ...templateData,
-    pageNumber: 9,
+    sectionNumber: '05',
+    sectionTitle: 'Typography',
+    sectionSubtitle: 'Our type system'
   }));
   
-  // 10. Imagery Style
+  // 14. Typography
+  pages.push(templates.typography({
+    ...templateData,
+    typographyText: data.typographyText,
+    pageNumber: pageNumber++,
+  }));
+  
+  // 15. Section Divider: Imagery
+  pages.push(templates.sectionDivider({
+    ...templateData,
+    sectionNumber: '06',
+    sectionTitle: 'Imagery Style',
+    sectionSubtitle: 'Visual direction'
+  }));
+  
+  // 16. Imagery Style
   if (data.imageryStyle) {
-    pages.push(templates.section({
+    pages.push(templates.imagery({
       ...templateData,
-      title: 'Imagery & Photography',
-      subtitle: 'Visual direction for photography and illustration',
-      content: formatContent(data.imageryStyle),
-      pageNumber: 10,
+      imageryStyle: formatContent(data.imageryStyle),
+      graphicElements: data.graphicElements ? formatContent(data.graphicElements) : undefined,
+      pageNumber: pageNumber++,
     }));
   }
   
-  // 11. Graphic Elements
-  if (data.graphicElements) {
-    pages.push(templates.section({
-      ...templateData,
-      title: 'Graphic Elements',
-      subtitle: 'Icons, patterns, and decorative components',
-      content: formatContent(data.graphicElements),
-      pageNumber: 11,
-    }));
-  }
+  // 18. Section Divider: Brand Voice
+  pages.push(templates.sectionDivider({
+    ...templateData,
+    sectionNumber: '07',
+    sectionTitle: 'Brand Voice',
+    sectionSubtitle: 'How we communicate'
+  }));
   
-  // 12. Brand Voice & Tone
+  // 19. Brand Voice & Tone
   if (data.brandVoiceTone) {
-    pages.push(templates.section({
+    pages.push(templates.brandVoice({
       ...templateData,
-      title: 'Brand Voice & Tone',
-      subtitle: 'Communication style and messaging guidelines',
-      content: formatContent(data.brandVoiceTone),
-      pageNumber: 12,
+      brandVoiceTone: data.brandVoiceTone,
+      pageNumber: pageNumber++,
     }));
   }
   
-  // 13. Visual Style Guide
+  // 20. Visual Style Guide
   if (data.visualStyleGuide) {
     pages.push(templates.section({
       ...templateData,
       title: 'Visual Style Guide',
       subtitle: 'Spacing, grids, shadows, and visual standards',
       content: formatContent(data.visualStyleGuide),
-      pageNumber: 13,
+      pageNumber: pageNumber++,
     }));
   }
   
-  // 14. Usage Rules
-  pages.push(templates.dosDonts({
+  // 21. Section Divider: Applications
+  pages.push(templates.sectionDivider({
     ...templateData,
-    pageNumber: 14,
+    sectionNumber: '08',
+    sectionTitle: 'Applications',
+    sectionSubtitle: 'Real-world mockups'
   }));
   
-  // 15. Web3 Section (if applicable)
+  // 22. Mockup Gallery
+  const hasMockups = Object.values(data.mockups).some(m => m);
+  if (hasMockups) {
+    pages.push(templates.mockups({
+      ...templateData,
+      pageNumber: pageNumber++,
+    }));
+  }
+  
+  // 23. Web3 Section (if applicable)
   if (data.web3Section) {
+    pages.push(templates.sectionDivider({
+      ...templateData,
+      sectionNumber: '09',
+      sectionTitle: 'Web3 & Blockchain',
+      sectionSubtitle: 'Digital asset guidelines'
+    }));
+    
     pages.push(templates.section({
       ...templateData,
       title: 'Web3 & Blockchain',
       subtitle: 'Token, governance, and community guidelines',
       content: formatContent(data.web3Section),
-      pageNumber: 15,
+      pageNumber: pageNumber++,
     }));
   }
   
-  // 16. Back Cover
-  pages.push(templates.backCover(templateData));
+  // 24. Back Cover
+  pages.push(templates.backCover({
+    ...templateData,
+    pageNumber: pageNumber,
+  }));
   
   // Combine all pages into main layout
   const body = pages.join('\n');
   return templates.mainLayout({ ...templateData, body });
-}
-
-/**
- * Format plain text content to HTML
- */
-function formatContent(text: string): string {
-  if (!text) return '';
-  
-  // Split into paragraphs and wrap in <p> tags
-  return text
-    .split('\n\n')
-    .filter(p => p.trim())
-    .map(p => `<p>${p.trim()}</p>`)
-    .join('\n');
 }
 
 /**

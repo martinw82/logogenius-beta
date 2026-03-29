@@ -1,0 +1,18 @@
+<!-- Section Divider Page -->
+<div class="page page-divider">
+  <!-- Layer 3: Pattern Overlay -->
+  {{#if brandAssets.selectedPattern}}
+  <div class="layer-pattern" style="background-image: url('{{brandAssets.selectedPattern.dataUri}}');"></div>
+  {{/if}}
+  
+  <!-- Large Section Number -->
+  <div class="divider-number">{{sectionNumber}}</div>
+  
+  <!-- Section Title -->
+  <div class="divider-title">{{sectionTitle}}</div>
+  
+  <!-- Optional Subtitle -->
+  {{#if sectionSubtitle}}
+  <div class="divider-subtitle">{{sectionSubtitle}}</div>
+  {{/if}}
+</div>
