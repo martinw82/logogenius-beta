@@ -326,6 +326,157 @@ function getFont(family: string | undefined, fallback: string = 'sans-serif'): s
   return `'${family}', ${fallback}`;
 }
 
+// ==================== TYPOGRAPHY HELPERS ====================
+
+/**
+ * Calculate proportional font size based on canvas dimensions.
+ * Uses the smaller dimension as the base so text scales appropriately
+ * across portrait, landscape, and square templates.
+ */
+function scaleFontSize(canvasWidth: number, canvasHeight: number, ratio: number): number {
+  return Math.round(Math.min(canvasWidth, canvasHeight) * ratio);
+}
+
+/**
+ * Draw a frosted glass pill (rounded rectangle with semi-transparent fill + subtle border).
+ * Used behind tagline text for readability on gradient backgrounds.
+ */
+function drawFrostedPill(
+  ctx: CanvasRenderingContext2D,
+  x: number, y: number,
+  width: number, height: number,
+  radius: number,
+  opacity: number = 0.12,
+  dark: boolean = false
+) {
+  // Fill
+  if (dark) {
+    ctx.fillStyle = `rgba(0, 0, 0, ${opacity})`;
+  } else {
+    ctx.fillStyle = `rgba(255, 255, 255, ${opacity})`;
+  }
+  roundedRect(ctx, x, y, width, height, radius);
+  ctx.fill();
+
+  // Border
+  if (dark) {
+    ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 1.5})`;
+  } else {
+    ctx.strokeStyle = `rgba(255, 255, 255, ${opacity * 1.7})`;
+  }
+  ctx.lineWidth = 1;
+  roundedRect(ctx, x, y, width, height, radius);
+  ctx.stroke();
+}
+
+/**
+ * Options for drawTextWithHierarchy
+ */
+interface TextHierarchyOptions {
+  /** Brand heading font name */
+  fontHeadings?: string;
+  /** Brand body font name */
+  fontBody?: string;
+  /** Text color for headline (tier 1) */
+  headlineColor: string;
+  /** Text color for tagline (tier 2) */
+  taglineColor: string;
+  /** Text color for accent (tier 3) */
+  accentColor: string;
+  /** Proportional ratio for headline size */
+  headlineRatio: number;
+  /** Proportional ratio for tagline size */
+  taglineRatio: number;
+  /** Proportional ratio for accent size */
+  accentRatio: number;
+  /** Canvas width for proportional sizing */
+  canvasWidth: number;
+  /** Canvas height for proportional sizing */
+  canvasHeight: number;
+  /** Whether to wrap tagline in frosted pill */
+  taglineFrostedPill?: boolean;
+  /** Frosted pill opacity */
+  pillOpacity?: number;
+  /** Whether to use dark frosted pill (for TikTok dark theme) */
+  darkPill?: boolean;
+  /** Text alignment */
+  textAlign?: CanvasTextAlign;
+}
+
+/**
+ * Draw a text block with three-tier typographic hierarchy:
+ *   Tier 1 (headline): bold, large, brand heading font
+ *   Tier 2 (tagline): regular, medium, brand body font — optional frosted pill
+ *   Tier 3 (accent): light, small, brand body font
+ *
+ * Returns the total height consumed so callers can position accordingly.
+ */
+function drawTextWithHierarchy(
+  ctx: CanvasRenderingContext2D,
+  lines: { headline: string; tagline?: string; accent?: string },
+  x: number, y: number,
+  options: TextHierarchyOptions
+): number {
+  const {
+    fontHeadings, fontBody,
+    headlineColor, taglineColor, accentColor,
+    headlineRatio, taglineRatio, accentRatio,
+    canvasWidth, canvasHeight,
+    taglineFrostedPill = false,
+    pillOpacity = 0.12,
+    darkPill = false,
+    textAlign = 'left',
+  } = options;
+
+  const headingFont = getFont(fontHeadings, 'sans-serif');
+  const bodyFont = getFont(fontBody, 'sans-serif');
+
+  const headlineSize = scaleFontSize(canvasWidth, canvasHeight, headlineRatio);
+  const taglineSize = scaleFontSize(canvasWidth, canvasHeight, taglineRatio);
+  const accentSize = scaleFontSize(canvasWidth, canvasHeight, accentRatio);
+
+  const lineGap = Math.round(headlineSize * 0.55);
+  let currentY = y;
+
+  ctx.textAlign = textAlign;
+
+  // Tier 1: Headline
+  ctx.fillStyle = headlineColor;
+  ctx.font = `bold ${headlineSize}px ${headingFont}`;
+  ctx.fillText(lines.headline, x, currentY);
+  currentY += lineGap;
+
+  // Tier 2: Tagline
+  if (lines.tagline) {
+    ctx.font = `${taglineSize}px ${bodyFont}`;
+
+    if (taglineFrostedPill) {
+      const tagWidth = ctx.measureText(lines.tagline).width + taglineSize * 2.5;
+      const pillH = taglineSize * 2;
+      const pillR = pillH / 2;
+      const pillX = textAlign === 'center' ? x - tagWidth / 2 : x - taglineSize * 1.25;
+      const pillY = currentY - taglineSize * 0.85;
+
+      drawFrostedPill(ctx, pillX, pillY, tagWidth, pillH, pillR, pillOpacity, darkPill);
+    }
+
+    ctx.fillStyle = taglineColor;
+    ctx.fillText(lines.tagline, x, currentY);
+    currentY += Math.round(taglineSize * 1.6);
+  }
+
+  // Tier 3: Accent
+  if (lines.accent) {
+    ctx.font = `300 ${accentSize}px ${bodyFont}`;
+    ctx.fillStyle = accentColor;
+    ctx.fillText(lines.accent, x, currentY);
+    currentY += Math.round(accentSize * 1.4);
+  }
+
+  ctx.textAlign = 'left';
+  return currentY - y;
+}
+
 export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState({
