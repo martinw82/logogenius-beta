@@ -950,21 +950,39 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
 
     // Business name on card
     const textColor = isLightColor(primary) ? '#111' : '#fff';
+    const headingFont = getFont(options.fontHeadings, 'sans-serif');
+    const bodyFont = getFont(options.fontBody, 'sans-serif');
+    const headlineSize = scaleFontSize(W, H, 0.05);
+    const taglineSize = scaleFontSize(W, H, 0.026);
+    const accentSize = scaleFontSize(W, H, 0.018);
+
+    // Tier 1: Business name
     ctx.fillStyle = textColor;
-    ctx.font = 'bold 50px sans-serif';
+    ctx.font = `bold ${headlineSize}px ${headingFont}`;
     ctx.textAlign = 'center';
     ctx.fillText(options.businessName, W / 2, cardY + 90);
 
-    // Tagline
+    // Tier 2: Tagline in frosted pill
     if (options.tagline) {
-      ctx.font = '26px sans-serif';
+      ctx.font = `${taglineSize}px ${bodyFont}`;
+      const tagWidth = ctx.measureText(options.tagline).width + taglineSize * 2.5;
+      const pillH = taglineSize * 2;
+      const pillR = pillH / 2;
+      drawFrostedPill(ctx, (W - tagWidth) / 2, cardY + 110, tagWidth, pillH, pillR, 0.1);
+
       ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.55)' : 'rgba(255,255,255,0.65)';
-      ctx.fillText(options.tagline, W / 2, cardY + 140);
+      ctx.fillText(options.tagline, W / 2, cardY + 110 + taglineSize * 1.2);
     }
 
+    // Tier 3: Accent text
+    ctx.font = `300 ${accentSize}px ${bodyFont}`;
+    ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.3)' : 'rgba(255,255,255,0.35)';
+    ctx.fillText('Discover Your Brand', W / 2, cardY + 155);
+
     // CTA pill — rounded with border
+    const ctaSize = scaleFontSize(W, H, 0.022);
     const ctaText = 'Learn More';
-    ctx.font = 'bold 22px sans-serif';
+    ctx.font = `bold ${ctaSize}px ${bodyFont}`;
     const ctaW = ctx.measureText(ctaText).width + 64;
     const ctaH = 52;
     const ctaX = (W - ctaW) / 2;
