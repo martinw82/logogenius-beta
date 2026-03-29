@@ -15,7 +15,7 @@
 | 2 | Email Notifications | Send transactional emails for key events | EMAIL-01–04 | 2 | ✓ Complete |
 | 3 | PDF Polish | Professional brand guide PDF design | PDF-01–06 | 3 | ✓ Complete |
 | 4 | Railway PDF Service | Server-side Puppeteer PDF rendering | SVC-01–04 | 2 | ✓ Complete |
-| 5 | Social Quality | Improve Canvas social template quality | SOC-01–03 | 2 | ○ Pending |
+| 5 | Social Quality | Improve Canvas social template quality | SOC-01–03 | 2 | ◆ In Progress |
 | 6 | Landing Page | Convert visitors with pricing and social proof | LAND-01–03 | 2 | ○ Pending |
 | 7 | Production Ready | Error tracking, CI, deployment hardening | PROD-01–03 | 2 | ○ Pending |
 
@@ -118,8 +118,8 @@
 3. Consistent design language across all 10 platform templates
 
 **Plans:**
-- 05-01: Gradient backgrounds and brand color application
-- 05-02: Typography hierarchy and design consistency
+- [x] 05-01: Gradient backgrounds and brand color application
+- [x] 05-02: Typography hierarchy and design consistency
 
 **Dependencies:** Existing social generator (`src/hooks/useClientSocialGenerator.ts`)
 
