@@ -161,6 +161,12 @@
 
 **Dependencies:** Sentry account, GitHub repository
 
+**Known Issues (from GitHub Dependabot):**
+- 26 total vulnerabilities: 2 critical, 16 high, 7 moderate, 1 low
+- Must resolve critical/high before production deployment
+- Run `npm audit fix` and review remaining advisories
+- See: https://github.com/martinw82/logogenius-beta/security/dependabot
+
 ---
 
 ## Requirement Coverage
