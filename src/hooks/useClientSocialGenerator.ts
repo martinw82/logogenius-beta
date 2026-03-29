@@ -636,10 +636,24 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     // Large logo centered in upper half
     await drawLogo(ctx, options.logoUrl, (W - 420) / 2, 150, 420, 420, options.businessName, primary);
 
-    // Decorative divider between sections — wavy accent line
+    // Organic curve accents in upper section
+    drawOrganicCurve(ctx, W * 0.05, H * 0.15, W * 0.2, H * 0.08, W * 0.4, H * 0.18, W * 0.55, H * 0.1, primary, 0.08, 2);
+    drawOrganicCurve(ctx, W * 0.45, H * 0.12, W * 0.6, H * 0.06, W * 0.8, H * 0.16, W * 0.95, H * 0.08, primary, 0.06, 1.5);
+    drawOrganicCurve(ctx, W * 0.1, H * 0.5, W * 0.3, H * 0.42, W * 0.6, H * 0.52, W * 0.9, H * 0.44, secondary, 0.07, 1.5);
+
+    // Prominent divider between sections — wider bar with accent shapes
     const cardY = Math.round(H * 0.65);
-    ctx.fillStyle = secondary;
-    ctx.fillRect((W - 80) / 2, cardY - 15, 80, 3);
+    const divGrad = ctx.createLinearGradient((W - 200) / 2, 0, (W + 200) / 2, 0);
+    divGrad.addColorStop(0, 'rgba(0,0,0,0)');
+    divGrad.addColorStop(0.3, secondary);
+    divGrad.addColorStop(0.7, secondary);
+    divGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = divGrad;
+    ctx.fillRect((W - 200) / 2, cardY - 2, 200, 4);
+
+    // Accent shapes flanking the divider
+    drawAccentShape(ctx, 'diamond', (W - 220) / 2, cardY, 8, secondary, 0.2);
+    drawAccentShape(ctx, 'diamond', (W + 220) / 2, cardY, 8, secondary, 0.2);
 
     // Bottom card with brand color
     const cardGrad = ctx.createLinearGradient(0, cardY, 0, H);
