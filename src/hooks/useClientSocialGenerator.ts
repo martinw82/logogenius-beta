@@ -179,6 +179,72 @@ function roundedRect(
   ctx.closePath();
 }
 
+/**
+ * Draw an organic bezier curve accent line
+ */
+function drawOrganicCurve(
+  ctx: CanvasRenderingContext2D,
+  x1: number, y1: number,
+  cx1: number, cy1: number,
+  cx2: number, cy2: number,
+  x2: number, y2: number,
+  color: string, opacity: number,
+  lineWidth: number = 2
+) {
+  const { r, g, b } = hexToRgb(color);
+  ctx.strokeStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  ctx.lineWidth = lineWidth;
+  ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(x1, y1);
+  ctx.bezierCurveTo(cx1, cy1, cx2, cy2, x2, y2);
+  ctx.stroke();
+}
+
+/**
+ * Draw a geometric accent shape (triangle, diamond, hexagon, circle)
+ */
+function drawAccentShape(
+  ctx: CanvasRenderingContext2D,
+  type: 'triangle' | 'diamond' | 'hexagon' | 'circle',
+  x: number, y: number,
+  size: number,
+  color: string, opacity: number
+) {
+  const { r, g, b } = hexToRgb(color);
+  ctx.fillStyle = `rgba(${r}, ${g}, ${b}, ${opacity})`;
+  ctx.beginPath();
+
+  switch (type) {
+    case 'triangle':
+      ctx.moveTo(x, y - size);
+      ctx.lineTo(x + size * 0.866, y + size * 0.5);
+      ctx.lineTo(x - size * 0.866, y + size * 0.5);
+      break;
+    case 'diamond':
+      ctx.moveTo(x, y - size);
+      ctx.lineTo(x + size * 0.6, y);
+      ctx.lineTo(x, y + size);
+      ctx.lineTo(x - size * 0.6, y);
+      break;
+    case 'hexagon':
+      for (let i = 0; i < 6; i++) {
+        const angle = (Math.PI / 3) * i - Math.PI / 2;
+        const px = x + size * Math.cos(angle);
+        const py = y + size * Math.sin(angle);
+        if (i === 0) ctx.moveTo(px, py);
+        else ctx.lineTo(px, py);
+      }
+      break;
+    case 'circle':
+      ctx.arc(x, y, size, 0, Math.PI * 2);
+      break;
+  }
+
+  ctx.closePath();
+  ctx.fill();
+}
+
 export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
   const [isGenerating, setIsGenerating] = useState(false);
   const [progress, setProgress] = useState({
