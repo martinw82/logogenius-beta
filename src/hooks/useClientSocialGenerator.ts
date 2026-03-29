@@ -747,6 +747,17 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     ctx.moveTo(W - 130, H - 60); ctx.lineTo(W - 60, H - 60); ctx.lineTo(W - 60, H - 130);
     ctx.stroke();
 
+    // Hexagon neon accent shapes in secondary color (top 75% safe zone)
+    drawAccentShape(ctx, 'hexagon', W * 0.15, H * 0.15, 20, secondary, 0.15);
+    drawAccentShape(ctx, 'hexagon', W * 0.85, H * 0.2, 16, secondary, 0.12);
+    drawAccentShape(ctx, 'hexagon', W * 0.12, H * 0.55, 14, secondary, 0.1);
+    drawAccentShape(ctx, 'hexagon', W * 0.88, H * 0.5, 10, secondary, 0.08);
+
+    // Organic curve accents in neon color (top 75% area)
+    drawOrganicCurve(ctx, W * 0.05, H * 0.3, W * 0.2, H * 0.22, W * 0.4, H * 0.35, W * 0.5, H * 0.28, secondary, 0.12, 2);
+    drawOrganicCurve(ctx, W * 0.5, H * 0.28, W * 0.65, H * 0.2, W * 0.8, H * 0.33, W * 0.95, H * 0.25, secondary, 0.1, 1.5);
+    drawOrganicCurve(ctx, W * 0.1, H * 0.65, W * 0.3, H * 0.58, W * 0.6, H * 0.68, W * 0.9, H * 0.6, accent, 0.08, 1.5);
+
     // Logo centered
     await drawLogo(ctx, options.logoUrl, (W - 400) / 2, 340, 400, 400, options.businessName, accent);
 
@@ -768,11 +779,11 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
       ctx.fillText(options.tagline, W / 2, 930);
     }
 
-    // Handle text at bottom
+    // Handle text — above bottom 25% UI overlay zone
     ctx.fillStyle = 'rgba(255,255,255,0.35)';
     ctx.font = '22px sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(`@${options.businessName.toLowerCase().replace(/\s+/g, '')}`, W / 2, H - 200);
+    ctx.fillText(`@${options.businessName.toLowerCase().replace(/\s+/g, '')}`, W / 2, H * 0.73);
 
     ctx.textAlign = 'left';
   };
