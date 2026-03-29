@@ -495,6 +495,15 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
       ctx.fillStyle = isLightColor(primary) ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.7)';
       ctx.fillText(options.tagline, 370, H / 2 + 30);
     }
+
+    // Hexagon accent shapes in accent color (right side, avoiding bottom-left profile zone)
+    drawAccentShape(ctx, 'hexagon', W - 150, H * 0.25, 22, accent, 0.12);
+    drawAccentShape(ctx, 'hexagon', W - 80, H * 0.6, 16, accent, 0.1);
+    drawAccentShape(ctx, 'hexagon', W - 220, H * 0.75, 12, accent, 0.08);
+
+    // Organic curve accent along bottom edge (avoiding bottom-left profile photo zone)
+    drawOrganicCurve(ctx, W * 0.3, H * 0.92, W * 0.5, H * 0.85, W * 0.7, H * 0.95, W * 0.95, H * 0.88, accent, 0.12, 2.5);
+    drawOrganicCurve(ctx, W * 0.35, H * 0.96, W * 0.55, H * 0.9, W * 0.75, H * 0.98, W * 0.9, H * 0.92, accent, 0.08, 1.5);
   };
 
   const drawLinkedInBanner = async (
