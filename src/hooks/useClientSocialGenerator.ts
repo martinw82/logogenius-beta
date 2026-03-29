@@ -549,6 +549,25 @@ export function useClientSocialGenerator(): UseClientSocialGeneratorReturn {
     ctx.closePath();
     ctx.fill();
 
+    // Prominent secondary color accent area (larger geometric block)
+    ctx.fillStyle = `rgba(${sr.r}, ${sr.g}, ${sr.b}, 0.06)`;
+    ctx.beginPath();
+    ctx.moveTo(W - 600, 0);
+    ctx.lineTo(W - 350, 0);
+    ctx.lineTo(W - 250, H);
+    ctx.lineTo(W - 500, H);
+    ctx.closePath();
+    ctx.fill();
+
+    // Organic curve accents along top edge
+    drawOrganicCurve(ctx, W * 0.1, H * 0.08, W * 0.3, H * 0.18, W * 0.5, H * 0.05, W * 0.7, H * 0.15, secondary, 0.1, 2);
+    drawOrganicCurve(ctx, W * 0.2, H * 0.12, W * 0.35, H * 0.22, W * 0.55, H * 0.08, W * 0.65, H * 0.18, secondary, 0.07, 1.5);
+
+    // Diamond accent shapes in secondary color (top 90% safe zone)
+    drawAccentShape(ctx, 'diamond', W - 120, H * 0.2, 16, secondary, 0.12);
+    drawAccentShape(ctx, 'diamond', W - 280, H * 0.35, 12, secondary, 0.1);
+    drawAccentShape(ctx, 'diamond', W - 180, H * 0.7, 10, secondary, 0.08);
+
     // Logo left with subtle glow
     const glowGrad = ctx.createRadialGradient(170, H / 2, 30, 170, H / 2, 120);
     glowGrad.addColorStop(0, `rgba(${sr.r}, ${sr.g}, ${sr.b}, 0.08)`);
