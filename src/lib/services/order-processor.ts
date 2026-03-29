@@ -251,8 +251,10 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
         
         // Generate PDF with Puppeteer
         const { generateBrandGuidePDFPuppeteer } = await import('./pdf-generator-puppeteer');
+        const pdfStartTime = Date.now();
         pdfBuffer = await generateBrandGuidePDFPuppeteer(pdfData);
-        console.log(`[${input.orderId}] Puppeteer PDF generated successfully`);
+        const pdfDuration = Date.now() - pdfStartTime;
+        console.log(`[${input.orderId}] Puppeteer PDF generated in ${pdfDuration}ms (${(pdfBuffer.length / 1024).toFixed(1)}KB)`);
       } catch (puppeteerError) {
         console.error(`[${input.orderId}] Puppeteer PDF failed, falling back to jsPDF:`, puppeteerError);
         // Fall through to jsPDF fallback
@@ -263,6 +265,7 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
     if (!pdfBuffer) {
       console.log(`[${input.orderId}] Using jsPDF generator...`);
       try {
+        const pdfStartTime = Date.now();
         pdfBuffer = await generateBrandGuidePDF({
           businessName: input.businessName,
           tagline: orderData.tagline,
@@ -296,6 +299,8 @@ export async function processOrderAssets(input: OrderProcessingInput): Promise<P
           createdAt: new Date(),
           authorEmail: order.customerEmail,
         });
+        const pdfDuration = Date.now() - pdfStartTime;
+        console.log(`[${input.orderId}] jsPDF generated in ${pdfDuration}ms (${(pdfBuffer.length / 1024).toFixed(1)}KB)`);
       } catch (pdfGenError) {
         console.error(`[${input.orderId}] PDF generation error:`, pdfGenError);
         throw pdfGenError;
