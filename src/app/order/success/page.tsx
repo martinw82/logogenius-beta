@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -22,6 +22,23 @@ const TIER_NAMES: Record<string, string> = {
 };
 
 export default function OrderSuccessPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center p-4">
+          <Card className="max-w-md w-full p-8 text-center">
+            <Loader2 className="h-12 w-12 text-blue-500 mx-auto mb-4 animate-spin" />
+            <h1 className="text-2xl font-bold text-slate-900 mb-2">Loading...</h1>
+          </Card>
+        </div>
+      }
+    >
+      <OrderSuccessContent />
+    </Suspense>
+  );
+}
+
+function OrderSuccessContent() {
   const searchParams = useSearchParams();
   const sessionId = searchParams.get("session_id");
 

@@ -112,6 +112,19 @@ export const logoFormSchema = z.object({
   brandArchetype: z.enum(['', ...brandArchetypes, NONE_VALUE]).default('').optional(),
   keyTagline: z.string().max(150, "Key tagline too long (max 150 chars).").optional(),
 
+  // StoryBrand Framework (Miller)
+  storyBrandCustomerProblem: z.string().max(300, "Customer problem too long (max 300 chars).").optional(),
+  storyBrandInternalProblem: z.string().max(200, "Internal problem too long (max 200 chars).").optional(),
+  storyBrandPhilosophicalProblem: z.string().max(200, "Philosophical problem too long (max 200 chars).").optional(),
+  storyBrandPlan: z.string().max(300, "Plan too long (max 300 chars).").optional(),
+  storyBrandSuccessOutcome: z.string().max(200, "Success outcome too long (max 200 chars).").optional(),
+  storyBrandFailureStakes: z.string().max(200, "Failure stakes too long (max 200 chars).").optional(),
+
+  // Goal-Directed Personas (Cooper)
+  personaLifeGoals: z.string().max(200, "Life goals too long (max 200 chars).").optional(),
+  personaExperienceGoals: z.string().max(200, "Experience goals too long (max 200 chars).").optional(),
+  personaEndGoals: z.string().max(200, "End goals too long (max 200 chars).").optional(),
+
   // Web3 Specific Fields
   web3BlockchainFocus: z.enum(['', ...web3BlockchainFocusOptions, NONE_VALUE]).default('').optional(),
   web3ProjectType: z.enum(['', ...web3ProjectTypeOptions, NONE_VALUE]).default('').optional(),
@@ -163,6 +176,19 @@ export type ExtendedLogoGenerationInputs = Omit<GenerateLogoConceptsInput, 'user
   fontOther?: (typeof commonFontList)[number] | '' | typeof NONE_VALUE;
   useOtherFontForLogo?: boolean;
 
+  // StoryBrand Framework (Miller)
+  storyBrandCustomerProblem?: string;
+  storyBrandInternalProblem?: string;
+  storyBrandPhilosophicalProblem?: string;
+  storyBrandPlan?: string;
+  storyBrandSuccessOutcome?: string;
+  storyBrandFailureStakes?: string;
+
+  // Goal-Directed Personas (Cooper)
+  personaLifeGoals?: string;
+  personaExperienceGoals?: string;
+  personaEndGoals?: string;
+
   // Web3 Specific Fields
   web3BlockchainFocus?: (typeof web3BlockchainFocusOptions)[number] | '' | typeof NONE_VALUE;
   web3ProjectType?: (typeof web3ProjectTypeOptions)[number] | '' | typeof NONE_VALUE;
@@ -206,7 +232,16 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     web3TokenSymbolIdea,
     web3CommunityValues,
     web3NftAesthetic,
-    ...rest 
+    storyBrandCustomerProblem,
+    storyBrandInternalProblem,
+    storyBrandPhilosophicalProblem,
+    storyBrandPlan,
+    storyBrandSuccessOutcome,
+    storyBrandFailureStakes,
+    personaLifeGoals,
+    personaExperienceGoals,
+    personaEndGoals,
+    ...rest
   } = formData;
 
   let combinedKeywords = "";
@@ -321,6 +356,19 @@ export async function mapFormDataToAiInput(formData: LogoFormData): Promise<Exte
     useBodyFontForLogo: useBodyFontForLogo,
     fontOther: mapOptionalField(fontOther as (typeof commonFontList)[number] | typeof NONE_VALUE | ''),
     useOtherFontForLogo: useOtherFontForLogo,
+
+    // StoryBrand Framework (Miller)
+    storyBrandCustomerProblem: storyBrandCustomerProblem === '' ? undefined : storyBrandCustomerProblem,
+    storyBrandInternalProblem: storyBrandInternalProblem === '' ? undefined : storyBrandInternalProblem,
+    storyBrandPhilosophicalProblem: storyBrandPhilosophicalProblem === '' ? undefined : storyBrandPhilosophicalProblem,
+    storyBrandPlan: storyBrandPlan === '' ? undefined : storyBrandPlan,
+    storyBrandSuccessOutcome: storyBrandSuccessOutcome === '' ? undefined : storyBrandSuccessOutcome,
+    storyBrandFailureStakes: storyBrandFailureStakes === '' ? undefined : storyBrandFailureStakes,
+
+    // Goal-Directed Personas (Cooper)
+    personaLifeGoals: personaLifeGoals === '' ? undefined : personaLifeGoals,
+    personaExperienceGoals: personaExperienceGoals === '' ? undefined : personaExperienceGoals,
+    personaEndGoals: personaEndGoals === '' ? undefined : personaEndGoals,
 
     // Web3 Specific Fields
     web3BlockchainFocus: mapOptionalField(web3BlockchainFocus as (typeof web3BlockchainFocusOptions)[number] | typeof NONE_VALUE | ''),

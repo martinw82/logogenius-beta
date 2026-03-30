@@ -54,6 +54,7 @@ import { Loader2, Wand2, FileImage, Save, FolderOpen, FileDown, FileUp, ChevronD
 import { BrandArchetypeQuiz } from "./brand-archetype-quiz";
 import type { SuggestFormDetailsOutput } from "@/ai/flows/suggest-form-details";
 import { suggestFormDetails } from "@/ai/flows/suggest-form-details";
+import { buildPromptChainPackage } from "@/lib/services/prompt-chain-builder";
 
 
 interface LogoFormProps {
@@ -114,6 +115,17 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
       brandPillars: "",
       brandArchetype: "",
       keyTagline: "",
+      // StoryBrand defaults
+      storyBrandCustomerProblem: "",
+      storyBrandInternalProblem: "",
+      storyBrandPhilosophicalProblem: "",
+      storyBrandPlan: "",
+      storyBrandSuccessOutcome: "",
+      storyBrandFailureStakes: "",
+      // Persona defaults
+      personaLifeGoals: "",
+      personaExperienceGoals: "",
+      personaEndGoals: "",
       // Web3 defaults
       web3BlockchainFocus: "",
       web3ProjectType: "",
@@ -130,6 +142,32 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
   const handleSubmit = async (data: LogoFormData) => {
     const extendedAiInput = await mapFormDataToAiInput(data);
     await onSubmit(extendedAiInput);
+  };
+
+  const handleExportPrompts = async () => {
+    const isValid = await form.trigger();
+    if (!isValid) {
+      toast({ title: "Validation Error", description: "Please fix the form errors before exporting.", variant: "destructive" });
+      return;
+    }
+    try {
+      const data = form.getValues();
+      const mapped = await mapFormDataToAiInput(data);
+      const pkg = buildPromptChainPackage(mapped);
+      const blob = new Blob([JSON.stringify(pkg, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${data.businessName.replace(/[^a-zA-Z0-9]/g, '-').toLowerCase()}-ai-prompts.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+      toast({ title: "Exported!", description: "AI prompt chain package downloaded." });
+    } catch (error) {
+      console.error("Export error:", error);
+      toast({ title: "Export Failed", description: "Could not generate the prompt package.", variant: "destructive" });
+    }
   };
 
   const handleQuizComplete = (archetype: string, analysis: string, selectedMoodName?: string) => {
@@ -581,6 +619,147 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
                       </FormItem>
                     )}
                   />
+
+                  <div className="border-t pt-6 mt-6">
+                    <h4 className="text-sm font-semibold mb-1">StoryBrand Framework</h4>
+                    <p className="text-xs text-muted-foreground mb-4">Position your customer as the Hero and your brand as the Guide (Donald Miller).</p>
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="storyBrandCustomerProblem"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Customer&apos;s External Problem</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="e.g., Small businesses can't afford professional branding agencies" className="resize-none" rows={2} {...field} />
+                            </FormControl>
+                            <FormDescription>What tangible problem does your customer face?</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="storyBrandInternalProblem"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Customer&apos;s Internal Problem</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="e.g., They feel embarrassed by their DIY logo and unprofessional image" className="resize-none" rows={2} {...field} />
+                            </FormControl>
+                            <FormDescription>How does this problem make them feel?</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="storyBrandPhilosophicalProblem"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Philosophical Problem</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="e.g., Every business deserves a professional brand identity regardless of budget" className="resize-none" rows={2} {...field} />
+                            </FormControl>
+                            <FormDescription>Why is it just plain wrong that this problem exists?</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="storyBrandPlan"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Your Plan</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="e.g., 1. Fill out brand brief 2. Receive AI-generated concepts 3. Get a complete brand package" className="resize-none" rows={2} {...field} />
+                            </FormControl>
+                            <FormDescription>Your simple 3-step plan to solve their problem.</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="storyBrandSuccessOutcome"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Success Outcome</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="e.g., A polished, cohesive brand that builds trust and attracts customers" className="resize-none" rows={2} {...field} />
+                            </FormControl>
+                            <FormDescription>What does success look like for your customer?</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="storyBrandFailureStakes"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Failure Stakes</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="e.g., They continue looking unprofessional, losing customers to better-branded competitors" className="resize-none" rows={2} {...field} />
+                            </FormControl>
+                            <FormDescription>What&apos;s at stake if they don&apos;t act?</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="border-t pt-6 mt-6">
+                    <h4 className="text-sm font-semibold mb-1">Customer Goals</h4>
+                    <p className="text-xs text-muted-foreground mb-4">Define your ideal customer by their goals, not demographics (Alan Cooper).</p>
+                    <div className="space-y-4">
+                      <FormField
+                        control={form.control}
+                        name="personaLifeGoals"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Life Goals</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="e.g., Be seen as a successful, credible business owner" className="resize-none" rows={2} {...field} />
+                            </FormControl>
+                            <FormDescription>What does your ideal customer aspire to be?</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="personaExperienceGoals"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>Experience Goals</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="e.g., Feel confident and proud when sharing their brand materials" className="resize-none" rows={2} {...field} />
+                            </FormControl>
+                            <FormDescription>How do they want to feel when using your product/service?</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="personaEndGoals"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel>End Goals</FormLabel>
+                            <FormControl>
+                              <Textarea placeholder="e.g., Have a complete, professional brand package ready to use across all channels" className="resize-none" rows={2} {...field} />
+                            </FormControl>
+                            <FormDescription>What do they want to accomplish with your product/service?</FormDescription>
+                            <FormMessage />
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                  </div>
+
                 </AccordionContent>
               </AccordionItem>
 
@@ -1404,16 +1583,22 @@ export function LogoForm({ onSubmit, isLoading, initialValues }: LogoFormProps) 
             </div>
 
 
-            <Button type="submit" className="w-full !mt-8" disabled={isLoading || isAiFilling}>
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                  Generating Logos...
-                </>
-              ) : (
-                "Generate Logos & Brand Narrative"
-              )}
-            </Button>
+            <div className="flex gap-3 !mt-8">
+              <Button type="submit" className="flex-1" disabled={isLoading || isAiFilling}>
+                {isLoading ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                    Generating Logos...
+                  </>
+                ) : (
+                  "Generate Logos & Brand Narrative"
+                )}
+              </Button>
+              <Button type="button" variant="outline" className="flex-1" disabled={isLoading || isAiFilling} onClick={handleExportPrompts}>
+                <FileDown className="w-4 h-4 mr-2" />
+                Export AI Prompts
+              </Button>
+            </div>
           </form>
         </Form>
       </CardContent>
